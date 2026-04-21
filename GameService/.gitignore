@@ -1,0 +1,52 @@
+# ─────────────────────────────
+# Build outputs
+# ─────────────────────────────
+bin/
+obj/
+out/
+
+# ─────────────────────────────
+# User secrets / environment
+# ─────────────────────────────
+.env
+*.env
+
+# ─────────────────────────────
+# Visual Studio / Rider
+# ─────────────────────────────
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# ─────────────────────────────
+# Logs
+# ─────────────────────────────
+*.log
+
+# ─────────────────────────────
+# Docker
+# ─────────────────────────────
+docker-compose.override.yml
+
+# ─────────────────────────────
+# EF Core
+# ─────────────────────────────
+**/Migrations/*Designer.cs
+**/Migrations/*.Designer.cs
+**/Migrations/*.snapshot
+
+# (IMPORTANT: keep real migrations, ignore only generated artifacts if needed)
+
+# ─────────────────────────────
+# OS files
+# ─────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─────────────────────────────
+# Publish folders (optional if you use /out)
+# ─────────────────────────────
+publish/
