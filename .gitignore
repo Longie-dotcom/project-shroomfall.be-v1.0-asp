@@ -1,18 +1,41 @@
 # ─────────────────────────────
-# Build outputs
+# 🔧 .NET Build Outputs
 # ─────────────────────────────
-bin/
-obj/
+**/bin/
+**/obj/
 out/
+publish/
 
 # ─────────────────────────────
-# User secrets / environment
+# 🔐 Environment / Secrets (CRITICAL)
 # ─────────────────────────────
 .env
 *.env
+.env.*
+compose.env
+docker.env
+
+# keep local-only overrides out of git
+docker-compose.override.yml
+compose.override.yml
 
 # ─────────────────────────────
-# Visual Studio / Rider
+# 🐳 Docker runtime artifacts
+# ─────────────────────────────
+*.pid
+*.log
+
+# ─────────────────────────────
+# 🧪 EF Core (keep real migrations, ignore noise)
+# ─────────────────────────────
+**/Migrations/*Designer.cs
+**/Migrations/*.Designer.cs
+**/Migrations/*.Snapshot.cs
+
+# (DO NOT ignore real migration files)
+
+# ─────────────────────────────
+# 🖥️ Visual Studio / Rider / IDE
 # ─────────────────────────────
 .vs/
 .idea/
@@ -22,31 +45,24 @@ out/
 *.sln.docstates
 
 # ─────────────────────────────
-# Logs
-# ─────────────────────────────
-*.log
-
-# ─────────────────────────────
-# Docker
-# ─────────────────────────────
-docker-compose.override.yml
-
-# ─────────────────────────────
-# EF Core
-# ─────────────────────────────
-**/Migrations/*Designer.cs
-**/Migrations/*.Designer.cs
-**/Migrations/*.snapshot
-
-# (IMPORTANT: keep real migrations, ignore only generated artifacts if needed)
-
-# ─────────────────────────────
-# OS files
+# 🪟 Windows / macOS system files
 # ─────────────────────────────
 .DS_Store
 Thumbs.db
 
 # ─────────────────────────────
-# Publish folders (optional if you use /out)
+# ⚙️ Local scripts (IMPORTANT for your setup)
 # ─────────────────────────────
-publish/
+*.bat
+*.cmd
+*.sh
+
+# ─────────────────────────────
+# 📦 Node / optional future frontend safety
+# ─────────────────────────────
+node_modules/
+
+# ─────────────────────────────
+# 🚀 GitHub Actions / CI local caches
+# ─────────────────────────────
+.github/.cache/
