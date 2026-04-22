@@ -28,7 +28,6 @@ compose.override.yml
 # ─────────────────────────────
 # 🧪 EF Core (SAFE)
 # ─────────────────────────────
-**/Migrations/*Designer.cs
 **/Migrations/*ModelSnapshot.cs
 
 # ─────────────────────────────
