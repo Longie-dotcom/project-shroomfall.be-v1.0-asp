@@ -1,6 +1,7 @@
 ﻿using Infrastructure.Persistence;
 using Infrastructure.Repository.Interface;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Infrastructure.Repository.Implementation
 {
@@ -8,6 +9,7 @@ namespace Infrastructure.Repository.Implementation
     {
         #region Attributes
         private readonly RelationalDB context;
+        private readonly IServiceProvider serviceProvider;
         private readonly Dictionary<Type, object> repositories = new();
 
         private IDbContextTransaction? transaction;
@@ -16,9 +18,12 @@ namespace Infrastructure.Repository.Implementation
         #region Properties
         #endregion
 
-        public RelationalUoW(RelationalDB context)
+        public RelationalUoW(
+            RelationalDB context, 
+            IServiceProvider serviceProvider)
         {
             this.context = context;
+            this.serviceProvider = serviceProvider;
         }
 
         #region Methods
@@ -28,13 +33,11 @@ namespace Infrastructure.Repository.Implementation
 
             if (!repositories.TryGetValue(type, out var repo))
             {
-                repo = Activator.CreateInstance(typeof(T), context)
-                    ?? throw new InvalidOperationException($"Cannot create {type.Name}");
-
-                repositories[type] = repo;
+                repo = serviceProvider.GetRequiredService<T>();
+                repositories[type] = repo!;
             }
 
-            return (T)repo;
+            return (T)repo!;
         }
 
         public async Task BeginTransactionAsync()
