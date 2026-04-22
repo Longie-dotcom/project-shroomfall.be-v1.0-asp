@@ -20,12 +20,9 @@ namespace Infrastructure.Persistence
         {
             var optionsBuilder = new DbContextOptionsBuilder<RelationalDB>();
 
-            // Fallback connection string for migrations (LOCAL DEV ONLY)
-            var connectionString =
-                Environment.GetEnvironmentVariable("SQL_CONNECTION_STRING")
-                ?? "Server=localhost;Database=GameServiceDB;Trusted_Connection=True;TrustServerCertificate=True;";
-
-            optionsBuilder.UseSqlServer(connectionString);
+            optionsBuilder.UseSqlServer(
+                "Server=localhost;Database=GameServiceDB;Trusted_Connection=True;TrustServerCertificate=True;"
+            );
 
             return new RelationalDB(optionsBuilder.Options);
         }
