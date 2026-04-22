@@ -51,18 +51,13 @@ jobs:
           script: |
             set -e
 
+            cd /root/Shroomfall   # folder where compose.yml exists
+
             echo "Pulling latest image..."
             docker pull longdong123/shroomfall-gamems:latest
 
-            echo "Restarting container..."
-
-            docker stop gamems || true
-            docker rm gamems || true
-
-            docker run -d \
-              --name gamems \
-              -p 5000:8080 \
-              --restart unless-stopped \
-              longdong123/shroomfall-gamems:latest
+            echo "Restarting services with compose..."
+            docker compose down
+            docker compose up -d --remove-orphans
 
             echo "Deployment completed"
