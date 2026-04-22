@@ -28,7 +28,7 @@ namespace Infrastructure
             services.AddDbContext<RelationalDB>(options =>
                 options.UseSqlServer(
                     sqlConnection,
-                    x => x.MigrationsAssembly(typeof(RelationalDB).Assembly.GetName().Name)
+                    x => x.MigrationsAssembly(typeof(RelationalDB).Assembly.FullName)
                 ));
 
             // ─────────────────────────────
