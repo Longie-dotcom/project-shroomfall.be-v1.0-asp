@@ -51,7 +51,7 @@ jobs:
           script: |
             set -e
 
-            cd /root/Shroomfall   # folder where compose.yml exists
+            cd /root   # folder where compose.yml exists
 
             echo "Pulling latest image..."
             docker pull longdong123/shroomfall-gamems:latest
