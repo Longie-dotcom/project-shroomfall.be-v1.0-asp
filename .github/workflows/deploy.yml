@@ -24,9 +24,6 @@ jobs:
       - name: Build
         run: dotnet build GameService/API/API.csproj --configuration Release --no-restore
 
-      - name: Publish
-        run: dotnet publish GameService/API/API.csproj -c Release -o out
-
       - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
