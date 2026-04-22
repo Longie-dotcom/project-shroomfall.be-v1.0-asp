@@ -3,7 +3,7 @@ version: "3.9"
 services:
   gamems:
     image: longdong123/shroomfall-gamems:latest
-    container_name: gamems-api
+    container_name: gamems
     ports:
       - "5000:8080"
     depends_on:

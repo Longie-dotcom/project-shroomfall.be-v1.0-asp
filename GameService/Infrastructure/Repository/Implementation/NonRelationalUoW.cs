@@ -5,7 +5,7 @@ using MongoDB.Driver;
 
 namespace Infrastructure.Repository.Implementation
 {
-    public class NonRelationalUoW
+    public class NonRelationalUoW : INonRelationalUoW
     {
         #region Attributes
         private readonly NonRelationalDB context;

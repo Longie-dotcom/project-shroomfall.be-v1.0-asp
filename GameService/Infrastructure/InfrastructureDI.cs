@@ -48,6 +48,9 @@ namespace Infrastructure
             // ─────────────────────────────
             // REPOSITORIES
             // ─────────────────────────────
+            services.AddScoped<IRelationalUoW, RelationalUoW>();
+            services.AddScoped<INonRelationalUoW, NonRelationalUoW>();
+
             services.AddScoped<IUserRepository, UserRepository>();
 
             // ─────────────────────────────
