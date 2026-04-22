@@ -28,7 +28,7 @@ jobs:
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Build Docker image
-        run: docker build -t longdong123/shroomfall-gamems:latest ./GameService
+        run: docker build -t longdong123/shroomfall-gamems:latest .
 
       - name: Push Docker image
         run: docker push longdong123/shroomfall-gamems:latest
