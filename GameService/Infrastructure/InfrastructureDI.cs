@@ -26,7 +26,10 @@ namespace Infrastructure
             var sqlConnection = Environment.GetEnvironmentVariable("SQL_CONNECTION_STRING");
 
             services.AddDbContext<RelationalDB>(options =>
-                options.UseSqlServer(sqlConnection));
+                options.UseSqlServer(
+                    sqlConnection,
+                    x => x.MigrationsAssembly(typeof(RelationalDB).Assembly.GetName().Name)
+                ));
 
             // ─────────────────────────────
             // MONGODB (ENV)

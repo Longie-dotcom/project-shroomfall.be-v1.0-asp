@@ -62,6 +62,7 @@ namespace Application.Service.Implementation
             user.SetRefreshToken(refreshToken, tokenGenerator.GetRefreshTokenExpiry());
 
             // Apply persistence
+            await relational.BeginTransactionAsync();
             await relational.CommitAsync();
 
             return new TokenDTO
@@ -106,6 +107,7 @@ namespace Application.Service.Implementation
 
             // Apply persistence
             await userRepo.AddAsync(user);
+            await relational.BeginTransactionAsync();
             await relational.CommitAsync();
 
             return new TokenDTO
@@ -135,6 +137,7 @@ namespace Application.Service.Implementation
             user.SetRefreshToken(refreshToken, tokenGenerator.GetRefreshTokenExpiry());
 
             // Apply persistence
+            await relational.BeginTransactionAsync();
             await relational.CommitAsync();
 
             return new TokenDTO
@@ -164,6 +167,7 @@ namespace Application.Service.Implementation
             user.SetRefreshToken(newRefreshToken, tokenGenerator.GetRefreshTokenExpiry());
 
             // Apply persistence
+            await relational.BeginTransactionAsync();
             await relational.CommitAsync();
 
             return new TokenDTO
@@ -195,6 +199,7 @@ namespace Application.Service.Implementation
             );
 
             // Apply persistence
+            await relational.BeginTransactionAsync();
             await relational.CommitAsync();
         }
         #endregion
