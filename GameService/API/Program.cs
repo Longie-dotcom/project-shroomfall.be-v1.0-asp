@@ -1,7 +1,9 @@
 using API.Middleware;
 using Application;
 using Infrastructure;
+using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -54,6 +56,37 @@ namespace API
             // BUILD
             // ─────────────────────────────
             var app = builder.Build();
+
+            // ─────────────────────────────
+            // MIGRATE
+            // ─────────────────────────────
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<RelationalDB>();
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+                var retries = 5;
+                while (retries > 0)
+                {
+                    try
+                    {
+                        logger.LogInformation("Applying database migrations...");
+                        db.Database.Migrate();
+                        logger.LogInformation("Database migration completed.");
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        retries--;
+                        logger.LogWarning(ex, "Migration failed. Retrying...");
+
+                        if (retries == 0)
+                            throw;
+
+                        Thread.Sleep(5000);
+                    }
+                }
+            }
 
             // ─────────────────────────────
             // MIDDLEWARE PIPELINE

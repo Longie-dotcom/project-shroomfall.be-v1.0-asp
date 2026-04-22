@@ -19,19 +19,19 @@ jobs:
           dotnet-version: 9.0.x
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore GameService/API/API.csproj
 
       - name: Build
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build GameService/API/API.csproj --configuration Release --no-restore
 
       - name: Publish
-        run: dotnet publish API/API.csproj -c Release -o out
+        run: dotnet publish GameService/API/API.csproj -c Release -o out
 
       - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Build Docker image
-        run: docker build -t longdong123/shroomfall-gamems:latest .
+        run: docker build -t longdong123/shroomfall-gamems:latest ./GameService
 
       - name: Push Docker image
         run: docker push longdong123/shroomfall-gamems:latest
@@ -53,18 +53,6 @@ jobs:
 
             echo "Pulling latest image..."
             docker pull longdong123/shroomfall-gamems:latest
-
-            echo "Running database migration..."
-            docker run --rm \
-              --network shroomfall_default \
-              -e SQL_CONNECTION_STRING="${{ secrets.SQL_CONNECTION_STRING }}" \
-              -e MONGO_CONNECTION_STRING="${{ secrets.MONGO_CONNECTION_STRING }}" \
-              -e MONGO_DATABASE_NAME="${{ secrets.MONGO_DATABASE_NAME }}" \
-              -e JWT_KEY="${{ secrets.JWT_KEY }}" \
-              -e JWT_ISSUER="${{ secrets.JWT_ISSUER }}" \
-              -e JWT_AUDIENCE="${{ secrets.JWT_AUDIENCE }}" \
-              longdong123/shroomfall-gamems:latest \
-              dotnet ef database update --project Infrastructure --startup-project API
 
             echo "Restarting container..."
 

@@ -7,7 +7,7 @@ out/
 publish/
 
 # ─────────────────────────────
-# 🔐 Environment / Secrets (CRITICAL)
+# 🔐 Environment / Secrets
 # ─────────────────────────────
 .env
 *.env
@@ -15,27 +15,24 @@ publish/
 compose.env
 docker.env
 
-# keep local-only overrides out of git
+# docker overrides only
 docker-compose.override.yml
 compose.override.yml
 
 # ─────────────────────────────
-# 🐳 Docker runtime artifacts
+# 🐳 Docker runtime
 # ─────────────────────────────
 *.pid
 *.log
 
 # ─────────────────────────────
-# 🧪 EF Core (keep real migrations, ignore noise)
+# 🧪 EF Core (SAFE)
 # ─────────────────────────────
 **/Migrations/*Designer.cs
-**/Migrations/*.Designer.cs
-**/Migrations/*.Snapshot.cs
-
-# (DO NOT ignore real migration files)
+**/Migrations/*ModelSnapshot.cs
 
 # ─────────────────────────────
-# 🖥️ Visual Studio / Rider / IDE
+# 🖥️ IDE
 # ─────────────────────────────
 .vs/
 .idea/
@@ -45,24 +42,24 @@ compose.override.yml
 *.sln.docstates
 
 # ─────────────────────────────
-# 🪟 Windows / macOS system files
+# 🪟 OS
 # ─────────────────────────────
 .DS_Store
 Thumbs.db
 
 # ─────────────────────────────
-# ⚙️ Local scripts (IMPORTANT for your setup)
-# ─────────────────────────────
-*.bat
-*.cmd
-*.sh
-
-# ─────────────────────────────
-# 📦 Node / optional future frontend safety
+# 📦 Node (future-proof)
 # ─────────────────────────────
 node_modules/
 
 # ─────────────────────────────
-# 🚀 GitHub Actions / CI local caches
+# 🚀 CI cache
 # ─────────────────────────────
 .github/.cache/
+
+# ─────────────────────────────
+# ⚙️ Local scripts (exclude from repo)
+# ─────────────────────────────
+GameService/*.bat
+GameService/*.cmd
+GameService/*.sh
