@@ -36,7 +36,6 @@ namespace Infrastructure.Persistence
                 entity.HasKey(e => e.ID);
 
                 entity.Property(e => e.ID)
-                    .HasMaxLength(50)
                     .IsRequired();
 
                 // ─────────────────────────────
