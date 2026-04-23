@@ -193,7 +193,7 @@ namespace Application.Service.Implementation
 
         public async Task<IEnumerable<UserDTO>> GetUser()
         {
-            var users = relational.GetRepository<IUserRepository>()
+            var users = await relational.GetRepository<IUserRepository>()
                 .GetAllAsync();
 
             return mapper.Map<IEnumerable<UserDTO>>(users);
