@@ -23,59 +23,91 @@ namespace Infrastructure.Persistence
         {
             base.OnModelCreating(modelBuilder);
 
-            #region Identity
             modelBuilder.Entity<User>(entity =>
             {
+                // ─────────────────────────────
+                // Table
+                // ─────────────────────────────
+                entity.ToTable("Users");
+
                 // ─────────────────────────────
                 // Primary Key
                 // ─────────────────────────────
                 entity.HasKey(e => e.ID);
 
-                // ─────────────────────────────
-                // Required fields
-                // ─────────────────────────────
                 entity.Property(e => e.ID)
+                    .HasMaxLength(50)
                     .IsRequired();
 
+                // ─────────────────────────────
+                // Core fields
+                // ─────────────────────────────
                 entity.Property(e => e.PlayerID)
+                    .HasMaxLength(50)
                     .IsRequired();
 
                 entity.Property(e => e.Name)
+                    .HasMaxLength(100)
                     .IsRequired();
 
                 // ─────────────────────────────
-                // Optional profile fields
+                // Profile
                 // ─────────────────────────────
                 entity.Property(e => e.Dob)
                     .IsRequired(false);
 
                 entity.Property(e => e.Gender)
+                    .HasConversion<string>()
+                    .HasMaxLength(20)
                     .IsRequired(false);
 
                 // ─────────────────────────────
-                // Auth fields
+                // Auth
                 // ─────────────────────────────
                 entity.Property(e => e.Email)
+                    .HasMaxLength(255)
                     .IsRequired(false);
 
                 entity.Property(e => e.PasswordHash)
+                    .HasMaxLength(255)
                     .IsRequired(false);
 
                 entity.Property(e => e.SteamID)
+                    .HasMaxLength(50)
                     .IsRequired(false);
 
                 // ─────────────────────────────
                 // Tokens
                 // ─────────────────────────────
                 entity.Property(e => e.RefreshToken)
+                    .HasMaxLength(500)
                     .IsRequired(false);
 
                 entity.Property(e => e.RefreshTokenExpiry)
                     .IsRequired(false);
 
                 // ─────────────────────────────
+                // Timestamps
+                // ─────────────────────────────
+                entity.Property(e => e.CreatedAt)
+                    .IsRequired()
+                    .HasDefaultValueSql("GETUTCDATE()");
+
+                entity.Property(e => e.LastLogin)
+                    .IsRequired();
+
+                // ─────────────────────────────
+                // Concurrency
+                // ─────────────────────────────
+                entity.Property(e => e.RowVersion)
+                    .IsRowVersion();
+
+                // ─────────────────────────────
                 // Indexes
                 // ─────────────────────────────
+                entity.HasIndex(e => e.PlayerID)
+                    .IsUnique();
+
                 entity.HasIndex(e => e.Email)
                     .IsUnique()
                     .HasFilter("[Email] IS NOT NULL");
@@ -84,7 +116,6 @@ namespace Infrastructure.Persistence
                     .IsUnique()
                     .HasFilter("[SteamID] IS NOT NULL");
             });
-            #endregion
         }
         #endregion
     }

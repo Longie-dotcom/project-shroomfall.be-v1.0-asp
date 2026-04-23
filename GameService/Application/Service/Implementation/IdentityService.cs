@@ -1,7 +1,9 @@
-﻿using Application.ApplicationException;
-using Application.DTO;
+﻿using Application.DTO;
 using Application.Service.Interface;
+using AutoMapper;
+using Domain.DomainException;
 using Domain.IdentityDomain;
+using Domain.Shared;
 using Infrastructure.Repository.Interface;
 using Infrastructure.Security;
 
@@ -13,6 +15,7 @@ namespace Application.Service.Implementation
         private readonly IRelationalUoW relational;
         private readonly TokenGenerator tokenGenerator;
         private readonly SteamValidator steamValidator;
+        private readonly IMapper mapper;
         #endregion
 
         #region Properties
@@ -21,30 +24,35 @@ namespace Application.Service.Implementation
         public IdentityService(
             IRelationalUoW relational,
             TokenGenerator tokenGenerator,
-            SteamValidator steamValidator)
+            SteamValidator steamValidator,
+            IMapper mapper)
         {
             this.relational = relational;
             this.tokenGenerator = tokenGenerator;
             this.steamValidator = steamValidator;
+            this.mapper = mapper;
         }
 
         #region Methods
         public async Task<TokenDTO> SteamAuth(SteamAuthDTO dto)
         {
+            // Resolve repositories
             var userRepo = relational.GetRepository<IUserRepository>();
 
             // Validate steam ticket
             var steamId = await steamValidator.ValidateTicket(dto.SteamTicket);
-
             if (string.IsNullOrEmpty(steamId))
-                throw new BadRequest("Invalid Steam ticket");
+                throw new BadRequest(FailedCode.Steam_InvalidTicket);
 
             // Check existence
             var user = await userRepo.GetBySteamIdAsync(steamId);
 
-            // Apply domain - Create user
+            // Steam authentication logic
+            var accessToken = "";
+            var refreshToken = "";
             if (user == null)
             {
+                // Apply domain - Create user
                 user = new User(
                     id: Guid.NewGuid().ToString(),
                     playerId: Guid.NewGuid().ToString(),
@@ -52,18 +60,24 @@ namespace Application.Service.Implementation
                     steamId: steamId
                 );
 
+                // Apply domain - Login
+                user.UpdateLastLogin();
+                (accessToken, refreshToken) = GenerateTokens(user);
+
+                // Apply persistence
+                await relational.BeginTransactionAsync();
                 await userRepo.AddAsync(user);
+                await relational.CommitAsync();
             }
+            else
+            {
+                // Apply domain - Login
+                user.UpdateLastLogin();
+                (accessToken, refreshToken) = GenerateTokens(user);
 
-            // Apply domain - Login
-            user.UpdateLastLogin();
-            var accessToken = tokenGenerator.GenerateAccessToken(user.ID, user.SteamID!);
-            var refreshToken = tokenGenerator.GenerateRefreshToken();
-            user.SetRefreshToken(refreshToken, tokenGenerator.GetRefreshTokenExpiry());
-
-            // Apply persistence
-            await relational.BeginTransactionAsync();
-            await relational.CommitAsync();
+                // Apply persistence
+                await relational.SaveChangesAsync();
+            }
 
             return new TokenDTO
             {
@@ -78,36 +92,34 @@ namespace Application.Service.Implementation
             // Resolve repositories
             var userRepo = relational.GetRepository<IUserRepository>();
 
-            // Validate existence
-            if (await userRepo.EmailExistsAsync(dto.Email))
-                throw new BadRequest(
-                    "Email already exists");
-
-            // Apply domain - Create user
+            // Validate fields
             if (string.IsNullOrWhiteSpace(dto.Email))
-                throw new BadRequest(
-                    "Email required");
+                throw new BadRequest(FailedCode.User_EmailRequired);
 
             if (string.IsNullOrWhiteSpace(dto.Password))
-                throw new BadRequest(
-                    "Password required");
+                throw new BadRequest(FailedCode.User_PasswordRequired);
 
+            // Validate email existence
+            var email = dto.Email.Trim().ToLowerInvariant();
+            if (await userRepo.EmailExistsAsync(email))
+                throw new BadRequest(FailedCode.User_EmailAlreadyExists);
+
+            // Apply domain - Create user
             var user = new User(
                 id: Guid.NewGuid().ToString(),
                 playerId: Guid.NewGuid().ToString(),
                 name: dto.Name ?? "Player",
-                email: dto.Email
+                email: email
             );
             user.SetPassword(Password.Create(dto.Password));
 
-            // Apply domain - Set token
-            var accessToken = tokenGenerator.GenerateAccessToken(user.ID, user.SteamID ?? "");
-            var refreshToken = tokenGenerator.GenerateRefreshToken();
-            user.SetRefreshToken(refreshToken, tokenGenerator.GetRefreshTokenExpiry());
+            // Apply domain - Login and set token
+            user.UpdateLastLogin();
+            (var accessToken, var refreshToken) = GenerateTokens(user);
 
             // Apply persistence
-            await userRepo.AddAsync(user);
             await relational.BeginTransactionAsync();
+            await userRepo.AddAsync(user);
             await relational.CommitAsync();
 
             return new TokenDTO
@@ -123,22 +135,26 @@ namespace Application.Service.Implementation
             // Resolve repositories
             var userRepo = relational.GetRepository<IUserRepository>();
 
-            // Validate authentication
-            var user = await userRepo.GetByEmailAsync(dto.Email);
+            // Validate fields
+            if (string.IsNullOrWhiteSpace(dto.Email))
+                throw new BadRequest(FailedCode.User_EmailRequired);
 
-            if (user == null || !user.VerifyPassword(dto.Password))
-                throw new BadRequest(
-                    "Invalid credentials");
+            if (string.IsNullOrWhiteSpace(dto.Password))
+                throw new BadRequest(FailedCode.User_PasswordRequired);
+
+            // Validate authentication
+            var email = dto.Email.Trim().ToLowerInvariant();
+            var user = await userRepo.GetByEmailAsync(email);
+            if (user == null)
+                throw new Unauthorized(FailedCode.User_InvalidCredentials);
+            user.VerifyPassword(dto.Password);
 
             // Apply domain - Login and set token
             user.UpdateLastLogin();
-            var accessToken = tokenGenerator.GenerateAccessToken(user.ID, user.SteamID ?? "");
-            var refreshToken = tokenGenerator.GenerateRefreshToken();
-            user.SetRefreshToken(refreshToken, tokenGenerator.GetRefreshTokenExpiry());
+            (var accessToken, var refreshToken) = GenerateTokens(user);
 
             // Apply persistence
-            await relational.BeginTransactionAsync();
-            await relational.CommitAsync();
+            await relational.SaveChangesAsync();
 
             return new TokenDTO
             {
@@ -156,25 +172,31 @@ namespace Application.Service.Implementation
 
             // Validate authentication
             var user = await userRepo.GetByIdAsync(userId);
+            if (user == null)
+                throw new NotFound(FailedCode.User_NotFound);
 
-            if (user == null || !user.IsRefreshTokenValid(dto.RefreshToken))
-                throw new BadRequest(
-                    "Invalid refresh token");
+            if (!user.IsRefreshTokenValid(dto.RefreshToken))
+                throw new BadRequest(FailedCode.User_InvalidRefreshToken);
 
             // Apply domain - Set token
-            var accessToken = tokenGenerator.GenerateAccessToken(user.ID, user.SteamID ?? "");
-            var newRefreshToken = tokenGenerator.GenerateRefreshToken();
-            user.SetRefreshToken(newRefreshToken, tokenGenerator.GetRefreshTokenExpiry());
-
+            (var accessToken, var newRefreshToken) = GenerateTokens(user);
+            
             // Apply persistence
-            await relational.BeginTransactionAsync();
-            await relational.CommitAsync();
+            await relational.SaveChangesAsync();
 
             return new TokenDTO
             {
                 AccessToken = accessToken,
                 RefreshToken = newRefreshToken
             };
+        }
+
+        public async Task<IEnumerable<UserDTO>> GetUser()
+        {
+            var users = relational.GetRepository<IUserRepository>()
+                .GetAllAsync();
+
+            return mapper.Map<IEnumerable<UserDTO>>(users);
         }
 
         public async Task UpdateProfile(
@@ -186,10 +208,8 @@ namespace Application.Service.Implementation
 
             // Validate existence
             var user = await userRepo.GetByIdAsync(userId);
-            
             if (user == null)
-                throw new NotFound(
-                    "User not found");
+                throw new NotFound(FailedCode.User_NotFound);
 
             // Apply domain - Update profile
             user.UpdateProfile(
@@ -199,8 +219,16 @@ namespace Application.Service.Implementation
             );
 
             // Apply persistence
-            await relational.BeginTransactionAsync();
-            await relational.CommitAsync();
+            await relational.SaveChangesAsync();
+        }
+
+        private (string access, string refresh) GenerateTokens(User user)
+        {
+            var access = tokenGenerator.GenerateAccessToken(user.ID, user.SteamID ?? "");
+            var refresh = tokenGenerator.GenerateRefreshToken();
+            user.SetRefreshToken(refresh, tokenGenerator.GetRefreshTokenExpiry());
+
+            return (access, refresh);
         }
         #endregion
     }

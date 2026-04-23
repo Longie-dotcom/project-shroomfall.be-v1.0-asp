@@ -17,6 +17,8 @@ namespace Application.Service.Interface
             string userId,
             RefreshTokenDTO dto);
 
+        Task<IEnumerable<UserDTO>> GetUser();
+
         Task UpdateProfile(
             string userId,
             UpdateProfileDTO dto);

@@ -2,6 +2,7 @@
 using Application.DTO;
 using Application.Service.Interface;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
@@ -51,6 +52,13 @@ namespace API.Controllers
             var (userId, _) = ClaimReader.GetIdentity(User);
 
             var result = await identityService.RefreshToken(userId, dto);
+            return Ok(result);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetUsers()
+        {
+            var result = await identityService.GetUser();
             return Ok(result);
         }
 

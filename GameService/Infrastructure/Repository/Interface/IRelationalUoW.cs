@@ -7,6 +7,8 @@
         Task BeginTransactionAsync();
 
         Task<int> CommitAsync();
+
+        Task SaveChangesAsync();
     }
 
     public interface IRelationalRepository

@@ -1,4 +1,5 @@
 ﻿using Domain.DomainException;
+using Domain.Shared;
 
 namespace Domain.IdentityDomain
 {
@@ -21,6 +22,8 @@ namespace Domain.IdentityDomain
         public DateTime CreatedAt { get; private set; }
         public DateTime LastLogin { get; private set; }
 
+        public byte[] RowVersion { get; private set; }
+
         public string? RefreshToken { get; private set; }
         public DateTime? RefreshTokenExpiry { get; private set; }
         #endregion
@@ -38,6 +41,18 @@ namespace Domain.IdentityDomain
             string? passwordHash = null, 
             string? steamId = null)
         {
+            if (string.IsNullOrWhiteSpace(id))
+                throw new BadRequest(FailedCode.Invalid_Id);
+
+            if (string.IsNullOrWhiteSpace(playerId))
+                throw new BadRequest(FailedCode.User_InvalidPlayerId);
+
+            if (string.IsNullOrWhiteSpace(name))
+                throw new BadRequest(FailedCode.User_InvalidName);
+
+            if (string.IsNullOrWhiteSpace(email) && string.IsNullOrWhiteSpace(steamId))
+                throw new BadRequest(FailedCode.User_MissingAuth);
+
             ID = id;
             PlayerID = playerId;
 
@@ -56,13 +71,15 @@ namespace Domain.IdentityDomain
             PasswordHash = password.Hash;
         }
 
-        public bool VerifyPassword(string plainPassword)
+        public void VerifyPassword(string plainPassword)
         {
             if (PasswordHash == null)
-                return false;
+                throw new Unauthorized(FailedCode.User_PasswordNotSet);
 
             var password = Password.FromHash(PasswordHash);
-            return password.Verify(plainPassword);
+
+            if (!password.Verify(plainPassword))
+                throw new Unauthorized(FailedCode.User_InvalidCredentials);
         }
 
         public void UpdateLastLogin()
@@ -79,6 +96,7 @@ namespace Domain.IdentityDomain
         public bool IsRefreshTokenValid(string token)
         {
             return RefreshToken == token &&
+                   RefreshTokenExpiry.HasValue &&
                    RefreshTokenExpiry > DateTime.UtcNow;
         }
 
@@ -90,8 +108,7 @@ namespace Domain.IdentityDomain
             if (name != null)
             {
                 if (string.IsNullOrWhiteSpace(name))
-                    throw new BadRequest(
-                        "Invalid name");
+                    throw new BadRequest(FailedCode.User_InvalidName);
 
                 Name = name;
             }
@@ -99,8 +116,7 @@ namespace Domain.IdentityDomain
             if (dob.HasValue)
             {
                 if (dob.Value == default)
-                    throw new BadRequest(
-                        "Invalid DOB");
+                    throw new BadRequest(FailedCode.User_InvalidDob);
 
                 Dob = dob.Value;
             }
@@ -108,8 +124,7 @@ namespace Domain.IdentityDomain
             if (gender != null)
             {
                 if (string.IsNullOrWhiteSpace(gender))
-                    throw new BadRequest(
-                        "Invalid gender");
+                    throw new BadRequest(FailedCode.User_InvalidGender);
 
                 Gender = gender;
             }

@@ -1,5 +1,5 @@
-﻿using System.Text.Json;
-using Application.ApplicationException;
+﻿using Domain.DomainException;
+using System.Text.Json;
 
 namespace API.Middleware
 {
@@ -49,6 +49,12 @@ namespace API.Middleware
 
                 case NotFound:
                     statusCode = StatusCodes.Status404NotFound;
+                    type = "Not Found";
+                    message = exception.Message;
+                    break;
+
+                case Unauthorized:
+                    statusCode = StatusCodes.Status401Unauthorized;
                     type = "Not Found";
                     message = exception.Message;
                     break;

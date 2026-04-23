@@ -69,6 +69,11 @@ namespace Infrastructure.Repository.Implementation
             }
         }
 
+        public async Task SaveChangesAsync()
+        {
+            await context.SaveChangesAsync();
+        }
+
         private async Task RollbackAsync()
         {
             if (transaction != null)
