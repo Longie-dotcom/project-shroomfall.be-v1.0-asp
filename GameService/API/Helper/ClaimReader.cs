@@ -1,32 +1,46 @@
-﻿using System.Security.Claims;
+﻿using Domain.DomainException;
+using Domain.Shared;
+using System.Security.Claims;
 
 namespace API.Helper
 {
     public static class ClaimReader
     {
-        #region Attributes
-        #endregion
-
-        #region Properties
-        #endregion
-
         #region Methods
-        public static (string UserId, string? SteamId) GetIdentity(ClaimsPrincipal user)
+
+        public static (string UserId, string? SteamId, string? Role) GetIdentity(
+            ClaimsPrincipal user)
         {
             var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userId))
-                throw new UnauthorizedAccessException("User ID claim missing");
+                throw new Unauthorized(ResponseCode.ClaimReader_ClaimMissingUserId);
 
             var steamId = user.FindFirst("steamId")?.Value;
+            var role = user.FindFirst(ClaimTypes.Role)?.Value;
 
-            return (userId, steamId);
+            return (userId, steamId, role);
         }
 
-        public static bool IsAuthenticated(ClaimsPrincipal user)
+        public static string? GetRole(
+            ClaimsPrincipal user)
+        {
+            return user.FindFirst(ClaimTypes.Role)?.Value;
+        }
+
+        public static bool IsInRole(
+            ClaimsPrincipal user, 
+            string role)
+        {
+            return user.IsInRole(role);
+        }
+
+        public static bool IsAuthenticated(
+            ClaimsPrincipal user)
         {
             return user?.Identity?.IsAuthenticated ?? false;
         }
+
         #endregion
     }
 }

@@ -2,6 +2,22 @@
 {
     public class BadRequest : Exception
     {
-        public BadRequest(string message) : base(message) { }
+        #region Attributes
+        #endregion
+
+        #region Properties
+        public string Code { get; }
+        #endregion
+
+        public BadRequest(
+            string code, 
+            string? message = "") : base(
+                message) 
+        {
+            Code = code;
+        }
+
+        #region Methods
+        #endregion
     }
 }

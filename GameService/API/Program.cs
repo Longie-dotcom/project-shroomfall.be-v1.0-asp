@@ -1,17 +1,19 @@
 using API.Middleware;
 using Application;
+using Application.Interfaces.Cache;
 using Infrastructure;
 using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using SignalHub;
 using System.Text;
 
 namespace API
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +49,24 @@ namespace API
                         ),
 
                         ClockSkew = TimeSpan.Zero
+                    };
+
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+
+                            var path = context.HttpContext.Request.Path;
+
+                            if (!string.IsNullOrEmpty(accessToken) &&
+                                path.StartsWithSegments("/hub/game"))
+                            {
+                                context.Token = accessToken;
+                            }
+
+                            return Task.CompletedTask;
+                        }
                     };
                 });
 
@@ -87,6 +107,20 @@ namespace API
                     }
                 }
             }
+
+            // ─────────────────────────────
+            // LOAD CACHE
+            // ─────────────────────────────
+            using (var scope = app.Services.CreateScope())
+            {
+                var loader = scope.ServiceProvider.GetRequiredService<ICacheLoader>();
+                await loader.LoadAllAsync();
+            }
+
+            // ─────────────────────────────
+            // SIGNALR HUB
+            // ─────────────────────────────
+            app.MapHub<GameHub>("/hubs/game");
 
             // ─────────────────────────────
             // MIDDLEWARE PIPELINE

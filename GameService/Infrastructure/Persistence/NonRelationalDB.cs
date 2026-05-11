@@ -22,7 +22,8 @@ namespace Infrastructure.Persistence
         }
 
         #region Methods
-        public IMongoCollection<T> GetCollection<T>(string name)
+        public IMongoCollection<T> GetCollection<T>(
+            string name)
         {
             return database.GetCollection<T>(name);
         }

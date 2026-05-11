@@ -1,0 +1,401 @@
+﻿namespace Domain.Shared
+{
+    public static class ResponseCode
+    {
+        #region API
+        #endregion
+
+        #region Application
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // HELPER
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────
+        // Claim Reader
+        // ─────────────────────────────
+        public const string ClaimReader_ClaimMissingUserId = "claim_reader.claim_missing_user_id";
+
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // FEATURE
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────
+        // Identity Features 
+        // ─────────────────────────────
+        public const string RefreshToken_UserNotFound = "refresh_token.user_not_found";
+        public const string Register_EmailAlreadyExists = "register.email_already_exists";
+        public const string Register_EmailRequired = "register.email_required";
+        public const string Login_EmailRequired = "login.email_required";
+        public const string Login_PasswordRequired = "login.password_required";
+        public const string Login_InvalidCredentials = "login.invalid_credentials";
+        public const string SteamAuth_InvalidSteamTicket = "steam_auth.invalid_steam_ticket";
+        public const string SteamAuth_SteamValidationFailed = "steam_auth.steam_validation_failed";
+        public const string UpdateProfile_UserNotFound = "update_profile.user_not_found";
+
+        // ─────────────────────────────
+        // Game Features 
+        // ─────────────────────────────
+        public const string Move_SessionNotFound = "move.session_not_found";
+        public const string Move_PlayerInstanceNotFound = "move.player_instance_not_found";
+
+        // ─────────────────────────────
+        // Design Features 
+        // ─────────────────────────────
+        public const string UpdateDefinition_InvalidVersion = "update_definition.invalid_version";
+
+        // ─────────────────────────────
+        // Connect Features 
+        // ─────────────────────────────
+        public const string CreateSession_PlayerDefinitionNotFound = "create_session.player_definition_not_found";
+        public const string CreateSession_RoomDefinitionNotFound = "create_session.room_definition_not_found";
+        public const string CreateSession_UnauthorizedRoom = "create_session.unauthorized_room";
+        public const string LoadSession_SessionAlreadyExisted = "load_session.session_already_existed";
+        public const string UnloadSession_SessionNotFound = "unload_session.session_not_found";
+        public const string UserConnect_ConnectionAlreadyExisted = "user_connect.connection_already_existed";
+
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // SERVICE
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────
+        // Characteristic Service 
+        // ─────────────────────────────
+        public const string CharacteristicService_InvalidNonVitalAttribute = "characteristic_service.invalid_non_vital_attribute";
+        public const string CharacteristicService_MissingAttributeValue = "characteristic_service.missing_attribute_value";
+
+        // ─────────────────────────────
+        // Spawn Service
+        // ─────────────────────────────
+        public const string SpawnService_RoomDefinitionNotFound = "spawn_service.room_definition_not_found";
+        public const string SpawnService_SpawnNotAllowed = "spawn_service.spawn_not_allowed";
+        public const string SpawnService_NoSpawnArea = "spawn_service.no_spawn_area";
+
+        // ─────────────────────────────
+        // Spawn Service
+        // ─────────────────────────────
+        public const string InitializationService_WorldObjectDefinitionNotFound = "initialization_service.world_object_definition_not_found";
+        public const string InitializationService_RoomDefinitionNotFound = "initialization_service.room_definition_not_found";
+
+        // ─────────────────────────────
+        // Orchestrator Service
+        // ─────────────────────────────
+        public const string OrchestratorService_PositionBlocked = "orchestrator_service.position_blocked";
+        public const string OrchestratorService_WorldObjectDefinitionNotFound = "orchestrator_service.world_object_definition_not_found";
+        public const string OrchestratorService_EntityInstanceNotFound = "orchestrator_service.entity_instance_not_found";
+        public const string OrchestratorService_PlayerInstanceOnLoadNotFound = "orchestrator_service.player_instance_on_load_not_found";
+        public const string OrchestratorService_RoomSnapshotOnLoadNotFound = "orchestrator_service.room_snapshot_on_load_not_found";
+
+        // ─────────────────────────────
+        // Inventory Service
+        // ─────────────────────────────
+        public const string InventoryService_DefinitionNotFound = "inventory_service.definition_not_found";
+        public const string InventoryService_ItemDefinitionNotFound = "inventory_service.item_definition_not_found";
+        public const string InventoryService_NoFreeSlot = "inventory_service.no_free_slot";
+        public const string InventoryService_ItemNotFound = "inventory_service.item_not_found";
+        public const string InventoryService_InvalidEquipItem = "inventory_service.invalid_equip_item";
+
+        // ─────────────────────────────
+        // Equipment Service
+        // ─────────────────────────────
+        public const string EquipmentService_ItemDefinitionNotFound = "equipment_service.item_definition_not_found";
+        public const string EquipmentService_InvalidItemType = "equipment_service.invalid_item_type";
+        public const string EquipmentService_InvalidItem = "equipment_service.invalid_item";
+        public const string EquipmentService_InventoryFullOnUnequip = "equipment_service.inventory_full_on_unequip";
+        public const string EquipmentService_ItemNotEquippable = "equipment_service.item_not_equippable";
+        public const string EquipmentService_ItemAlreadyEquipped = "equipment_service.item_already_equipped";
+        public const string EquipmentService_EquipmentSlotOccupied = "equipment_service.equipment_slot_occupied";
+        public const string EquipmentService_UnequipFailed = "equipment_service.unequip_failed";
+
+        // ─────────────────────────────
+        // Item Service
+        // ─────────────────────────────
+        public const string ItemService_ItemNotFound = "item_service.item_not_found";
+        public const string ItemService_ItemDefinitionNotFound = "item_service.item_definition_not_found";
+        public const string ItemService_TypeNotSupported = "item_service.type_not_support";
+        #endregion
+
+        #region Domain
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // HELPER
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────
+        // Collision Shape Mapper
+        // ─────────────────────────────
+        public const string CollisionShapeMapper_InvalidShapeType = "collision_shape_mapper.invalid_shape_type";
+
+        // ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // *************************************************************************************************** OTHER ***************************************************************************************************
+        // ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // VERSION DOMAIN
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────
+        // Definition Version Log
+        // ─────────────────────────────
+        public const string DefinitionVersionLog_InvalidId = "definition_version_log.invalid_id";
+        public const string DefinitionVersionLog_InvalidKey = "definition_version_log.invalid_key";
+
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // IDENTITY DOMAIN
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────
+        // User
+        // ─────────────────────────────
+        public const string User_InvalidId = "user.invalid_id";
+        public const string User_InvalidName = "user.invalid_name";
+        public const string User_MissingAuth = "user.missing_auth";
+        public const string User_InvalidDob = "user.invalid_dob";
+        public const string User_InvalidGender = "user.invalid_gender";
+        public const string User_PasswordNotSet = "user.password_not_set";
+        public const string User_InvalidCredentials = "user.invalid_credentials";
+        public const string User_InvalidRefreshToken = "user.invalid_refresh_token";
+        public const string User_ExpiredRefreshToken = "user.expired_refresh_token";
+        public const string User_PasswordRequired = "user.password_required";
+
+        // ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ************************************************************************************************* DEFINITION ************************************************************************************************
+        // ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // WORLD DOMAIN
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────
+        // Room
+        // ─────────────────────────────
+        public const string Room_InvalidId = "room.invalid_id";
+        public const string Room_InvalidName = "room.invalid_name";
+        public const string Room_InvalidDescription = "room.invalid_description";
+
+        // ─────────────────────────────
+        // Tile
+        // ─────────────────────────────
+        public const string Tile_InvalidId = "tile.invalid_id";
+        public const string Tile_InvalidName = "tile.invalid_name";
+        public const string Tile_InvalidDescription = "tile.invalid_description";
+
+        // ─────────────────────────────
+        // Cell
+        // ─────────────────────────────
+        public const string Cell_InvalidRoomId = "cell.invalid_room_id";
+        public const string Cell_InvalidTileId = "cell.invalid_tile_id";
+
+        // ─────────────────────────────
+        // Entity Spawn Rule
+        // ─────────────────────────────
+        public const string EntitySpawnRule_InvalidId = "entity_spawn_rule.invalid_id";
+        public const string EntitySpawnRule_InvalidRoomId = "entity_spawn_rule.invalid_room_id";
+        public const string EntitySpawnRule_InvalidEntityId = "entity_spawn_rule.invalid_entity_id";
+
+        // ─────────────────────────────
+        // Spawn Area
+        // ─────────────────────────────
+        public const string SpawnArea_InvalidId = "spawn_area.invalid_id";
+        public const string SpawnArea_InvalidEntitySpawnRuleId = "spawn_area.invalid_entity_spawn_rule_id";
+        public const string SpawnArea_InvalidBounds = "spawn_area.invalid_bounds";
+        public const string SpawnArea_InvalidMinCount = "spawn_area.invalid_min_count";
+        public const string SpawnArea_InvalidMaxCount = "spawn_area.invalid_max_count";
+        public const string SpawnArea_InvalidWeight = "spawn_area.invalid_weight";
+
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ATTRIBUTE DOMAIN
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────
+        // Attribute Value
+        // ─────────────────────────────
+        public const string AttributeValue_InvalidCharacteristicId = "attribute_value.invalid_characteristic_id";
+        public const string AttributeValue_InvalidValue = "attribute_value.invalid_value";
+        public const string AttributeValue_InvalidLevel = "attribute_value.invalid_level";
+        public const string AttributeValue_InvalidMin = "attribute_value.invalid_min";
+        public const string AttributeValue_InvalidMax = "attribute_value.invalid_max";
+
+        // ─────────────────────────────
+        // Characteristic
+        // ─────────────────────────────
+        public const string Characteristic_InvalidId = "characteristic.invalid_id";
+        public const string Characteristic_InvalidName = "characteristic.invalid_name";
+        public const string Characteristic_InvalidDescription = "characteristic.invalid_description";
+
+        // ─────────────────────────────
+        // Effect
+        // ─────────────────────────────
+        public const string Effect_InvalidId = "effect.invalid_id";
+        public const string Effect_InvalidName = "effect.invalid_name";
+        public const string Effect_InvalidDescription = "effect.invalid_description";
+        public const string Effect_InvalidValue = "effect.invalid_value";
+        public const string Effect_InvalidDuration = "effect.invalid_duration";
+        public const string Effect_InvalidInterval = "effect.invalid_interval";
+
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ENTITY DOMAIN
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────
+        // Entity
+        // ─────────────────────────────
+        public const string Entity_InvalidId = "entity.invalid_id";
+        public const string Entity_InvalidName = "entity.invalid_name";
+        public const string Entity_InvalidDescription = "entity.invalid_description";
+        public const string Entity_InvalidSkinId = "entity.invalid_skin_Id";
+
+        // ─────────────────────────────
+        // Creature
+        // ─────────────────────────────
+        public const string Creature_InvalidCharacteristicId = "creature.invalid_characteristic_id";
+        public const string Creature_InvalidInventoryId = "creature.invalid_inventory_id";
+        public const string Creature_InvalidLevel = "creature.invalid_level";
+
+        // ─────────────────────────────
+        // Collision
+        // ─────────────────────────────
+        public const string Collision_InvalidShapeType = "collision.invalid_shape_type";
+        public const string Collision_InvalidWidth = "collision.invalid_width";
+        public const string Collision_InvalidHeight = "collision.invalid_height";
+        public const string Collision_InvalidRadius = "collision.invalid_radius";
+        public const string Collision_InvalidDimensionForShape = "collision.invalid_dimension_for_shape";
+
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // INVENTORY DOMAIN
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────
+        // Inventory
+        // ─────────────────────────────
+        public const string Inventory_InvalidId = "inventory.invalid_id";
+        public const string Inventory_InvalidName = "inventory.invalid_name";
+        public const string Inventory_InvalidDescription = "inventory.invalid_description";
+        public const string Inventory_InvalidSlotCount = "inventory.invalid_slot_count";
+
+        // ─────────────────────────────
+        // InventoryItem
+        // ─────────────────────────────
+        public const string InventoryItem_InvalidInventoryId = "inventory_item.invalid_inventory_id";
+        public const string InventoryItem_InvalidItemId = "inventory_item.invalid_item_id";
+        public const string InventoryItem_InvalidAmount = "inventory_item.invalid_amount";
+
+        // ─────────────────────────────
+        // Item
+        // ─────────────────────────────
+        public const string Item_InvalidId = "item.invalid_id";
+        public const string Item_InvalidName = "item.invalid_name";
+        public const string Item_InvalidDescription = "item.invalid_description";
+        public const string Item_InvalidDurability = "item.invalid_durability";
+        public const string Item_InvalidCharacteristicId = "item.invalid_characteristic_id";
+        public const string Item_InvalidStackableDurability = "item.invalid_stackable_durability";
+
+        // ─────────────────────────────
+        // Item Effect
+        // ─────────────────────────────
+        public const string ItemEffect_InvalidItemId = "item_effect.invalid_item_id";
+        public const string ItemEffect_InvalidEffectId = "item_effect.invalid_effect_id";
+
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // LOCALIZATION DOMAIN
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────
+        // Locale
+        // ─────────────────────────────
+        public const string Locale_InvalidCode = "locale.invalid_code";
+        public const string Locale_InvalidName = "locale.invalid_name";
+        public const string Locale_CanNotDisableDefault = "locale.can_not_disable_default";
+
+        // ─────────────────────────────
+        // Localization Entry
+        // ─────────────────────────────
+        public const string LocalizationEntry_InvalidId = "localization_entry.invalid_id";
+        public const string LocalizationEntry_InvalidKey = "localization_entry.invalid_key";
+        public const string LocalizationEntry_InvalidLocaleCode = "localization_entry.invalid_locale_code";
+        public const string LocalizationEntry_InvalidValue = "localization_entry.invalid_value";
+
+        // ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ************************************************************************************************** RUNTIME **************************************************************************************************
+        // ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────
+        // Spatial Index
+        // ─────────────────────────────
+        public const string SpatialIndex_RoomSpatialNotFound = "spatial_index.room_spatial_not_found";
+
+        // ─────────────────────────────
+        // Characteristic Instance 
+        // ─────────────────────────────
+        public const string CharacteristicInstance_NotAVitalAttribute = "characteristic_instance.not_a_vital_attribute";
+        public const string CharacteristicInstance_NotACoreAttribute = "characteristic_instance.not_a_core_attribute";
+
+        // ─────────────────────────────
+        // Item Instance 
+        // ─────────────────────────────
+        public const string Item_InvalidAmount = "item.invalid_amount";
+        public const string Item_NotEnoughAmount = "item.not_enough_item";
+        #endregion
+
+        #region Infrastructure
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // REPOSITORY
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────
+        // RelationalUoW
+        // ─────────────────────────────
+        public const string RelationalUoW_CommitException = "relational_uow.commit_exception";
+        public const string RelationalUoW_NoTransactionCreated = "relational_uow.no_transaction_created";
+
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // FACTORY
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────
+        // Player Instance Factory
+        // ─────────────────────────────
+        public const string PlayerInstanceFactory_DefinitionNotFound = "player_instance_factory.definition_not_found";
+        public const string PlayerInstanceFactory_DocumentNotFound = "player_instance_factory.document_not_found";
+        public const string PlayerInstanceFactory_DefinitionFromDocumentNotFound = "player_instance_factory.definition_from_document_not_found";
+
+        // ─────────────────────────────
+        // Characteristic Instance Factory
+        // ─────────────────────────────
+        public const string CharacteristicInstanceFactory_DefinitionNotFound = "characteristic_instance_factory.definition_not_found";
+        public const string CharacteristicInstanceFactory_DocumentNotFound = "characteristic_instance_factory.document_not_found";
+        public const string CharacteristicInstanceFactory_DefinitionFromDocumentNotFound = "characteristic_instance_factory.definition_from_document_not_found";
+
+        // ─────────────────────────────
+        // Inventory Instance Factory
+        // ─────────────────────────────
+        public const string InventoryInstanceFactory_DefinitionNotFound = "inventory_instance_factory.definition_not_found";
+        public const string InventoryInstanceFactory_DocumentNotFound = "inventory_instance_factory.document_not_found";
+        public const string InventoryInstanceFactory_DefinitionFromDocumentNotFound = "inventory_instance_factory.definition_from_document_not_found";
+
+        // ─────────────────────────────
+        // Creature Instance Factory
+        // ─────────────────────────────
+        public const string CreatureInstanceFactory_DefinitionNotFound = "creature_instance_factory.definition_not_found";
+        public const string CreatureInstanceFactory_DocumentNotFound = "creature_instance_factory.document_not_found";
+        public const string CreatureInstanceFactory_DefinitionFromDocumentNotFound = "creature_instance_factory.definition_from_document_not_found";
+
+        // ─────────────────────────────
+        // Creature Instance Factory
+        // ─────────────────────────────
+        public const string WorldObjectInstanceFactory_DefinitionNotFound = "world_object_instance_factory.definition_not_found";
+        public const string WorldObjectInstanceFactory_DocumentNotFound = "world_object_instance_factory.document_not_found";
+        public const string WorldObjectInstanceFactory_DefinitionFromDocumentNotFound = "world_object_instance_factory.definition_from_document_not_found";
+
+        // ─────────────────────────────
+        // Item Factory
+        // ─────────────────────────────
+        public const string ItemInstanceFactory_DefinitionNotFound = "item_instance_factory.definition_not_found";
+        public const string ItemInstanceFactory_DocumentNotFound = "item_instance_factory.document_not_found";
+        public const string ItemInstanceFactory_DefinitionFromDocumentNotFound = "item_instance_factory.definition_from_document_not_found";
+
+        // ─────────────────────────────
+        // Effect Instance Factory
+        // ─────────────────────────────
+        public const string EffectInstanceFactory_DefinitionNotFound = "effect_instance_factory.definition_not_found";
+        public const string EffectInstanceFactory_DocumentNotFound = "effect_instance_factory.document_not_found";
+        public const string EffectInstanceFactory_DefinitionFromDocumentNotFound = "effect_instance_factory.definition_from_document_not_found";
+
+        // ─────────────────────────────
+        // Room Spatial Factory
+        // ─────────────────────────────
+        public const string RoomSpatialFactory_DefinitionNotFound = "room_spatial_factory.definition_not_found";
+        public const string RoomSpatialFactory_RoomWithoutCells = "room_spatial_factory.room_without_cells";
+        public const string RoomSpatialFactory_DocumentNotFound = "room_spatial_factory.document_not_found";
+        public const string RoomSpatialFactory_DefinitionFromDocumentNotFound = "room_spatial_factory.definition_from_document_not_found";
+
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // HELPER
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        public const string HubContextHelper_UserIdNotFound = "hub_context_helper.user_id_not_found";
+        public const string HubContextHelper_ConnectionIdNotFound = "hub_context_helper.connection_id_not_found";
+        #endregion
+    }
+}

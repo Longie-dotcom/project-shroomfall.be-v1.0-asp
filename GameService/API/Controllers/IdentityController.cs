@@ -1,8 +1,9 @@
 ﻿using API.Helper;
-using Application.DTO;
-using Application.Service.Interface;
+using Application.DTO.Identity;
+using Application.Features.Abstraction;
+using Application.Features.Identity.Commands;
+using Application.Identity.Commands;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
@@ -12,63 +13,77 @@ namespace API.Controllers
     public class IdentityController : ControllerBase
     {
         #region Attributes
-        private readonly IIdentityService identityService;
+        private readonly IDispatcher dispatcher;
         #endregion
 
         #region Properties
         #endregion
 
-        public IdentityController(IIdentityService identityService)
+        public IdentityController(
+            IDispatcher dispatcher)
         {
-            this.identityService = identityService;
+            this.dispatcher = dispatcher;
         }
 
         #region Methods
         [HttpPost("steam")]
-        public async Task<IActionResult> SteamAuth([FromBody] SteamAuthDTO dto)
+        public async Task<IActionResult> SteamAuth(
+            [FromBody] SteamAuthDTO dto)
         {
-            var result = await identityService.SteamAuth(dto);
+            var result = await dispatcher.Send<SteamAuthCommand, TokenDTO>(
+                new SteamAuthCommand(dto)
+            );
+
             return Ok(result);
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDTO dto)
+        public async Task<IActionResult> Register(
+            [FromBody] RegisterDTO dto)
         {
-            var result = await identityService.Register(dto);
+            var result = await dispatcher.Send<RegisterCommand, TokenDTO>(
+                new RegisterCommand(dto)
+            );
+
             return Ok(result);
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDTO dto)
+        public async Task<IActionResult> Login(
+            [FromBody] LoginDTO dto)
         {
-            var result = await identityService.Login(dto);
+            var result = await dispatcher.Send<LoginCommand, TokenDTO>(
+                new LoginCommand(dto)
+            );
+
             return Ok(result);
         }
 
         [Authorize]
         [HttpPost("refresh")]
-        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDTO dto)
+        public async Task<IActionResult> RefreshToken(
+            [FromBody] RefreshTokenDTO dto)
         {
-            var (userId, _) = ClaimReader.GetIdentity(User);
+            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
 
-            var result = await identityService.RefreshToken(userId, dto);
-            return Ok(result);
-        }
+            var result = await dispatcher.Send<RefreshTokenCommand, TokenDTO>(
+                new RefreshTokenCommand(userId, dto)
+            );
 
-        [HttpGet]
-        public async Task<IActionResult> GetUsers()
-        {
-            var result = await identityService.GetUser();
             return Ok(result);
         }
 
         [Authorize]
         [HttpPut("profile")]
-        public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDTO dto)
+        public async Task<IActionResult> UpdateProfile(
+            [FromBody] UpdateProfileDTO dto)
         {
-            var (userId, _) = ClaimReader.GetIdentity(User);
+            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
 
-            await identityService.UpdateProfile(userId, dto);
+            await dispatcher.Send<UpdateProfileCommand>(
+                new UpdateProfileCommand(userId, dto)
+            );
+
             return NoContent();
         }
         #endregion

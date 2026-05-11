@@ -1,0 +1,13 @@
+﻿namespace Application.Interfaces.Security
+{
+    public interface ISessionManager
+    {
+        void Add(
+            string userId, 
+            string playerInstanceId);
+        string? Remove(
+            string userId);
+        string? Get(
+            string userId);
+    }
+}

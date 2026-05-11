@@ -2,6 +2,22 @@
 {
     public class NotFound : Exception
     {
-        public NotFound(string message) : base(message) { }
+        #region Attributes
+        #endregion
+
+        #region Properties
+        public string Code { get; }
+        #endregion
+
+        public NotFound(
+            string code,
+            string? message = "") : base(
+                message)
+        {
+            Code = code;
+        }
+
+        #region Methods
+        #endregion
     }
 }

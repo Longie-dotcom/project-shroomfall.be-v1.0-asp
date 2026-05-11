@@ -13,10 +13,12 @@ namespace Infrastructure.Persistence
 
         public RelationalDBFactory()
         {
+
         }
 
         #region Methods
-        public RelationalDB CreateDbContext(string[] args)
+        public RelationalDB CreateDbContext(
+            string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<RelationalDB>();
 

@@ -35,7 +35,7 @@ namespace API.Middleware
             context.Response.ContentType = "application/json";
 
             var statusCode = StatusCodes.Status500InternalServerError;
-            var type = "Internal Server Error";
+            var type = "Unpredicted Internal Error";
             var message = "An internal error occurred. Please try again later.";
             string? details = null;
 
@@ -55,7 +55,13 @@ namespace API.Middleware
 
                 case Unauthorized:
                     statusCode = StatusCodes.Status401Unauthorized;
-                    type = "Not Found";
+                    type = "Unauthorized";
+                    message = exception.Message;
+                    break;
+
+                case InternalException:
+                    statusCode = StatusCodes.Status500InternalServerError;
+                    type = "Internal Server Error";
                     message = exception.Message;
                     break;
 

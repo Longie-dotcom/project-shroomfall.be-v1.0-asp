@@ -1,8 +1,9 @@
-﻿using System.Text.Json;
+﻿using Application.Interfaces.Security;
+using System.Text.Json;
 
 namespace Infrastructure.Security
 {
-    public class SteamValidator
+    public class SteamValidator : ISteamValidator
     {
         #region Attributes
         private readonly HttpClient httpClient;
@@ -24,7 +25,8 @@ namespace Infrastructure.Security
         }
 
         #region Methods
-        public async Task<string> ValidateTicket(string ticket)
+        public async Task<string?> ValidateTicket(
+            string ticket)
         {
             var url = $"https://api.steampowered.com/ISteamUserAuth/AuthenticateUserTicket/v1/" +
                       $"?key={apiKey}&appid={appId}&ticket={ticket}";
@@ -42,9 +44,6 @@ namespace Infrastructure.Security
                 .GetProperty("params")
                 .GetProperty("steamid")
                 .GetString();
-
-            if (string.IsNullOrEmpty(steamId))
-                throw new Exception("Invalid Steam ticket");
 
             return steamId;
         }

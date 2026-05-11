@@ -22,6 +22,10 @@
         }
 
         #region Methods
+        public static HSV Clone(HSV hsv)
+        {
+            return new HSV(hsv.H, hsv.S, hsv.V);
+        }
         #endregion
     }
 }

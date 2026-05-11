@@ -1,12 +1,13 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+﻿using Application.Interfaces.Security;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Infrastructure.Security
 {
-    public class TokenGenerator
+    public class TokenGenerator : ITokenGenerator
     {
         #region Attributes
         private readonly string jwtKey;
@@ -28,12 +29,16 @@ namespace Infrastructure.Security
         }
 
         #region Methods
-        public string GenerateAccessToken(string userId, string steamId)
+        public string GenerateAccessToken(
+            string userId, 
+            string steamId, 
+            string role)
         {
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, userId),
-                new Claim("steamId", steamId ?? "")
+                new Claim("steamId", steamId ?? ""),
+                new Claim(ClaimTypes.Role, role ?? "")
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
