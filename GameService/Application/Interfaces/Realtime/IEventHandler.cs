@@ -4,6 +4,7 @@ namespace Application.Interfaces.Realtime
 {
     public interface IEventHandler
     {
-        Task Handle(IEvent @event);
+        Task Handle(
+            IEvent @event);
     }
 }

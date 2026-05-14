@@ -25,13 +25,29 @@ namespace Infrastructure.Repository.NonRelational
 
         #region Methods
         public async Task<IReadOnlyList<EntityDocument>> GetByRoomIdAsync(
-            string roomId)
+            string roomSpatialId)
         {
             var filter = Builders<EntityDocument>
                 .Filter
-                .Eq(x => x.RoomSpatialID, roomId);
+                .Eq(x => x.RoomSpatialID, roomSpatialId);
 
             return await collection
+                .Find(filter)
+                .ToListAsync();
+        }
+
+        public async Task<IReadOnlyCollection<PlayerDocument>> GetPlayerDocumentsByUserIdAsync(
+            string userId)
+        {
+            var playerCollection =
+                context.GetCollection<PlayerDocument>(
+                    nameof(EntityDocument));
+
+            var filter = Builders<PlayerDocument>
+                .Filter
+                .Eq(x => x.UserID, userId);
+
+            return await playerCollection
                 .Find(filter)
                 .ToListAsync();
         }

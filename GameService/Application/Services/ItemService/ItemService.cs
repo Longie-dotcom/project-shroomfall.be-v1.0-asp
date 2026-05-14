@@ -1,5 +1,4 @@
 ﻿using Application.Interfaces.Cache;
-using Application.Services.Abstraction.ItemService;
 using Domain.Common;
 using Domain.Definition.ItemDomain.Enum;
 using Domain.DomainException;
@@ -8,13 +7,13 @@ using Domain.Shared;
 
 namespace Application.Services.ItemService
 {
-    public class ItemService : IItemService
+    public class ItemService
     {
         #region Attributes
         private readonly IItemCache itemCache;
-        private readonly IEquipmentService equipmentService;
-        private readonly IConsumableService consumableService;
-        private readonly IPlacementService placementService;
+        private readonly EquipmentService equipmentService;
+        private readonly ConsumableService consumableService;
+        private readonly PlacementService placementService;
         #endregion
 
         #region Properties
@@ -22,9 +21,9 @@ namespace Application.Services.ItemService
 
         public ItemService(
             IItemCache itemCache,
-            IEquipmentService equipmentService,
-            IConsumableService consumableService, 
-            IPlacementService placementService)
+            EquipmentService equipmentService,
+            ConsumableService consumableService, 
+            PlacementService placementService)
         {
             this.itemCache = itemCache;
             this.equipmentService = equipmentService;
@@ -43,12 +42,16 @@ namespace Application.Services.ItemService
             // Find item from inventory
             var item = inventory.Items.FirstOrDefault(x => x.ID == itemInstanceId);
             if (item == null)
-                throw new BadRequest(ResponseCode.ItemService_ItemNotFound);
+                throw new BadRequest(
+                    ResponseCode.ItemService_ItemNotFoundInInventory,
+                    $"Item with instance ID: {itemInstanceId} was not found in inventory");
 
             // Find item definition from cache
             var itemDef = itemCache.Get(item.DefinitionID);
             if (itemDef == null)
-                throw new InternalException(ResponseCode.ItemService_ItemDefinitionNotFound);
+                throw new InternalException(
+                    ResponseCode.ItemService_ItemDefinitionNotFound,
+                    $"Item with definition ID: {item.DefinitionID} was not found");
 
             switch (itemDef.Type)
             {
@@ -65,7 +68,9 @@ namespace Application.Services.ItemService
                     break;
 
                 default:
-                    throw new BadRequest(ResponseCode.ItemService_TypeNotSupported);
+                    throw new BadRequest(
+                        ResponseCode.ItemService_TypeNotSupported,
+                        $"Item type can not be used, type is unsupported: {itemDef.Type}");
             }
         }
         #endregion

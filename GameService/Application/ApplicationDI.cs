@@ -1,26 +1,31 @@
-﻿using Application.Helper;
-using Application.Identity.Commands;
-using Microsoft.Extensions.DependencyInjection;
-using Application.Features.Abstraction;
-using Application.Features.Identity.Commands;
-using Application.Features.Identity.Handlers;
-using Application.Features;
-using Application.Features.Game.Commands;
-using Application.Features.Game.Handlers;
-using Application.DTO.Identity;
-using Application.Systems;
+﻿using Application.Context;
+using Application.Coordinator;
 using Application.DTO.Connection;
+using Application.DTO.Design;
+using Application.DTO.Identity;
+using Application.Features;
+using Application.Features.Abstraction;
+using Application.Features.Connection.Commands;
+using Application.Features.Connection.Handlers;
 using Application.Features.Design.Commands;
 using Application.Features.Design.Handlers;
-using Application.Services.Abstraction.AttributeService;
-using Application.Services.Abstraction.ItemService;
-using Application.Services.Abstraction.OtherService;
-using Application.Services.Abstraction.WorldService;
+using Application.Features.Game.Commands;
+using Application.Features.Game.Handlers;
+using Application.Features.Identity.Commands;
+using Application.Features.Identity.Handlers;
+using Application.Helper;
+using Application.Identity.Commands;
+using Application.Persistence;
 using Application.Services.AttributeService;
-using Application.Services.WorldService;
-using Application.Services.OtherService;
+using Application.Services.DesignService;
+using Application.Services.IdentityService;
 using Application.Services.ItemService;
-using Application.Systems.System;
+using Application.Services.WorldService;
+using Application.Systems.Request;
+using Application.Systems.Resolver;
+using Application.Systems.Tick;
+using Application.Systems.Trigger;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Application
 {
@@ -36,31 +41,16 @@ namespace Application
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
             // ─────────────────────────────
-            // HELPERS
+            // CONTEXT
             // ─────────────────────────────
-            services.AddAutoMapper(cfg => {
-                cfg.AddProfile<Mapper>();
-            });
+            services.AddSingleton<PlayerContext>();
+            services.AddSingleton<WorldContext>();
 
             // ─────────────────────────────
-            // SYSTEMS
+            // COORDINATOR
             // ─────────────────────────────
-            services.AddSingleton<EffectTickSystem>();
-            services.AddSingleton<EntityLifecycleSystem>();
-            services.AddSingleton<MovementSystem>();
-            services.AddSingleton<RoomTransitionSystem>();
-
-            // ─────────────────────────────
-            // SERVICES
-            // ─────────────────────────────
-            services.AddSingleton<ICollisionService, CollisionService>();
-            services.AddSingleton<ICharacteristicService, CharacteristicService>();
-            services.AddSingleton<IEffectService, EffectService>();
-            services.AddSingleton<IEquipmentService, EquipmentService>();
-            services.AddSingleton<IInventoryService, InventoryService>();
-            services.AddSingleton<ISnapshotService, SnapshotService>();
-            services.AddSingleton<ISpawnService, SpawnService>();
-            services.AddSingleton<ITokenService, TokenService>();
+            services.AddSingleton<PlayerCoordinator>();
+            services.AddSingleton<SpawnService>();
 
             // ─────────────────────────────
             // FEATURES
@@ -68,21 +58,84 @@ namespace Application
             // Core
             services.AddScoped<IDispatcher, Dispatcher>();
 
+            // Connection
+            services.AddScoped<IHandler<CreateSessionCommand, ExistedSessionEntryDTO>, CreateSessionHandler>();
+            services.AddScoped<IHandler<ChangeRoomCommand, RoomSnapshotDTO>, ChangeRoomHandler>();
+            services.AddScoped<IHandler<FetchSessionCommand, ExistedSessionDTO>, FetchSessionHandler>();
+            services.AddScoped<IHandler<LoadSessionCommand, SaveGameDTO>, LoadSessionHandler>();
+            services.AddScoped<IHandler<UnloadSessionCommand>, UnloadSessionHandler>();
+            services.AddScoped<IHandler<UserConnectCommand>, UserConnectHandler>();
+
             // Identity
-            services.AddScoped<IHandler<SteamAuthCommand, TokenDTO>, SteamAuthHandler>();
-            services.AddScoped<IHandler<RegisterCommand, TokenDTO>, RegisterHandler>();
             services.AddScoped<IHandler<LoginCommand, TokenDTO>, LoginHandler>();
             services.AddScoped<IHandler<RefreshTokenCommand, TokenDTO>, RefreshTokenHandler>();
+            services.AddScoped<IHandler<RegisterCommand, TokenDTO>, RegisterHandler>();
+            services.AddScoped<IHandler<SteamAuthCommand, TokenDTO>, SteamAuthHandler>();
             services.AddScoped<IHandler<UpdateProfileCommand>, UpdateProfileHandler>();
-
-            // Connection
-            services.AddScoped<IHandler<UserRefreshCommand, DefinitionSnapshotDTO?>, UserRefreshHandler>();
 
             // Game
             services.AddScoped<IHandler<MoveCommand>, MoveHandler>();
 
             // Design
             services.AddScoped<IHandler<UpdateDefinitionCommand>, UpdateDefinitionHandler>();
+            services.AddScoped<IHandler<UserRefreshCommand, DefinitionSnapshotDTO?>, UserRefreshHandler>();
+
+            // ─────────────────────────────
+            // HELPERS
+            // ─────────────────────────────
+            services.AddAutoMapper(cfg => {
+                cfg.AddProfile<Mapper>();
+            });
+
+            // ─────────────────────────────
+            // PERSISTENCE
+            // ─────────────────────────────
+            services.AddSingleton<EntityPersistence>();
+            services.AddSingleton<RoomPersistence>();
+            services.AddSingleton<SnapshotPersistence>();
+
+            // ─────────────────────────────
+            // SERVICES
+            // ─────────────────────────────
+            // Attribute service
+            services.AddSingleton<CharacteristicService>();
+            services.AddSingleton<EffectService>();
+
+            // Design service
+            services.AddSingleton<BuilderService>();
+
+            // Identity service
+            services.AddSingleton<TokenService>();
+
+            // Item service
+            services.AddSingleton<ConsumableService>();
+            services.AddSingleton<EquipmentService>();
+            services.AddSingleton<InventoryService>();
+            services.AddSingleton<ItemService>();
+            services.AddSingleton<PlacementService>();
+
+            // World service
+            services.AddSingleton<CollisionService>();
+            services.AddSingleton<CreationService>();
+            services.AddSingleton<InitializationService>();
+            services.AddSingleton<SpawnService>();
+            services.AddSingleton<WorldExpansionService>();
+
+            // ─────────────────────────────
+            // SYSTEMS
+            // ─────────────────────────────
+            // Request
+            services.AddSingleton<MovementRequest>();
+
+            // Resolver
+            services.AddSingleton<CollisionResolver>();
+
+            // Tick
+            services.AddSingleton<EffectTick>();
+            services.AddSingleton<ResidencyTick>();
+
+            // Trigger
+            services.AddSingleton<MovementTrigger>();
 
             return services;
         }

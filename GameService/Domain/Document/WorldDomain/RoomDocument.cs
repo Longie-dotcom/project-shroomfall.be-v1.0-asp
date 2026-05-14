@@ -6,6 +6,6 @@ namespace Domain.Document.WorldDomain
     {
         public string ID { get; set; } = string.Empty;
         public string DefinitionID { get; set; } = string.Empty;
-        public string OwnerID { get; set; } = string.Empty;
+        public string? OwnerID { get; set; } = string.Empty;
     }
 }

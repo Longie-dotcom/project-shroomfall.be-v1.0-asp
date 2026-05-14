@@ -23,19 +23,31 @@
         // ─────────────────────────────
         // Operators
         // ─────────────────────────────
-        public static Vector2 operator +(Vector2 a, Vector2 b)
+        public static Vector2 operator +(
+            Vector2 a, 
+            Vector2 b)
         {
             return new Vector2(a.X + b.X, a.Y + b.Y);
         }
 
-        public static Vector2 operator -(Vector2 a, Vector2 b)
+        public static Vector2 operator -(
+            Vector2 a, 
+            Vector2 b)
         {
             return new Vector2(a.X - b.X, a.Y - b.Y);
         }
 
-        public static Vector2 operator *(Vector2 v, float scalar)
+        public static Vector2 operator *(
+            Vector2 v, 
+            float scalar)
         {
             return new Vector2(v.X * scalar, v.Y * scalar);
+        }
+
+        public bool NearlyEquals(Vector2 other, float epsilon = 0.001f)
+        {
+            return MathF.Abs(X - other.X) < epsilon &&
+                   MathF.Abs(Y - other.Y) < epsilon;
         }
 
         // ─────────────────────────────
@@ -54,7 +66,8 @@
         // ─────────────────────────────
         // Normalize (returns new vector)
         // ─────────────────────────────
-        public static Vector2 Normalize(Vector2 v)
+        public static Vector2 Normalize(
+            Vector2 v)
         {
             float length = MathF.Sqrt(v.X * v.X + v.Y * v.Y);
 

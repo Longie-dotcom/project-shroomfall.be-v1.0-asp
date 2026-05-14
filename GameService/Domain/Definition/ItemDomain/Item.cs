@@ -17,7 +17,7 @@ namespace Domain.Definition.ItemDomain
         public ItemCategory Category { get; private set; }
         public int? Durability { get; private set; }
         public bool Stackable { get; set; }
-        public string CharacteristicID { get; private set; }
+        public string? CharacteristicID { get; private set; }
         public string? ProjectileID { get; private set; }
         public string? AreaEffectID { get; private set; }
         public string? WorldObjectID { get; private set; }
@@ -37,7 +37,7 @@ namespace Domain.Definition.ItemDomain
             ItemCategory category,
             int? durability,
             bool stackable,
-            string characteristicId,
+            string? characteristicId,
             string? projectileId,
             string? areaEffectId,
             string? worldObjectId)
@@ -53,9 +53,6 @@ namespace Domain.Definition.ItemDomain
 
             if (durability.HasValue && durability.Value < 0)
                 throw new BadRequest(ResponseCode.Item_InvalidDurability);
-
-            if (string.IsNullOrWhiteSpace(characteristicId))
-                throw new BadRequest(ResponseCode.Item_InvalidCharacteristicId);
 
             if (stackable && durability.HasValue)
                 throw new BadRequest(ResponseCode.Item_InvalidStackableDurability);

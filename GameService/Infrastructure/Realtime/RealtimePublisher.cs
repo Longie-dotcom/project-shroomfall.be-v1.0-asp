@@ -25,7 +25,9 @@ namespace Infrastructure.Realtime
         // ─────────────────────────────
         // Movement (broadcast to room)
         // ─────────────────────────────
-        public Task SendEntityMoved(string roomId, EntityMovedDTO payload)
+        public Task SendEntityMoved(
+            string roomId,
+            EntityMovedDTO payload)
         {
             return hub.Clients
                 .Group(roomId)
@@ -35,7 +37,9 @@ namespace Infrastructure.Realtime
         // ─────────────────────────────
         // Spawn (broadcast to room)
         // ─────────────────────────────
-        public Task SendEntitySpawned(string roomId, EntityRuntimeDTO entity)
+        public Task SendEntitySpawned(
+            string roomId, 
+            EntityRuntimeDTO entity)
         {
             return hub.Clients
                 .Group(roomId)
@@ -45,7 +49,9 @@ namespace Infrastructure.Realtime
         // ─────────────────────────────
         // Despawn (broadcast to room)
         // ─────────────────────────────
-        public Task SendEntityDespawned(string roomId, string entityId)
+        public Task SendEntityDespawned(
+            string roomId, 
+            string entityId)
         {
             return hub.Clients
                 .Group(roomId)
@@ -66,16 +72,6 @@ namespace Infrastructure.Realtime
                     Key = key,
                     Version = version
                 });
-        }
-
-        // ─────────────────────────────
-        // Delta (ONLY caller)
-        // ─────────────────────────────
-        public Task SendDelta(string connectionId, object delta)
-        {
-            return hub.Clients
-                .Client(connectionId)
-                .SendAsync("Delta", delta);
         }
         #endregion
     }

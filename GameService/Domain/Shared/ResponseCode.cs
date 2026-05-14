@@ -44,16 +44,19 @@
         // ─────────────────────────────
         // Connect Features 
         // ─────────────────────────────
-        public const string CreateSession_PlayerDefinitionNotFound = "create_session.player_definition_not_found";
-        public const string CreateSession_RoomDefinitionNotFound = "create_session.room_definition_not_found";
-        public const string CreateSession_UnauthorizedRoom = "create_session.unauthorized_room";
+        public const string ChnageRoom_SessionNotFound = "change_room.session_not_found";
         public const string LoadSession_SessionAlreadyExisted = "load_session.session_already_existed";
         public const string UnloadSession_SessionNotFound = "unload_session.session_not_found";
-        public const string UserConnect_ConnectionAlreadyExisted = "user_connect.connection_already_existed";
 
         // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
         // SERVICE
         // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────
+        // Collision Service
+        // ─────────────────────────────
+        public const string CollisionService_RoomSpatialNotFoundOnQueryMovement = "collision_service.room_spatial_not_found_on_query_movement";
+        public const string CollisionService_RoomSpatialNotFoundOnQueryPoint = "collision_service.room_spatial_not_found_on_query_point";
+
         // ─────────────────────────────
         // Characteristic Service 
         // ─────────────────────────────
@@ -68,19 +71,9 @@
         public const string SpawnService_NoSpawnArea = "spawn_service.no_spawn_area";
 
         // ─────────────────────────────
-        // Spawn Service
+        // Initialization Service
         // ─────────────────────────────
-        public const string InitializationService_WorldObjectDefinitionNotFound = "initialization_service.world_object_definition_not_found";
         public const string InitializationService_RoomDefinitionNotFound = "initialization_service.room_definition_not_found";
-
-        // ─────────────────────────────
-        // Orchestrator Service
-        // ─────────────────────────────
-        public const string OrchestratorService_PositionBlocked = "orchestrator_service.position_blocked";
-        public const string OrchestratorService_WorldObjectDefinitionNotFound = "orchestrator_service.world_object_definition_not_found";
-        public const string OrchestratorService_EntityInstanceNotFound = "orchestrator_service.entity_instance_not_found";
-        public const string OrchestratorService_PlayerInstanceOnLoadNotFound = "orchestrator_service.player_instance_on_load_not_found";
-        public const string OrchestratorService_RoomSnapshotOnLoadNotFound = "orchestrator_service.room_snapshot_on_load_not_found";
 
         // ─────────────────────────────
         // Inventory Service
@@ -106,9 +99,44 @@
         // ─────────────────────────────
         // Item Service
         // ─────────────────────────────
-        public const string ItemService_ItemNotFound = "item_service.item_not_found";
+        public const string ItemService_ItemNotFoundInInventory = "item_service.item_not_found_in_inventory";
         public const string ItemService_ItemDefinitionNotFound = "item_service.item_definition_not_found";
         public const string ItemService_TypeNotSupported = "item_service.type_not_support";
+
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // COORDINATOR
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────
+        // Player Coordinator
+        // ─────────────────────────────
+        public const string PlayerCoordinator_PlayerInstanceNotFoundInPersistence = "player_coordinator.player_instance_not_found_in_persistence";
+        public const string PlayerCoordinator_PlayerInstanceNotFoundInRuntime = "player_coordinator.player_instance_not_found_in_runtime";
+        public const string PlayerCoordinator_NoValidSpawn = "player_coordinator.no_valid_spawn";
+        public const string PlayerCoordinator_UnauthorizedPlayerInstance = "player_coordinator.unauthorized_player_instance";
+
+        // ─────────────────────────────
+        // Spawn Coordinator
+        // ─────────────────────────────
+        public const string SpawnCoordinator_WorldObjectCreationHasNoValidSpawn = "spawn_coordinator.world_object_creation_has_no_valid_spawn";
+        public const string SpawnCoordinator_ExpansionFailed = "spawn_coordinator.expansion_failed";
+
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // SYSTEM - TICK
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────
+        // Residency Tick
+        // ─────────────────────────────
+        public const string ResidencyTick_RoomSpatialNotFoundInRuntime = "residency_tick.room_spatial_not_found_in_runtime";
+        public const string ResidencyTick_RoomSnapshotNotFoundInPersistence = "residency_tick.room_snapshot_not_found_in_persistence";
+
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // HELPER
+        // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────
+        // Entity Mapper
+        // ─────────────────────────────
+        public const string EntityMapper_InvalidDocumentType = "entity_mapper.invalid_document_type";
+        public const string EntityMapper_InvalidRuntimeType = "entity_mapper.invalid_runtime_type";
         #endregion
 
         #region Domain
@@ -273,7 +301,6 @@
         public const string Item_InvalidName = "item.invalid_name";
         public const string Item_InvalidDescription = "item.invalid_description";
         public const string Item_InvalidDurability = "item.invalid_durability";
-        public const string Item_InvalidCharacteristicId = "item.invalid_characteristic_id";
         public const string Item_InvalidStackableDurability = "item.invalid_stackable_durability";
 
         // ─────────────────────────────
@@ -304,9 +331,18 @@
         // ************************************************************************************************** RUNTIME **************************************************************************************************
         // ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
         // ─────────────────────────────
+        // World
+        // ─────────────────────────────
+        public const string World_EntityInstanceNotFoundOnRemoved = "world.entity_instance_not_found_on_removed";
+        public const string World_EntityInstanceNotFoundOnMoved = "world.entity_instance_not_found_on_moved";
+        public const string World_EntityInstanceNotFoundOnRoomChanged = "world.entity_instance_not_found_on_room_changed";
+
+        // ─────────────────────────────
         // Spatial Index
         // ─────────────────────────────
-        public const string SpatialIndex_RoomSpatialNotFound = "spatial_index.room_spatial_not_found";
+        public const string SpatialIndex_RoomSpatialNotFoundOnEntityAdded = "spatial_index.room_spatial_not_found_on_entity_added";
+        public const string SpatialIndex_RoomSpatialNotFoundOnEntityRemoved = "spatial_index.room_spatial_not_found_on_entity_removed";
+        public const string SpatialIndex_RoomSpatialNotFoundOnEntityMoved = "spatial_index.room_spatial_not_found_on_entity_moved";
 
         // ─────────────────────────────
         // Characteristic Instance 
@@ -390,6 +426,11 @@
         public const string RoomSpatialFactory_RoomWithoutCells = "room_spatial_factory.room_without_cells";
         public const string RoomSpatialFactory_DocumentNotFound = "room_spatial_factory.document_not_found";
         public const string RoomSpatialFactory_DefinitionFromDocumentNotFound = "room_spatial_factory.definition_from_document_not_found";
+
+        // ─────────────────────────────
+        // Entity Instance Factory
+        // ─────────────────────────────
+        public const string EntityInstanceFactory_UnknownDocumentType = "room_spatial_factory.unknown_document_type";
 
         // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
         // HELPER

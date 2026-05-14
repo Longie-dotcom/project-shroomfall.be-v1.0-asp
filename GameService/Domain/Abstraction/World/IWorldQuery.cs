@@ -1,16 +1,17 @@
 ﻿using Domain.Runtime.EntityDomain;
-using Domain.Runtime.WorldDomain.World;
+using Domain.Runtime.WorldDomain;
+
 namespace Domain.Abstraction.World
 {
     public interface IWorldQuery
     {
-        IEnumerable<T> GetAll<T>() where T : EntityInstance;
-        T? Get<T>(
-            string id) where T : EntityInstance;
-        (RoomSpatial room, IEnumerable<string> entityIds) QuerySpatial(
+        IEnumerable<T> GetEntities<T>() where T : EntityInstance;
+        T? GetEntity<T>(
+            string entityInstanceId) where T : EntityInstance;
+        (RoomSpatial?, IEnumerable<string>) QuerySpatial(
             string roomSpatialId, 
             int x, int y, int z);
-        RoomSpatial GetRoom(
+        RoomSpatial? GetRoom(
             string roomSpatialId);
     }
 }

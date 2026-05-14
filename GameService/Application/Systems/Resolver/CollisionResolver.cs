@@ -1,5 +1,5 @@
-﻿using Application.Services.Abstraction.WorldService;
-using Domain.Abstraction.World;
+﻿using Application.Context;
+using Application.Services.WorldService;
 using Domain.Common;
 
 namespace Application.Systems.Resolver
@@ -24,51 +24,50 @@ namespace Application.Systems.Resolver
     public readonly struct CollisionResult
     {
         public Vector2 FinalPosition { get; init; }
-        public bool BlockX { get; init; }
-        public bool BlockY { get; init; }
-        public bool IsBlocked => BlockX || BlockY;
         public int LayerZ { get; init; }
     }
 
     public class CollisionResolver
     {
         #region Attributes
-        private readonly ICollisionService collisionService;
-        private readonly IWorldQuery world;
+        private readonly CollisionService collisionService;
+        private readonly WorldContext worldContext;
         #endregion
 
         #region Properties
         #endregion
 
         public CollisionResolver(
-            ICollisionService collisionService,
-            IWorldQuery world)
+            CollisionService collisionService,
+            WorldContext worldContext)
         {
             this.collisionService = collisionService;
-            this.world = world;
+            this.worldContext = worldContext;
         }
 
         #region Methods
-        public Dictionary<string, CollisionResult> ResolveBatch(
+        public Dictionary<string, CollisionResult> Resolve(
             List<CollisionRequest> requests)
         {
             var results = new Dictionary<string, CollisionResult>(requests.Count);
 
             foreach (var req in requests)
             {
-                var collision = collisionService.QueryMovement(
-                    req.Body,
-                    req.DesiredPosition);
-
-                var resolved = Resolve(req.Body, req.DesiredPosition, collision);
-
-                results[req.EntityId] = new CollisionResult
+                var roomSpatial = worldContext.GetRoom(req.Body.RoomSpatialID);
+                if (roomSpatial != null)
                 {
-                    FinalPosition = resolved,
-                    BlockX = collision.BlockX,
-                    BlockY = collision.BlockY,
-                    LayerZ = collision.LayerZ
-                };
+                    var collision = collisionService.QueryMovement(
+                        req.Body,
+                        req.DesiredPosition);
+
+                    var resolved = Resolve(req.Body, req.DesiredPosition, collision);
+
+                    results[req.EntityId] = new CollisionResult
+                    {
+                        FinalPosition = resolved,
+                        LayerZ = collision.LayerZ
+                    };
+                }
             }
 
             return results;

@@ -19,12 +19,16 @@ namespace Infrastructure.Realtime
         }
 
         #region Methods
-        public Task JoinAsync(string connectionId, string groupId)
+        public Task JoinAsync(
+            string connectionId,
+            string groupId)
         {
             return hub.Groups.AddToGroupAsync(connectionId, groupId);
         }
 
-        public Task LeaveAsync(string connectionId, string groupId)
+        public Task LeaveAsync(
+            string connectionId,
+            string groupId)
         {
             return hub.Groups.RemoveFromGroupAsync(connectionId, groupId);
         }

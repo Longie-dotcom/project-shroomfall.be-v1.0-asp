@@ -1,6 +1,5 @@
 ﻿using Application.Interfaces.Cache;
 using Application.Interfaces.Factory;
-using Application.Services.Abstraction.ItemService;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.ItemDomain;
@@ -8,7 +7,7 @@ using Domain.Shared;
 
 namespace Application.Services.ItemService
 {
-    public class InventoryService : IInventoryService
+    public class InventoryService
     {
         #region Attributes
         private readonly IInventoryCache inventoryCache;
@@ -38,11 +37,16 @@ namespace Application.Services.ItemService
 
             var inventoryDef = inventoryCache.Get(inventory.DefinitionID);
             if (inventoryDef == null)
-                throw new InternalException(ResponseCode.InventoryService_DefinitionNotFound);
+                throw new InternalException(
+                    ResponseCode.InventoryService_DefinitionNotFound,
+                    $"Inventory definition with ID: {inventory.DefinitionID} was not found in cache"
+);
 
             var itemDef = itemCache.Get(item.DefinitionID);
             if (itemDef == null)
-                throw new InternalException(ResponseCode.InventoryService_ItemDefinitionNotFound);
+                throw new InternalException(
+                    ResponseCode.InventoryService_ItemDefinitionNotFound,
+                    $"Item definition with ID: {item.DefinitionID} was not found in cache");
 
             int remaining = item.Count;
 
@@ -113,7 +117,9 @@ namespace Application.Services.ItemService
 
             // Equipment must always be single-instance items
             if (item.Count != 1)
-                throw new BadRequest(ResponseCode.InventoryService_InvalidEquipItem);
+                throw new BadRequest(
+                    ResponseCode.InventoryService_InvalidEquipItem,
+                    $"Item with instance ID: {item.ID} cannot be equipped because stack count is greater than 1");
 
             inventory.Items.Remove(item);
 
@@ -153,11 +159,15 @@ namespace Application.Services.ItemService
 
             var inventoryDef = inventoryCache.Get(inventory.DefinitionID);
             if (inventoryDef == null)
-                throw new InternalException(ResponseCode.InventoryService_DefinitionNotFound);
+                throw new InternalException(
+                    ResponseCode.InventoryService_DefinitionNotFound,
+                    $"Inventory definition with ID: {inventory.DefinitionID} was not found in cache");
 
             var itemDef = itemCache.Get(item.DefinitionID);
             if (itemDef == null)
-                throw new InternalException(ResponseCode.InventoryService_ItemDefinitionNotFound);
+                throw new InternalException(
+                    ResponseCode.InventoryService_ItemDefinitionNotFound,
+                    $"Item definition with ID: {item.DefinitionID} was not found in cache");
 
             int remaining = item.Count;
 
@@ -205,7 +215,10 @@ namespace Application.Services.ItemService
 
             var item = inventory.Items.FirstOrDefault(x => x.ID == itemInstanceId);
             if (item == null)
-                throw new BadRequest(ResponseCode.InventoryService_ItemNotFound);
+                throw new BadRequest(
+                    ResponseCode.InventoryService_ItemNotFound,
+                    $"Item with instance ID: {itemInstanceId} was not found in creature: {creature.ID}" +
+                    $" (Def ID: {creature.DefinitionID}) inventory");
 
             return item;
         }

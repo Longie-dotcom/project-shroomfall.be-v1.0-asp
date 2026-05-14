@@ -46,7 +46,31 @@ namespace Infrastructure.Repository.NonRelational
             T entity)
         {
             var filter = Builders<T>.Filter.Eq(x => x.ID, entity.ID);
-            await collection.ReplaceOneAsync(filter, entity);
+
+            await collection.ReplaceOneAsync(
+                filter,
+                entity,
+                new ReplaceOptions
+                {
+                    IsUpsert = true
+                });
+        }
+
+        public async Task UpdateManyAsync(
+            IEnumerable<T> entities)
+        {
+            var models = entities.Select(entity =>
+            {
+                var filter =
+                    Builders<T>.Filter.Eq(x => x.ID, entity.ID);
+
+                return new ReplaceOneModel<T>(filter, entity)
+                {
+                    IsUpsert = true
+                };
+            });
+
+            await collection.BulkWriteAsync(models);
         }
 
         public async Task DeleteAsync(

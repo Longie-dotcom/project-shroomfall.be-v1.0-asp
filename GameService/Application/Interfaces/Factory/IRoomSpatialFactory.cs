@@ -1,5 +1,5 @@
 ﻿using Domain.Document.WorldDomain;
-using Domain.Runtime.WorldDomain.World;
+using Domain.Runtime.WorldDomain;
 
 namespace Application.Interfaces.Factory
 {

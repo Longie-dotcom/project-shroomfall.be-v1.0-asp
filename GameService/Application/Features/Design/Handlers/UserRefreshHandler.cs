@@ -1,8 +1,8 @@
-﻿using Application.DTO.Connection;
+﻿using Application.DTO.Design;
 using Application.Features.Abstraction;
 using Application.Features.Design.Commands;
 using Application.Interfaces.Repository.Relational;
-using Application.Services.Abstraction.OtherService;
+using Application.Services.DesignService;
 using Domain.Shared;
 
 namespace Application.Features.Design.Handlers
@@ -11,7 +11,7 @@ namespace Application.Features.Design.Handlers
     {
         #region Attributes
         private readonly IRelationalUoW relational;
-        private readonly ISnapshotService snapshotService;
+        private readonly BuilderService builderService;
         #endregion
 
         #region Properties
@@ -19,10 +19,10 @@ namespace Application.Features.Design.Handlers
 
         public UserRefreshHandler(
             IRelationalUoW relational,
-            ISnapshotService snapshotService)
+            BuilderService builderService)
         {
             this.relational = relational;
-            this.snapshotService = snapshotService;
+            this.builderService = builderService;
         }
 
         #region Methods
@@ -46,7 +46,7 @@ namespace Application.Features.Design.Handlers
                 return null;
 
             // Return full snapshot
-            return snapshotService.BuildDefinitionSnapshot(latest.Version);
+            return builderService.BuildDefinitionSnapshot(latest.Version);
         }
         #endregion
     }

@@ -5,9 +5,12 @@
         void Add(
             string userId,
             string connectionId);
-        string? Remove(
+        void Remove(
+            string userId,
+            string connectionId);
+        IReadOnlyCollection<string> Get(
             string userId);
-        string? Get(
+        bool HasConnections(
             string userId);
     }
 }

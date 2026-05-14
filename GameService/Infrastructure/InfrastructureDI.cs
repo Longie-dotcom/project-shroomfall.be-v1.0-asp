@@ -1,12 +1,11 @@
-﻿using Application.Events.Abstraction;
-using Application.Interfaces.Cache;
+﻿using Application.Interfaces.Cache;
 using Application.Interfaces.Factory;
 using Application.Interfaces.Realtime;
 using Application.Interfaces.Repository.NonRelational;
 using Application.Interfaces.Repository.Relational;
 using Application.Interfaces.Security;
 using Domain.Abstraction.World;
-using Domain.Runtime.WorldDomain.World;
+using Domain.Runtime.WorldDomain;
 using Infrastructure.Background;
 using Infrastructure.Cache;
 using Infrastructure.Factory;
@@ -107,12 +106,15 @@ namespace Infrastructure
             // ─────────────────────────────
             // FACTORIES
             // ─────────────────────────────
+            services.AddScoped<ICreatureInstanceFactory, CreatureInstanceFactory>();
             services.AddScoped<ICharacteristicInstanceFactory, CharacteristicInstanceFactory>();
             services.AddScoped<IEffectInstanceFactory, EffectInstanceFactory>();
+            services.AddScoped<IEntityInstanceFactory, EntityInstanceFactory>();
             services.AddScoped<IInventoryInstanceFactory, InventoryInstanceFactory>();
             services.AddScoped<IItemInstanceFactory, ItemInstanceFactory>();
             services.AddScoped<IPlayerInstanceFactory, PlayerInstanceFactory>();
             services.AddScoped<IRoomSpatialFactory, RoomSpatialFactory>();
+            services.AddScoped<IWorldObjectInstanceFactory, WorldObjectInstanceFactory>();
 
             // ─────────────────────────────
             // BACKGROUND
@@ -131,8 +133,10 @@ namespace Infrastructure
             services.AddSingleton<IConnectionManager, ConnectionManager>();
 
             // Handlers
-            services.AddSingleton<IEventHandler, EntityMovedHandler>();
+            services.AddSingleton<IEventHandler, DefinitionUpdatedHandler>();
             services.AddSingleton<IEventHandler, EntityLifecycleHandler>();
+            services.AddSingleton<IEventHandler, EntityMovedHandler>();
+            services.AddSingleton<IEventHandler, PlayerGroupedHandler>();
 
             // Events
             services.AddSingleton<IEventBus, EventBus>();

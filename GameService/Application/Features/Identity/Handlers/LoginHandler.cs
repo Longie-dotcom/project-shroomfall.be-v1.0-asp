@@ -2,7 +2,7 @@
 using Application.Features.Abstraction;
 using Application.Features.Identity.Commands;
 using Application.Interfaces.Repository.Relational;
-using Application.Services.Abstraction.OtherService;
+using Application.Services.IdentityService;
 using Domain.DomainException;
 using Domain.Shared;
 
@@ -12,7 +12,7 @@ namespace Application.Features.Identity.Handlers
     {
         #region Attributes
         private readonly IRelationalUoW relational;
-        private readonly ITokenService tokenService;
+        private readonly TokenService tokenService;
         #endregion
 
         #region Properties
@@ -20,7 +20,7 @@ namespace Application.Features.Identity.Handlers
 
         public LoginHandler(
             IRelationalUoW relational,
-            ITokenService tokenService)
+            TokenService tokenService)
         {
             this.relational = relational;
             this.tokenService = tokenService;
@@ -37,16 +37,22 @@ namespace Application.Features.Identity.Handlers
 
             // Validate input
             if (string.IsNullOrWhiteSpace(dto.Email))
-                throw new BadRequest(ResponseCode.Login_EmailRequired);
+                throw new BadRequest(
+                    ResponseCode.Login_EmailRequired,
+                    $"Email is required in login, login process was terminated");
 
             if (string.IsNullOrWhiteSpace(dto.Password))
-                throw new BadRequest(ResponseCode.Login_PasswordRequired);
+                throw new BadRequest(
+                    ResponseCode.Login_PasswordRequired,
+                    $"Password is required in login, login process was terminated");
 
             // Validate authentication
             var email = dto.Email.Trim().ToLowerInvariant();
             var user = await userRepo.GetByEmailAsync(email);
             if (user == null)
-                throw new Unauthorized(ResponseCode.Login_InvalidCredentials);
+                throw new Unauthorized(
+                    ResponseCode.Login_InvalidCredentials, 
+                    $"Credential is invalid");
             user.VerifyPassword(dto.Password);
 
             // Apply domain - Login and set token

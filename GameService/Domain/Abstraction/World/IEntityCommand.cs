@@ -6,12 +6,17 @@ namespace Domain.Abstraction.World
     public interface IEntityCommand
     {
         void AddEntity(
-            EntityInstance entity);
-        void RemoveEntity(
-            string entityId);
-        void Move(
-            string entityId,
+            EntityInstance entityInstance);
+        EntityInstance RemoveEntity(
+            string entityInstanceId);
+        void EntityMove(
+            string entityInstanceId,
             Vector2 newPosition,
             int layerZ);
+        void ChangeRoom(
+            string entityInstanceId,
+            Vector2 newPosition,
+            int layerZ,
+            string newRoomSpatialId);
     }
 }

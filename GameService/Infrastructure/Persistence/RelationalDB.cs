@@ -497,8 +497,7 @@ namespace Infrastructure.Persistence
                 entity.Property(x => x.Stackable)
                     .IsRequired();
 
-                entity.Property(x => x.CharacteristicID)
-                    .IsRequired();
+                entity.Property(x => x.CharacteristicID);
 
                 entity.Property(x => x.ProjectileID);
 

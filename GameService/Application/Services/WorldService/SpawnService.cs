@@ -1,5 +1,4 @@
 ﻿using Application.Interfaces.Cache;
-using Application.Services.Abstraction.WorldService;
 using Domain.Common;
 using Domain.Definition.WorldDomain;
 using Domain.Definition.WorldDomain.Enum;
@@ -8,7 +7,7 @@ using Domain.Shared;
 
 namespace Application.Services.WorldService
 {
-    public class SpawnService : ISpawnService
+    public class SpawnService
     {
         #region Attributes
         private readonly Random random;
@@ -31,10 +30,10 @@ namespace Application.Services.WorldService
             SpawnArea area)
         {
             var roomDef = roomCache.Get(roomDefinitionId);
-
             if (roomDef == null)
                 throw new BadRequest(
-                    ResponseCode.SpawnService_RoomDefinitionNotFound);
+                    ResponseCode.SpawnService_RoomDefinitionNotFound,
+                    $"Room definition was not found while trying to resolve spawn position, room definition ID {roomDefinitionId}");
 
             int x = random.Next(area.MinX, area.MaxX + 1);
             int y = random.Next(area.MinY, area.MaxY + 1);
@@ -46,7 +45,8 @@ namespace Application.Services.WorldService
 
             if (cell == null)
                 throw new BadRequest(
-                    ResponseCode.SpawnService_NoSpawnArea);
+                    ResponseCode.SpawnService_NoSpawnArea,
+                    $"Room definition has no cell (spawn area) while trying to resolve spawn position, room definition ID {roomDefinitionId}");
 
             return (
                 new Vector2(x, y),
@@ -74,7 +74,8 @@ namespace Application.Services.WorldService
         {
             if (areas == null || areas.Count == 0)
                 throw new BadRequest(
-                    ResponseCode.SpawnService_NoSpawnArea);
+                    ResponseCode.SpawnService_NoSpawnArea,
+                    $"There is a rule has no spawn area found while trying to pick weight area");
 
             float totalWeight = 0f;
 
@@ -104,10 +105,10 @@ namespace Application.Services.WorldService
             SpawnRuleType type)
         {
             var roomDef = roomCache.Get(roomDefinitionId);
-
             if (roomDef == null)
                 throw new BadRequest(
-                    ResponseCode.SpawnService_RoomDefinitionNotFound);
+                    ResponseCode.SpawnService_RoomDefinitionNotFound,
+                    $"Room definition was not found while trying to resolve spawn rule, room definition ID {roomDefinitionId}");
 
             var rules = roomDef.EntitySpawnRules
                 .Where(r =>
@@ -117,7 +118,8 @@ namespace Application.Services.WorldService
 
             if (rules.Count == 0)
                 throw new BadRequest(
-                    ResponseCode.SpawnService_SpawnNotAllowed);
+                    ResponseCode.SpawnService_SpawnNotAllowed,
+                    $"There is no rule found while trying to resolve spawn rule, room definition ID {roomDefinitionId}"); ;
 
             return rules[random.Next(rules.Count)];
         }

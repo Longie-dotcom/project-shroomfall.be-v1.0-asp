@@ -1,4 +1,5 @@
 ﻿using Application.Events.Abstraction;
+using Application.Interfaces.Realtime;
 
 namespace Infrastructure.Realtime
 {
@@ -19,7 +20,8 @@ namespace Infrastructure.Realtime
         }
 
         #region Methods
-        public void Publish(IEvent @event)
+        public void Publish(
+            IEvent @event)
         {
             lock (_lock)
             {

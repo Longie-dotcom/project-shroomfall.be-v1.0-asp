@@ -1,5 +1,4 @@
 ﻿using API.Helper;
-using Application.DTO.Connection;
 using Application.DTO.Design;
 using Application.Features.Abstraction;
 using Application.Features.Design.Commands;
@@ -34,12 +33,7 @@ namespace API.Controllers
             var (userId, steamId, role) = ClaimReader.GetIdentity(User);
 
             var result = await dispatcher.Send<UserRefreshCommand, DefinitionSnapshotDTO?>(
-                new UserRefreshCommand(
-                    userId,
-                    new UserRefreshDTO
-                    {
-                        DefinitionVersion = version
-                    })
+                new UserRefreshCommand(userId, new UserRefreshDTO { DefinitionVersion = version })
             );
 
             return Ok(result);
@@ -53,9 +47,7 @@ namespace API.Controllers
             var (userId, steamId, role) = ClaimReader.GetIdentity(User);
 
             await dispatcher.Send<UpdateDefinitionCommand>(
-                new UpdateDefinitionCommand(
-                    userId,
-                    dto)
+                new UpdateDefinitionCommand(userId, dto)
             );
 
             return Ok();

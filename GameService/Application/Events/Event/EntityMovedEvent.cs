@@ -9,19 +9,19 @@ namespace Application.Events.Event
         #endregion
 
         #region Properties
-        public string EntityID { get; }
-        public string RoomID { get; }
+        public string EntityInstanceID { get; }
+        public string RoomSpatialID { get; }
         public Vector2 Position { get; }
         public DateTime OccurredAt { get; }
         #endregion
 
         public EntityMovedEvent(
-            string entityId, 
-            string roomId,
+            string entityInstanceId,
+            string roomSpatialId,
             Vector2 position)
         {
-            EntityID = entityId;
-            RoomID = roomId;
+            EntityInstanceID = entityInstanceId;
+            RoomSpatialID = roomSpatialId;
             Position = position;
             OccurredAt = DateTime.UtcNow;
         }

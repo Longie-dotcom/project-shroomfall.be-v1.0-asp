@@ -1,24 +1,23 @@
-﻿using Application.Services.Abstraction.AttributeService;
-using Application.Services.Abstraction.ItemService;
+﻿using Application.Services.AttributeService;
 using Domain.Definition.ItemDomain;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.ItemDomain;
 
 namespace Application.Services.ItemService
 {
-    public class ConsumableService : IConsumableService
+    public class ConsumableService
     {
         #region Attributes
-        private readonly IEffectService effectService;
-        private readonly IInventoryService inventoryService;
+        private readonly EffectService effectService;
+        private readonly InventoryService inventoryService;
         #endregion
 
         #region Properties
         #endregion
 
         public ConsumableService(
-            IEffectService effectService,
-            IInventoryService inventoryService)
+            EffectService effectService,
+            InventoryService inventoryService)
         {
             this.effectService = effectService;
             this.inventoryService = inventoryService;

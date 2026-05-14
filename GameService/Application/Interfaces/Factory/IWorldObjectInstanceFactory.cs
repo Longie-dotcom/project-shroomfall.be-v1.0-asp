@@ -6,7 +6,7 @@ namespace Application.Interfaces.Factory
 {
     public interface IWorldObjectInstanceFactory
     {
-        (WorldObjectInstance worldObject, string? roomSpatialReferenceId) Create(
+        (WorldObjectInstance worldObject, string? linkedRoomSpatialId, string? linkedRoomDefinitionId) Create(
             string definitionId,
             string instanceId,
             string roomSpatialId,

@@ -9,7 +9,10 @@
         #endregion
 
         #region Methods
-        public static (int cx, int cy, int x, int y) ToChunk(int worldX, int worldY, int size)
+        public static (int cx, int cy, int x, int y) ToChunk(
+            int worldX,
+            int worldY,
+            int size)
         {
             int cx = Math.DivRem(worldX, size, out int x);
             int cy = Math.DivRem(worldY, size, out int y);
@@ -20,7 +23,10 @@
             return (cx, cy, x, y);
         }
 
-        public static (int cx, int cy) ToChunkOnly(int worldX, int worldY, int size)
+        public static (int cx, int cy) ToChunkOnly(
+            int worldX, 
+            int worldY,
+            int size)
         {
             return (
                 (int)Math.Floor((float)worldX / size),

@@ -1,4 +1,4 @@
-﻿using Domain.Runtime.WorldDomain.World;
+﻿using Domain.Runtime.WorldDomain;
 
 namespace Domain.Abstraction.World
 {

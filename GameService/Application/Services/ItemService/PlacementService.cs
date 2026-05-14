@@ -1,12 +1,11 @@
-﻿using Application.Services.Abstraction.ItemService;
-using Domain.Common;
+﻿using Domain.Common;
 using Domain.Definition.ItemDomain;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.ItemDomain;
 
 namespace Application.Services.ItemService
 {
-    public class PlacementService : IPlacementService
+    public class PlacementService
     {
         #region Attributes
         #endregion

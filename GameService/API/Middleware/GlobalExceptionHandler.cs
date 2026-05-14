@@ -7,18 +7,23 @@ namespace API.Middleware
     {
         #region Attributes
         private readonly RequestDelegate requestDelegate;
+        private readonly ILogger<GlobalExceptionHandler> logger;
         #endregion
 
         #region Properties
         #endregion
 
-        public GlobalExceptionHandler(RequestDelegate requestDelegate)
+        public GlobalExceptionHandler(
+            RequestDelegate requestDelegate, 
+            ILogger<GlobalExceptionHandler> logger)
         {
             this.requestDelegate = requestDelegate;
+            this.logger = logger;
         }
 
         #region Methods
-        public async Task InvokeAsync(HttpContext context)
+        public async Task InvokeAsync(
+            HttpContext context)
         {
             try
             {
@@ -26,11 +31,20 @@ namespace API.Middleware
             }
             catch (Exception ex)
             {
+                logger.LogError(
+                    ex,
+                    "Unhandled exception occurred. Path: {Path}, Method: {Method}, TraceId: {TraceId}",
+                    context.Request.Path,
+                    context.Request.Method,
+                    context.TraceIdentifier);
+
                 await HandleExceptionAsync(context, ex);
             }
         }
 
-        private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
+        private static async Task HandleExceptionAsync(
+            HttpContext context, 
+            Exception exception)
         {
             context.Response.ContentType = "application/json";
 

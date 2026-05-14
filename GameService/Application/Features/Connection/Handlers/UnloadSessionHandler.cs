@@ -1,8 +1,8 @@
-﻿using Application.Features.Abstraction;
+﻿using Application.Coordinator;
+using Application.Features.Abstraction;
 using Application.Features.Connection.Commands;
 using Application.Interfaces.Realtime;
 using Application.Interfaces.Security;
-using Application.Services.Abstraction.WorldService;
 using Domain.DomainException;
 using Domain.Shared;
 
@@ -11,22 +11,22 @@ namespace Application.Features.Connection.Handlers
     public class UnloadSessionHandler : IHandler<UnloadSessionCommand>
     {
         #region Attributes
+        private readonly PlayerCoordinator playerCoordinator;
         private readonly IConnectionRegistry connectionRegistry;
         private readonly ISessionManager sessionManager;
-        private readonly IOrchestratorService orchestratorService;
         #endregion
 
         #region Properties
         #endregion
 
         public UnloadSessionHandler(
+            PlayerCoordinator playerCoordinator,
             IConnectionRegistry connectionRegistry,
-            ISessionManager sessionManager,
-            IOrchestratorService orchestratorService)
+            ISessionManager sessionManager)
         {
+            this.playerCoordinator = playerCoordinator;
             this.connectionRegistry = connectionRegistry;
             this.sessionManager = sessionManager;
-            this.orchestratorService = orchestratorService;
         }
 
         #region Methods
@@ -34,8 +34,16 @@ namespace Application.Features.Connection.Handlers
             UnloadSessionCommand command)
         {
             var userId = command.UserID;
+            var connectionId = command.ConnectionID;
 
-            // Resolve session
+            // Remove this transport connection only
+            connectionRegistry.Remove(userId, connectionId);
+
+            // Keep other connection
+            if (connectionRegistry.HasConnections(userId))
+                return;
+
+            // Resolve gameplay session
             var playerInstanceId = sessionManager.Get(userId);
             if (playerInstanceId == null)
                 throw new InternalException(
@@ -43,10 +51,9 @@ namespace Application.Features.Connection.Handlers
                     $"User with user ID: {userId} has no session found");
 
             // Persisted and unload player instance (saving)
-            await orchestratorService.UnloadExistedPlayer(playerInstanceId);
+            await playerCoordinator.UnloadExistedPlayer(playerInstanceId);
 
-            // Clean up session
-            connectionRegistry.Remove(userId);
+            // Cleanup gameplay session mapping
             sessionManager.Remove(userId);
         }
         #endregion

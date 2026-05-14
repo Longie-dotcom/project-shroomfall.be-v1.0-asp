@@ -1,39 +1,62 @@
-﻿using Application.Interfaces.Cache;
-using Application.Interfaces.Factory;
-using Application.Services.Abstraction.WorldService;
+﻿using Application.Interfaces.Factory;
 using Domain.Common;
-using Domain.Definition.EntityDomain;
 using Domain.Definition.WorldDomain.Enum;
-using Domain.DomainException;
-using Domain.Shared;
+using Domain.Runtime.EntityDomain;
+using Domain.Runtime.WorldDomain;
 
 namespace Application.Services.WorldService
 {
-    public class CreationService : ICreationService
+    public class WorldGraph
+    {
+        // Runtime entities to inject into world
+        public List<EntityInstance> Entities { get; set; } = new List<EntityInstance>();
+
+        // Runtime rooms to inject into world
+        public List<RoomSpatial> Rooms { get; set; } = new List<RoomSpatial>();
+
+        // Deferred room expansions
+        public List<PendingRoomInitialization> PendingRooms { get; set; } = new List<PendingRoomInitialization>();
+    }
+
+    public class PendingRoomInitialization
+    {
+        public string RoomSpatialID { get; set; } = string.Empty;
+        public string RoomDefinitionID { get; set; } = string.Empty;
+    }
+
+    public class PlayerCreation : WorldGraph
+    {
+        public required PlayerInstance Player { get; init; }
+        public required RoomSpatial Room { get; init; }
+    }
+
+    public class WorldObjectCreation : WorldGraph
+    {
+        public required WorldObjectInstance WorldObject { get; init; }
+    }
+
+    public class CreationService
     {
         #region Attributes
-        private readonly IEntityCache entityCache;
         private readonly IRoomSpatialFactory roomSpatialFactory;
         private readonly IPlayerInstanceFactory playerInstanceFactory;
         private readonly IWorldObjectInstanceFactory worldObjectInstanceFactory;
-        private readonly IInitializationService initializationService;
-        private readonly IWorldExpansionService worldExpansionService;
-        private readonly ISpawnService spawnService;
+        private readonly InitializationService initializationService;
+        private readonly WorldExpansionService worldExpansionService;
+        private readonly SpawnService spawnService;
         #endregion
 
         #region Properties
         #endregion
 
         public CreationService(
-            IEntityCache entityCache,
             IRoomSpatialFactory roomSpatialFactory,
             IPlayerInstanceFactory playerInstanceFactory,
             IWorldObjectInstanceFactory worldObjectInstanceFactory,
-            IInitializationService initializationService,
-            IWorldExpansionService worldExpansionService,
-            ISpawnService spawnService)
+            InitializationService initializationService,
+            WorldExpansionService worldExpansionService,
+            SpawnService spawnService)
         {
-            this.entityCache = entityCache;
             this.roomSpatialFactory = roomSpatialFactory;
             this.playerInstanceFactory = playerInstanceFactory;
             this.worldObjectInstanceFactory = worldObjectInstanceFactory;
@@ -43,7 +66,7 @@ namespace Application.Services.WorldService
         }
 
         #region Methods
-        public WorldContext CreatePlayerContext(
+        public PlayerCreation CreatePlayer(
             string playerDefinitionId,
             string roomDefinitionId,
             string userId)
@@ -59,10 +82,16 @@ namespace Application.Services.WorldService
 
             var seedContext = initializationService.InitializeRoomEnvironment(
                 roomSpatialId: room.ID,
-                roomDefinitionId: room.DefinitionID
-            );
+                roomDefinitionId: room.DefinitionID);
 
-            var context = worldExpansionService.Expand(seedContext);
+            var worldGraph = new WorldGraph
+            {
+                Entities = seedContext.Entities,
+                Rooms = seedContext.Rooms,
+                PendingRooms = seedContext.PendingRooms
+            };
+
+            worldGraph = worldExpansionService.Expand(worldGraph);
 
             var (spawnPosition, layerZ) = spawnService.ResolveSpawnPosition(
                 room.DefinitionID,
@@ -76,51 +105,61 @@ namespace Application.Services.WorldService
                 roomSpatialId: roomSpatialId,
                 layerZ: layerZ,
                 position: spawnPosition,
-                direction: new Vector2(0, 1)
-            );
+                direction: new Vector2(0, 1));
 
-            context.Entities.Add(player);
-            context.Rooms.Add(room);
+            worldGraph.Entities.Add(player);
+            worldGraph.Rooms.Add(room);
 
-            return context;
+            return new PlayerCreation
+            {
+                Player = player,
+                Room = room,
+                Entities = worldGraph.Entities,
+                Rooms = worldGraph.Rooms,
+                PendingRooms = worldGraph.PendingRooms
+            };
         }
 
-        public WorldContext CreatePlacedWorldObjectContext(
+        public WorldObjectCreation CreateWorldObject(
             string worldObjectDefinitionId,
             string roomSpatialId,
             int layerZ,
             Vector2 position,
             Vector2 direction)
         {
-            var context = new WorldContext();
-            var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
-            var worldObjectInstanceId = $"WORLD_OBJECT_{timestamp}";
+            var worldGraph = new WorldGraph();
+            var worldObjectInstanceId = $"WORLD_OBJECT_{Guid.NewGuid():N}";
 
-            var (worldObject, linkedRoomSpatialId) = worldObjectInstanceFactory.Create(
-                definitionId: worldObjectDefinitionId,
-                instanceId: worldObjectInstanceId,
-                roomSpatialId: roomSpatialId,
-                layerZ: layerZ,
-                position: position,
-                direction: direction);
+            var (worldObject, linkedRoomSpatialId, linkedRoomDefinitionId) =
+                worldObjectInstanceFactory.Create(
+                    definitionId: worldObjectDefinitionId,
+                    instanceId: worldObjectInstanceId,
+                    roomSpatialId: roomSpatialId,
+                    layerZ: layerZ,
+                    position: position,
+                    direction: direction);
 
-            context.Entities.Add(worldObject);
+            worldGraph.Entities.Add(worldObject);
 
-            if (!string.IsNullOrWhiteSpace(linkedRoomSpatialId))
+            if (!string.IsNullOrWhiteSpace(linkedRoomSpatialId) 
+                && !string.IsNullOrWhiteSpace(linkedRoomDefinitionId))
             {
-                var worldObjectDef = entityCache.Get<WorldObject>(worldObjectDefinitionId);
-
-                if (worldObjectDef == null)
-                    throw new InternalException(ResponseCode.InitializationService_WorldObjectDefinitionNotFound);
-
-                context.PendingRooms.Add(new PendingRoomInitialization
+                worldGraph.PendingRooms.Add(new PendingRoomInitialization
                 {
                     RoomSpatialID = linkedRoomSpatialId,
-                    RoomDefinitionID = worldObjectDef.RoomID!
+                    RoomDefinitionID = linkedRoomDefinitionId
                 });
             }
 
-            return worldExpansionService.Expand(context);
+            worldGraph = worldExpansionService.Expand(worldGraph);
+
+            return new WorldObjectCreation
+            {
+                WorldObject = worldObject,
+                Entities = worldGraph.Entities,
+                Rooms = worldGraph.Rooms,
+                PendingRooms = worldGraph.PendingRooms
+            };
         }
         #endregion
     }

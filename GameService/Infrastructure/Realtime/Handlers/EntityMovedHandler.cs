@@ -1,4 +1,5 @@
-﻿using Application.Events.Abstraction;
+﻿using Application.DTO.Game;
+using Application.Events.Abstraction;
 using Application.Events.Event;
 using Application.Interfaces.Realtime;
 
@@ -13,24 +14,25 @@ namespace Infrastructure.Realtime.Handlers
         #region Properties
         #endregion
 
-        public EntityMovedHandler(IRealtimePublisher publisher)
+        public EntityMovedHandler(
+            IRealtimePublisher publisher)
         {
             this.publisher = publisher;
         }
 
         #region Methods
-        public async Task Handle(IEvent @event)
+        public async Task Handle(
+            IEvent @event)
         {
             if (@event is not EntityMovedEvent moved)
                 return;
 
             await publisher.SendEntityMoved(
-                moved.RoomID,
-                new
+                moved.RoomSpatialID,
+                new EntityMovedDTO()
                 {
-                    entityId = moved.EntityID,
-                    x = moved.Position.X,
-                    y = moved.Position.Y
+                    X = moved.Position.X,
+                    Y = moved.Position.Y,
                 });
         }
         #endregion

@@ -1,7 +1,7 @@
-﻿using Application.Events.Abstraction;
+﻿using Application.Context;
 using Application.Events.Event;
+using Application.Interfaces.Realtime;
 using Application.Systems.Resolver;
-using Domain.Abstraction.World;
 using Domain.Runtime.EntityDomain;
 
 namespace Application.Systems.Trigger
@@ -9,8 +9,7 @@ namespace Application.Systems.Trigger
     public class MovementTrigger
     {
         #region Attributes
-        private readonly IEntityCommand entityCommand;
-        private readonly IWorldQuery worldQuery;
+        private readonly WorldContext worldContext;
         private readonly IEventBus eventBus;
         #endregion
 
@@ -18,37 +17,37 @@ namespace Application.Systems.Trigger
         #endregion
 
         public MovementTrigger(
-            IEntityCommand entityCommand,
-            IWorldQuery worldQuery,
+            WorldContext worldContext,
             IEventBus eventBus)
         {
-            this.entityCommand = entityCommand;
-            this.worldQuery = worldQuery;
+            this.worldContext = worldContext;
             this.eventBus = eventBus;
         }
 
         #region Methods
-        public void Apply(Dictionary<string, CollisionResult> results)
+        public void Apply(
+            Dictionary<string, CollisionResult> results)
         {
             foreach (var (entityId, result) in results)
             {
-                var entity = worldQuery.Get<EntityInstance>(entityId);
+                // Retrieve entity instance from runtime
+                var entity = worldContext.GetEntity<EntityInstance>(entityId);
                 if (entity == null)
-                    continue;
+                    return;
 
-                var oldPos = entity.Position;
-
-                entityCommand.Move(
+                // Update context and spatial indexing
+                worldContext.EntityMove(
                     entity.ID,
                     result.FinalPosition,
                     result.LayerZ);
 
-                if (oldPos != result.FinalPosition)
+                // Only publish event when position is new
+                if (!entity.Position.NearlyEquals(entity.Position))
                 {
                     eventBus.Publish(new EntityMovedEvent(
                         entity.ID,
                         entity.RoomSpatialID,
-                        result.FinalPosition));
+                        entity.Position));
                 }
             }
         }

@@ -2,7 +2,9 @@
 {
     public interface IDispatcher
     {
-        Task<TResponse> Send<TCommand, TResponse>(TCommand command);
-        Task Send<TCommand>(TCommand command);
+        Task<TResponse> Send<TCommand, TResponse>(
+            TCommand command);
+        Task Send<TCommand>(
+            TCommand command);
     }
 }

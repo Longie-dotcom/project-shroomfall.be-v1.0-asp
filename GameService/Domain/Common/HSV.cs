@@ -22,7 +22,8 @@
         }
 
         #region Methods
-        public static HSV Clone(HSV hsv)
+        public static HSV Clone(
+            HSV hsv)
         {
             return new HSV(hsv.H, hsv.S, hsv.V);
         }

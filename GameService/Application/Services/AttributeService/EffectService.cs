@@ -1,15 +1,14 @@
 ﻿using Application.Interfaces.Factory;
-using Application.Services.Abstraction.AttributeService;
 using Domain.Definition.ItemDomain;
 using Domain.Runtime.EntityDomain;
 
 namespace Application.Services.AttributeService
 {
-    public class EffectService : IEffectService
+    public class EffectService
     {
         #region Attributes
         private readonly IEffectInstanceFactory effectFactory;
-        private readonly ICharacteristicService characteristicService;
+        private readonly CharacteristicService characteristicService;
         #endregion
 
         #region Properties
@@ -17,7 +16,7 @@ namespace Application.Services.AttributeService
 
         public EffectService(
             IEffectInstanceFactory effectFactory,
-            ICharacteristicService characteristicService)
+            CharacteristicService characteristicService)
         {
             this.effectFactory = effectFactory;
             this.characteristicService = characteristicService;

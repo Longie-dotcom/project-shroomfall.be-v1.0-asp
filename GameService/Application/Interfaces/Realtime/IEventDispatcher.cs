@@ -4,6 +4,7 @@ namespace Application.Interfaces.Realtime
 {
     public interface IEventDispatcher
     {
-        Task Dispatch(IEvent @event);
+        Task Dispatch(
+            IEvent @event);
     }
 }

@@ -1,13 +1,12 @@
 ﻿using Application.Interfaces.Factory;
-using Application.Services.Abstraction.WorldService;
 
 namespace Application.Services.WorldService
 {
-    public class WorldExpansionService : IWorldExpansionService
+    public class WorldExpansionService
     {
         #region Attributes
         private readonly IRoomSpatialFactory roomSpatialFactory;
-        private readonly IInitializationService initializationService;
+        private readonly InitializationService initializationService;
         #endregion
 
         #region Properties
@@ -15,18 +14,21 @@ namespace Application.Services.WorldService
 
         public WorldExpansionService(
             IRoomSpatialFactory roomSpatialFactory,
-            IInitializationService initializationService)
+            InitializationService initializationService)
         {
             this.roomSpatialFactory = roomSpatialFactory;
             this.initializationService = initializationService;
         }
 
         #region Methods
-        public WorldContext Expand(WorldContext seed)
+        public T Expand<T>(T worldGraph)
+            where T : WorldGraph
         {
-            var result = new WorldContext();
+            var queue =
+                new Queue<PendingRoomInitialization>(
+                    worldGraph.PendingRooms);
 
-            var queue = new Queue<PendingRoomInitialization>(seed.PendingRooms);
+            worldGraph.PendingRooms.Clear();
 
             while (queue.Count > 0)
             {
@@ -38,20 +40,25 @@ namespace Application.Services.WorldService
                     instanceId: pending.RoomSpatialID,
                     ownerId: null);
 
-                result.Rooms.Add(room);
+                worldGraph.Rooms.Add(room);
 
-                // Initialize sub-context
-                var subContext = initializationService.InitializeRoomEnvironment(
-                    roomSpatialId: room.ID,
-                    roomDefinitionId: room.DefinitionID);
+                // Initialize sub room
+                var subWorldGraph =
+                    initializationService.InitializeRoomEnvironment(
+                        roomSpatialId: room.ID,
+                        roomDefinitionId: room.DefinitionID);
 
-                result.Entities.AddRange(subContext.Entities);
+                worldGraph.Entities.AddRange(subWorldGraph.Entities);
+                worldGraph.Rooms.AddRange(subWorldGraph.Rooms);
 
-                foreach (var next in subContext.PendingRooms)
+                foreach (var next in subWorldGraph.PendingRooms)
+                {
+                    worldGraph.PendingRooms.Add(next);
                     queue.Enqueue(next);
+                }
             }
 
-            return result;
+            return worldGraph;
         }
         #endregion
     }

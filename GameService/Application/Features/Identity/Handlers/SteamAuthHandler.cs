@@ -3,7 +3,7 @@ using Application.Features.Abstraction;
 using Application.Identity.Commands;
 using Application.Interfaces.Repository.Relational;
 using Application.Interfaces.Security;
-using Application.Services.Abstraction.OtherService;
+using Application.Services.IdentityService;
 using Domain.DomainException;
 using Domain.Other.IdentityDomain;
 using Domain.Other.IdentityDomain.Enum;
@@ -16,7 +16,7 @@ namespace Application.Features.Identity.Handlers
         #region Attributes
         private readonly IRelationalUoW relational;
         private readonly ISteamValidator steamValidator;
-        private readonly ITokenService tokenService;
+        private readonly TokenService tokenService;
         #endregion
 
         #region Properties
@@ -25,7 +25,7 @@ namespace Application.Features.Identity.Handlers
         public SteamAuthHandler(
             IRelationalUoW relational,
             ISteamValidator steamValidator,
-            ITokenService tokenService)
+            TokenService tokenService)
         {
             this.relational = relational;
             this.steamValidator = steamValidator;
@@ -43,12 +43,16 @@ namespace Application.Features.Identity.Handlers
 
             // Validate steam ticket
             if (string.IsNullOrEmpty(dto.SteamTicket))
-                throw new BadRequest(ResponseCode.SteamAuth_InvalidSteamTicket);
+                throw new BadRequest(
+                    ResponseCode.SteamAuth_InvalidSteamTicket,
+                    $"Steam ticket is invalid, can not authenticate by steam");
 
             // Validate steam ID
             var steamId = await steamValidator.ValidateTicket(dto.SteamTicket);
             if (string.IsNullOrEmpty(steamId))
-                throw new Unauthorized(ResponseCode.SteamAuth_SteamValidationFailed);
+                throw new Unauthorized(
+                    ResponseCode.SteamAuth_SteamValidationFailed,
+                    $"Steam validation was failed, there no such steam ID found");
 
             // Check existence
             var user = await userRepo.GetBySteamIdAsync(steamId);

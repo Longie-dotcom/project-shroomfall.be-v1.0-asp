@@ -55,18 +55,22 @@ namespace Domain.Runtime.EntityDomain
             return equipment;
         }
 
-        public ItemInstance? GetEquipment(EquipmentSlot slot)
+        public ItemInstance? GetEquipment(
+            EquipmentSlot slot)
         {
             equipment.TryGetValue(slot, out var item);
             return item;
         }
 
-        public void SetEquipment(EquipmentSlot slot, ItemInstance? item)
+        public void SetEquipment(
+            EquipmentSlot slot,
+            ItemInstance? item)
         {
             equipment[slot] = item;
         }
 
-        public void RemoveEquipment(EquipmentSlot slot)
+        public void RemoveEquipment(
+            EquipmentSlot slot)
         {
             equipment[slot] = null;
         }

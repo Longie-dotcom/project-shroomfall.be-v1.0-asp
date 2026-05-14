@@ -20,6 +20,7 @@ namespace API
             // ─────────────────────────────
             // SERVICES
             // ─────────────────────────────
+            builder.Services.AddLogging();
             builder.Services.AddControllers();
             builder.Services.AddApplication();
             builder.Services.AddInfrastructure();

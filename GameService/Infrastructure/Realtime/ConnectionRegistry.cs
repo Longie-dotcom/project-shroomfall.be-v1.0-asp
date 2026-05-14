@@ -6,7 +6,7 @@ namespace Infrastructure.Realtime
     public class ConnectionRegistry : IConnectionRegistry
     {
         #region Attributes
-        private readonly ConcurrentDictionary<string, string> userToConnection = new();
+        private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, byte>> userToConnection = new();
         #endregion
 
         #region Properties
@@ -19,26 +19,45 @@ namespace Infrastructure.Realtime
 
         #region Methods
         public void Add(
-            string userId, 
+            string userId,
             string connectionId)
         {
-            userToConnection[userId] = connectionId;
+            var connections = userToConnection.GetOrAdd(
+                userId,
+                _ => new ConcurrentDictionary<string, byte>());
+
+            connections[connectionId] = 0;
         }
 
-        public string? Remove(
-            string userId)
+        public void Remove(
+            string userId,
+            string connectionId)
         {
-            return userToConnection.TryRemove(userId, out var connection)
-                ? connection
-                : null;
+            if (!userToConnection.TryGetValue(userId, out var connections))
+                return;
+
+            connections.TryRemove(connectionId, out _);
+
+            if (connections.IsEmpty)
+            {
+                userToConnection.TryRemove(userId, out _);
+            }
         }
 
-        public string? Get(
+        public IReadOnlyCollection<string> Get(
             string userId)
         {
-            return userToConnection.TryGetValue(userId, out var connection)
-                ? connection
-                : null;
+            if (!userToConnection.TryGetValue(userId, out var connections))
+                return Array.Empty<string>();
+
+            return connections.Keys.ToList();
+        }
+
+        public bool HasConnections(
+            string userId)
+        {
+            return userToConnection.TryGetValue(userId, out var connections)
+                && !connections.IsEmpty;
         }
         #endregion
     }

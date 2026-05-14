@@ -2,7 +2,7 @@
 using Application.Features.Abstraction;
 using Application.Features.Identity.Commands;
 using Application.Interfaces.Repository.Relational;
-using Application.Services.Abstraction.OtherService;
+using Application.Services.IdentityService;
 using Domain.DomainException;
 using Domain.Other.IdentityDomain;
 using Domain.Other.IdentityDomain.Enum;
@@ -14,7 +14,7 @@ namespace Application.Features.Identity.Handlers
     {
         #region Attributes
         private readonly IRelationalUoW relational;
-        private readonly ITokenService tokenService;
+        private readonly TokenService tokenService;
         #endregion
 
         #region Properties
@@ -22,7 +22,7 @@ namespace Application.Features.Identity.Handlers
 
         public RegisterHandler(
             IRelationalUoW relational,
-            ITokenService tokenService)
+            TokenService tokenService)
         {
             this.relational = relational;
             this.tokenService = tokenService;
@@ -39,12 +39,16 @@ namespace Application.Features.Identity.Handlers
 
             // Validate fields
             if (string.IsNullOrWhiteSpace(dto.Email))
-                throw new BadRequest(ResponseCode.Register_EmailRequired);
+                throw new BadRequest(
+                    ResponseCode.Register_EmailRequired, 
+                    $"Email is required in registration, registration process was terminated");
 
             // Validate email existence
             var email = dto.Email.Trim().ToLowerInvariant();
             if (await userRepo.EmailExistsAsync(email))
-                throw new BadRequest(ResponseCode.Register_EmailAlreadyExists);
+                throw new BadRequest(
+                    ResponseCode.Register_EmailAlreadyExists,
+                    $"Email already existed when registered {dto.Email}");
 
             // Apply domain - Create user
             var user = new User(

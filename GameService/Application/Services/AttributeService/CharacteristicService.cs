@@ -1,5 +1,4 @@
 ﻿using Application.Interfaces.Cache;
-using Application.Services.Abstraction.AttributeService;
 using Domain.Definition.AttributeDomain.Enum;
 using Domain.Document.AttributeDomain;
 using Domain.DomainException;
@@ -8,7 +7,7 @@ using Domain.Shared;
 
 namespace Application.Services.AttributeService
 {
-    public class CharacteristicService : ICharacteristicService
+    public class CharacteristicService
     {
         #region Attributes
         private readonly IEffectCache effectCache;
@@ -19,8 +18,8 @@ namespace Application.Services.AttributeService
         #endregion
 
         public CharacteristicService(
-        IEffectCache effectCache,
-        IAttributeValueCache attributeCache)
+            IEffectCache effectCache,
+            IAttributeValueCache attributeCache)
         {
             this.effectCache = effectCache;
             this.attributeCache = attributeCache;

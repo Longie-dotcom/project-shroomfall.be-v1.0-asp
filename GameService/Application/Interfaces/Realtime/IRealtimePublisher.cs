@@ -8,21 +8,25 @@ namespace Application.Interfaces.Realtime
         // ─────────────────────────────
         // Movement (high frequency)
         // ─────────────────────────────
-        Task SendEntityMoved(string roomId, EntityMovedDTO payload);
+        Task SendEntityMoved(
+            string roomSpatialId, 
+            EntityMovedDTO payload);
 
         // ─────────────────────────────
         // Lifecycle (spawn / despawn)
         // ─────────────────────────────
-        Task SendEntitySpawned(string roomId, EntityRuntimeDTO entity);
-        Task SendEntityDespawned(string roomId, string entityId);
+        Task SendEntitySpawned(
+            string roomSpatialId, 
+            EntityRuntimeDTO entity);
+        Task SendEntityDespawned(
+            string roomSpatialId, 
+            string entityId);
 
+        // ─────────────────────────────
+        // Definition Update Notification
+        // ─────────────────────────────
         Task SendDefinitionUpdated(
             string key,
             long version);
-
-        // ─────────────────────────────
-        // (Optional future) delta sync
-        // ─────────────────────────────
-        Task SendDelta(string connectionId, object delta);
     }
 }

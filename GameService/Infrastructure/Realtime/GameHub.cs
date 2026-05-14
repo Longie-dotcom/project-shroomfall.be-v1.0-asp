@@ -1,5 +1,7 @@
-﻿using Application.Features.Abstraction;
+﻿using Application.DTO.Game;
+using Application.Features.Abstraction;
 using Application.Features.Connection.Commands;
+using Application.Features.Game.Commands;
 using Infrastructure.Helper;
 using Microsoft.AspNetCore.SignalR;
 
@@ -35,13 +37,23 @@ namespace SignalHub
         public override async Task OnDisconnectedAsync(
             Exception? exception)
         {
-            var (userId, _) = HubContextHelper.GetValidatedContext(this);
+            var (userId, connectionId) = HubContextHelper.GetValidatedContext(this);
 
             await dispatcher.Send<UnloadSessionCommand>(
-                new UnloadSessionCommand(userId)
+                new UnloadSessionCommand(userId, connectionId)
             );
 
             await base.OnDisconnectedAsync(exception);
+        }
+
+        public async Task Move(
+            MoveDTO dto)
+        {
+            var (userId, connectionId) = HubContextHelper.GetValidatedContext(this);
+
+            await dispatcher.Send<MoveCommand>(
+                new MoveCommand(userId, dto)
+            );
         }
         #endregion
     }

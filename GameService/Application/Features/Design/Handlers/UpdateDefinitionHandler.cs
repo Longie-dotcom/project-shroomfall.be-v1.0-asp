@@ -1,8 +1,8 @@
-﻿using Application.Events.Abstraction;
-using Application.Events.Event;
+﻿using Application.Events.Event;
 using Application.Features.Abstraction;
 using Application.Features.Design.Commands;
 using Application.Interfaces.Cache;
+using Application.Interfaces.Realtime;
 using Application.Interfaces.Repository.Relational;
 using Domain.DomainException;
 using Domain.Other.VersionDomain;
@@ -43,7 +43,9 @@ namespace Application.Features.Design.Handlers
             // Validate latest version for this key
             var latest = await definitionVersionLogRepo.GetLatest(dto.Key ?? Constraint.GLOBAL_DEFINITION_VERSION);
             if (latest != null && dto.Version <= latest.Version)
-                throw new BadRequest(ResponseCode.UpdateDefinition_InvalidVersion);
+                throw new BadRequest(
+                    ResponseCode.UpdateDefinition_InvalidVersion,
+                    $"Update definition must has newer version than old version");
 
             // Apply domain - Create new version log
             var log = new DefinitionVersionLog(
@@ -60,11 +62,9 @@ namespace Application.Features.Design.Handlers
             await cacheLoader.LoadAllAsync();
 
             // Publish realtime invalidation event
-            eventBus.Publish(
-                new DefinitionUpdatedEvent(
-                    dto.Key ?? Constraint.GLOBAL_DEFINITION_VERSION,
-                    dto.Version
-                )
+            eventBus.Publish(new DefinitionUpdatedEvent(
+                dto.Key ?? Constraint.GLOBAL_DEFINITION_VERSION,
+                dto.Version)
             );
         }
         #endregion

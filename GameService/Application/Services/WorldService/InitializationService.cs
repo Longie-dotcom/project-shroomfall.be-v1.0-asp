@@ -1,6 +1,5 @@
 ﻿using Application.Interfaces.Cache;
 using Application.Interfaces.Factory;
-using Application.Services.Abstraction.WorldService;
 using Domain.Common;
 using Domain.Definition.EntityDomain;
 using Domain.Definition.EntityDomain.Enum;
@@ -11,7 +10,7 @@ using Domain.Shared;
 
 namespace Application.Services.WorldService
 {
-    public class InitializationService : IInitializationService
+    public class InitializationService
     {
         #region Attributes
         private readonly Random random;
@@ -19,7 +18,7 @@ namespace Application.Services.WorldService
         private readonly IEntityCache entityCache;
         private readonly ICreatureInstanceFactory creatureInstanceFactory;
         private readonly IWorldObjectInstanceFactory worldObjectInstanceFactory;
-        private readonly ISpawnService spawnService;
+        private readonly SpawnService spawnService;
         #endregion
 
         #region Properties
@@ -30,7 +29,7 @@ namespace Application.Services.WorldService
             IEntityCache entityCache,
             ICreatureInstanceFactory creatureInstanceFactory,
             IWorldObjectInstanceFactory worldObjectInstanceFactory,
-            ISpawnService spawnService)
+            SpawnService spawnService)
         {
             random = new Random();
             this.roomCache = roomCache;
@@ -41,21 +40,25 @@ namespace Application.Services.WorldService
         }
 
         #region Methods
-        public WorldContext InitializeRoomEnvironment(
+        public WorldGraph InitializeRoomEnvironment(
             string roomSpatialId,
             string roomDefinitionId)
         {
-            var result = new WorldContext();
+            var worldGraph = new WorldGraph();
 
+            // Validate room definition existence
             var roomDef = roomCache.Get(roomDefinitionId);
-
             if (roomDef == null)
-                throw new InternalException(ResponseCode.InitializationService_RoomDefinitionNotFound);
+                throw new InternalException(
+                    ResponseCode.InitializationService_RoomDefinitionNotFound,
+                    $"Room with definition ID: {roomDefinitionId} was not found");
 
+            // Only initialize environment instances
             var rules = roomDef.EntitySpawnRules
                 .Where(x => x.Type == SpawnRuleType.Environment)
                 .ToList();
-
+            
+            // Spawn environment instances
             foreach (var rule in rules)
             {
                 int totalCount = random.Next(
@@ -88,9 +91,9 @@ namespace Application.Services.WorldService
                                         layerZ: layerZ,
                                         position: position,
                                         direction: new Vector2(0, 1),
-                                        result);
+                                        worldGraph);
 
-                                result.Entities.Add(worldObject);
+                                worldGraph.Entities.Add(worldObject);
                                 break;
                             }
 
@@ -104,14 +107,14 @@ namespace Application.Services.WorldService
                                         position: position,
                                         direction: new Vector2(0, 1));
 
-                                result.Entities.Add(creature);
+                                worldGraph.Entities.Add(creature);
                                 break;
                             }
                     }
                 }
             }
 
-            return result;
+            return worldGraph;
         }
 
         private WorldObjectInstance SpawnWorldObject(
@@ -120,12 +123,12 @@ namespace Application.Services.WorldService
             int layerZ,
             Vector2 position,
             Vector2 direction,
-            WorldContext worldContext)
+            WorldGraph worldGraph)
         {
             var timestamp = Guid.NewGuid().ToString("N");
             var worldObjectInstanceId = $"WORLD_OBJECT_{timestamp}";
 
-            var (worldObject, linkedRoomSpatialId) =
+            var (worldObject, linkedRoomSpatialId, linkedRoomDefinitionId) =
                 worldObjectInstanceFactory.Create(
                     definitionId: worldObjectDefinitionId,
                     instanceId: worldObjectInstanceId,
@@ -134,19 +137,14 @@ namespace Application.Services.WorldService
                     position: position,
                     direction: direction);
 
-            if (!string.IsNullOrWhiteSpace(linkedRoomSpatialId))
+            if (!string.IsNullOrWhiteSpace(linkedRoomSpatialId)
+                && !string.IsNullOrWhiteSpace(linkedRoomDefinitionId))
             {
-                var worldObjectDef = entityCache.Get<WorldObject>(worldObjectDefinitionId);
-
-                if (worldObjectDef == null)
-                    throw new InternalException(ResponseCode.InitializationService_WorldObjectDefinitionNotFound);
-
-                worldContext.PendingRooms.Add(
-                    new PendingRoomInitialization()
-                    {
-                        RoomSpatialID = linkedRoomSpatialId,
-                        RoomDefinitionID = worldObjectDef.RoomID!
-                    });
+                worldGraph.PendingRooms.Add(new PendingRoomInitialization
+                {
+                    RoomSpatialID = linkedRoomSpatialId,
+                    RoomDefinitionID = linkedRoomDefinitionId
+                });
             }
 
             return worldObject;

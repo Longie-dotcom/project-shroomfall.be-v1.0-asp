@@ -25,7 +25,8 @@
         }
 
         #region Methods
-        public void Tick(float deltaTime)
+        public void Tick(
+            float deltaTime)
         {
             if (RemainingTime == null) return;
 

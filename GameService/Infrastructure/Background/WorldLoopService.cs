@@ -1,7 +1,7 @@
-﻿using Application.Events.Abstraction;
-using Application.Systems;
+﻿using Application.Interfaces.Realtime;
+using Application.Systems.Request;
 using Application.Systems.Resolver;
-using Application.Systems.System;
+using Application.Systems.Tick;
 using Application.Systems.Trigger;
 using Domain.Shared;
 using Infrastructure.Realtime;
@@ -12,12 +12,13 @@ namespace Infrastructure.Background
     public class WorldLoopService : BackgroundService
     {
         #region Attributes
-        private readonly MovementSystem movementSystem;
+        private readonly MovementRequest movementRequest;
+
+        private readonly CollisionResolver collisionResolver;
+
         private readonly MovementTrigger movementTrigger;
-        private readonly CollisionResolver collisionSystem;
-        private readonly EntityLifecycleSystem entityLifecycleSystem;
-        private readonly RoomTransitionSystem roomTransitionSystem;
-        private readonly EffectTickSystem effectTickSystem;
+
+        private readonly EffectTick effectTickSystem;
 
         private readonly IEventBus eventBus;
         private readonly EventDispatcher dispatcher;
@@ -29,21 +30,23 @@ namespace Infrastructure.Background
         #endregion
 
         public WorldLoopService(
-            MovementSystem movementSystem,
+            MovementRequest movementRequest,
+
+            CollisionResolver collisionResolver,
+
             MovementTrigger movementTrigger,
-            CollisionResolver collisionSystem,
-            EntityLifecycleSystem entityLifecycleSystem,
-            RoomTransitionSystem roomTransitionSystem,
-            EffectTickSystem effectTickSystem,
+
+            EffectTick effectTickSystem,
 
             IEventBus eventBus,
             EventDispatcher dispatcher)
         {
-            this.movementSystem = movementSystem;
+            this.movementRequest = movementRequest;
+
+            this.collisionResolver = collisionResolver;
+
             this.movementTrigger = movementTrigger;
-            this.collisionSystem = collisionSystem;
-            this.entityLifecycleSystem = entityLifecycleSystem;
-            this.roomTransitionSystem = roomTransitionSystem;
+
             this.effectTickSystem = effectTickSystem;
 
             this.eventBus = eventBus;
@@ -60,16 +63,16 @@ namespace Infrastructure.Background
             while (await timer.WaitForNextTickAsync(stoppingToken))
             {
                 // Request systems
-                movementSystem.Update(Constraint.DELTA_TIME, collisionRequests);
+                movementRequest.Update(Constraint.DELTA_TIME, collisionRequests);
 
-                // Resolve systems 
-                effectTickSystem.Update(Constraint.DELTA_TIME);
-                var collisionResults = collisionSystem.ResolveBatch(collisionRequests);
+                // Resolver systems 
+                var collisionResults = collisionResolver.Resolve(collisionRequests);
 
                 // Trigger systems
                 movementTrigger.Apply(collisionResults);
-                entityLifecycleSystem.Update();
-                roomTransitionSystem.Update();
+
+                // UNKNOWN!!!
+                effectTickSystem.Tick(Constraint.DELTA_TIME);
 
                 // Clear requests
                 collisionRequests.Clear();

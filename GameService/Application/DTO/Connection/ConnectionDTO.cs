@@ -1,30 +1,26 @@
-﻿using Application.DTO.Definition;
+﻿using Application.DTO.Runtime;
 
 namespace Application.DTO.Connection
 {
-    public class DefinitionSnapshotDTO
+    public class ExistedSessionEntryDTO
     {
-        public long Version { get; set; }
+        public string PlayerInstanceID { get; set; } = string.Empty;
+        public PlayerAppearanceRuntimeDTO PlayerAppearance { get; set; } = new();
+    }
 
-        public List<AttributeDefinitionDTO> AttributeDefinitions { get; set; } = new();
-        public List<AttributeValueDefinitionDTO> AttributeValues { get; set; } = new();
-        public List<CharacteristicDefinitionDTO> Characteristics { get; set; } = new();
-        public List<EffectDefinitionDTO> Effects { get; set; } = new();
+    public class RoomSnapshotDTO
+    {
+        public RoomRuntimeDTO RoomData { get; set; } = new RoomRuntimeDTO();
+    }
 
+    public class ExistedSessionDTO
+    {
+        public List<ExistedSessionEntryDTO> Sessions { get; set; } = new();
+    }
 
-        public List<InventoryDefinitionDTO> Inventories { get; set; } = new();
-        public List<InventoryItemDefinitionDTO> InventoryItems { get; set; } = new();
-        public List<ItemDefinitionDTO> Items { get; set; } = new();
-        public List<ItemEffectDefinitionDTO> ItemEffects { get; set; } = new();
-
-        public List<EntityDefinitionDTO> Entities { get; set; } = new();
-
-        public List<CellDefinitionDTO> Cells { get; set; } = new();
-        public List<EntitySpawnRuleDefinitionDTO> EntitySpawnRules { get; set; } = new();
-        public List<RoomDefinitionDTO> Rooms { get; set; } = new();
-        public List<SpawnAreaDefinitionDTO> SpawnAreas { get; set; } = new();
-        public List<TileDefinitionDTO> Tiles { get; set; } = new();
-
-        public List<LocaleDTO> Locales { get; set; } = new();
+    public class SaveGameDTO
+    {
+        public PlayerRuntimeDTO PlayerData { get; set; } = new PlayerRuntimeDTO();
+        public RoomRuntimeDTO RoomData { get; set; } = new RoomRuntimeDTO();
     }
 }

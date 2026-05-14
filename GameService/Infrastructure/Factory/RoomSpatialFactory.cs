@@ -1,13 +1,9 @@
 ﻿using Application.Interfaces.Cache;
 using Application.Interfaces.Factory;
-using Domain.Definition.EntityDomain;
-using Domain.Document.EntityDomain;
 using Domain.Document.WorldDomain;
 using Domain.DomainException;
-using Domain.Runtime.EntityDomain;
-using Domain.Runtime.WorldDomain.World;
+using Domain.Runtime.WorldDomain;
 using Domain.Shared;
-using Infrastructure.Cache;
 
 namespace Infrastructure.Factory
 {

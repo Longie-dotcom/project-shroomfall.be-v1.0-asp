@@ -12,6 +12,8 @@ namespace Application.Interfaces.Repository.NonRelational
             T entity);
         Task UpdateAsync(
             T entity);
+        Task UpdateManyAsync(
+            IEnumerable<T> entities);
         Task DeleteAsync(
             string id);
     }

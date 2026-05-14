@@ -1,14 +1,15 @@
-﻿using Application.Events.Abstraction;
+﻿using Application.DTO.Runtime;
+using Application.Events.Abstraction;
 using Application.Events.Event;
 using Application.Interfaces.Realtime;
-using Application.Services.Abstraction.OtherService;
+using AutoMapper;
 
 namespace Infrastructure.Realtime.Handlers
 {
     public class EntityLifecycleHandler : IEventHandler
     {
         #region Attributes
-        private readonly ISnapshotService snapshotService;
+        private readonly IMapper mapper;
         private readonly IRealtimePublisher publisher;
         #endregion
 
@@ -16,15 +17,16 @@ namespace Infrastructure.Realtime.Handlers
         #endregion
 
         public EntityLifecycleHandler(
-            ISnapshotService snapshotService,
+            IMapper mapper,
             IRealtimePublisher publisher)
         {
-            this.snapshotService = snapshotService;
+            this.mapper = mapper;
             this.publisher = publisher;
         }
 
         #region Methods
-        public async Task Handle(IEvent @event)
+        public async Task Handle(
+            IEvent @event)
         {
             if (@event is not EntityLifecycleEvent e)
                 return;
@@ -33,21 +35,17 @@ namespace Infrastructure.Realtime.Handlers
             {
                 case EntityLifecycleType.Spawn:
                     {
-                        var entity = snapshotService.BuildEntity(e.EntityID);
-
                         await publisher.SendEntitySpawned(
-                            e.RoomID,
-                            entity);
-
+                            e.RoomSpatialID,
+                            mapper.Map<EntityRuntimeDTO>(e.Entity));
                         break;
                     }
 
                 case EntityLifecycleType.Despawn:
                     {
                         await publisher.SendEntityDespawned(
-                            e.RoomID,
-                            e.EntityID);
-
+                            e.RoomSpatialID,
+                            e.Entity.ID);
                         break;
                     }
             }

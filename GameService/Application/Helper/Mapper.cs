@@ -22,7 +22,7 @@ using Domain.Runtime.AttributeDomain;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
 using Domain.Runtime.ItemDomain;
-using Domain.Runtime.WorldDomain.World;
+using Domain.Runtime.WorldDomain;
 
 namespace Application.Helper
 {
@@ -75,6 +75,9 @@ namespace Application.Helper
                 .ForMember(d => d.PantColor, o => o.MapFrom(s => s.PantColor));
 
             CreateMap<Entity, EntityDefinitionDTO>()
+                .Include<Creature, CreatureDefinitionDTO>()
+                .Include<WorldObject, WorldObjectDefinitionDTO>()
+                .Include<Player, PlayerDefinitionDTO>()
                 .ForMember(d => d.LocalizedText, o => o.MapFrom(s => s.LocalizedText))
                 .ForMember(d => d.Appearance, o => o.MapFrom(s => s.Appearance))
                 .ForMember(d => d.Collision, o => o.MapFrom(s => s.Collision));
@@ -145,6 +148,9 @@ namespace Application.Helper
                 .ForMember(d => d.PantColor, o => o.MapFrom(s => s.PantColor));
 
             CreateMap<EntityInstance, EntityRuntimeDTO>()
+                .Include<CreatureInstance, CreatureRuntimeDTO>()
+                .Include<WorldObjectInstance, WorldObjectRuntimeDTO>()
+                .Include<PlayerInstance, PlayerRuntimeDTO>()
                 .ForMember(d => d.Position, o => o.MapFrom(s => s.Position))
                 .ForMember(d => d.Direction, o => o.MapFrom(s => s.Direction))
                 .ForMember(d => d.Appearance, o => o.MapFrom(s => s.Appearance));
@@ -198,6 +204,9 @@ namespace Application.Helper
                 .ForMember(d => d.PantColor, o => o.MapFrom(s => s.PantColor));
 
             CreateMap<EntityInstance, EntityDocument>()
+                .Include<CreatureInstance, CreatureDocument>()
+                .Include<WorldObjectInstance, WorldObjectDocument>()
+                .Include<PlayerInstance, PlayerDocument>()
                 .ForMember(d => d.Position, o => o.MapFrom(s => s.Position))
                 .ForMember(d => d.Direction, o => o.MapFrom(s => s.Direction))
                 .ForMember(d => d.Appearance, o => o.MapFrom(s => s.Appearance));

@@ -1,15 +1,65 @@
-﻿using Application.Interfaces.Cache;
-using Application.Services.Abstraction.WorldService;
+﻿using Application.Context;
+using Application.Interfaces.Cache;
 using Domain.Abstraction;
-using Domain.Abstraction.World;
 using Domain.Common;
 using Domain.Definition.WorldDomain.Enum;
+using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
-using Domain.Runtime.WorldDomain.World;
+using Domain.Runtime.WorldDomain;
 using Domain.Shared;
 
 namespace Application.Services.WorldService
 {
+    public readonly struct CollisionBody
+    {
+        public string EntityInstanceID { get; }
+        public string RoomSpatialID { get; }
+        public Vector2 Position { get; }
+        public int LayerZ { get; }
+        public ICollisionShape CollisionShape { get; }
+
+        public CollisionBody(
+            string entityInstanceID,
+            string roomSpatialID,
+            Vector2 position,
+            int layerZ,
+            ICollisionShape collisionShape)
+        {
+            EntityInstanceID = entityInstanceID;
+            RoomSpatialID = roomSpatialID;
+
+            Position = position;
+            LayerZ = layerZ;
+
+            CollisionShape = collisionShape;
+        }
+    }
+
+    public class CollisionContext
+    {
+        // Final state
+        public bool IsBlocked { get; set; }
+
+        // Per-axis
+        public bool BlockX { get; set; }
+        public bool BlockY { get; set; }
+
+        // Resolved layer
+        public int LayerZ { get; set; }
+
+        // Dynamic collisions
+        public List<EntityInstance> Entities { get; }
+
+        // Trigger entities
+        public HashSet<string> Triggers { get; }
+
+        public CollisionContext()
+        {
+            Entities = new List<EntityInstance>();
+            Triggers = new HashSet<string>();
+        }
+    }
+
     public readonly struct ChunkKey : IEquatable<ChunkKey>
     {
         public readonly int X;
@@ -23,21 +73,15 @@ namespace Application.Services.WorldService
 
         public bool Equals(ChunkKey other)
             => X == other.X && Y == other.Y;
-
-        public override bool Equals(object? obj)
-            => obj is ChunkKey other && Equals(other);
-
-        public override int GetHashCode()
-            => HashCode.Combine(X, Y);
     }
 
-    public class CollisionService : ICollisionService
+    public class CollisionService
     {
         #region Attributes
         private readonly HashSet<ChunkKey> visitedChunks = new();
 
         private readonly IRoomCache roomCache;
-        private readonly IWorldQuery world;
+        private readonly WorldContext worldContext;
         #endregion
 
         #region Properties
@@ -45,10 +89,10 @@ namespace Application.Services.WorldService
 
         public CollisionService(
             IRoomCache roomCache,
-            IWorldQuery world)
+            WorldContext worldContext)
         {
             this.roomCache = roomCache;
-            this.world = world;
+            this.worldContext = worldContext;
         }
 
         #region Methods
@@ -58,7 +102,12 @@ namespace Application.Services.WorldService
         {
             var result = new CollisionContext();
 
-            var roomSpatial = world.GetRoom(self.RoomSpatialID);
+            var roomSpatial = worldContext.GetRoom(self.RoomSpatialID);
+            if (roomSpatial == null)
+                throw new InternalException(
+                    ResponseCode.CollisionService_RoomSpatialNotFoundOnQueryMovement,
+                    $"Room spatial with room spatial ID: {self.RoomSpatialID} not found on query movement" +
+                    $", referenced from entity instance: {self.EntityInstanceID}");
 
             var currentPos = self.Position;
 
@@ -108,7 +157,11 @@ namespace Application.Services.WorldService
         {
             var result = new CollisionContext();
 
-            var roomSpatial = world.GetRoom(roomSpatialId);
+            var roomSpatial = worldContext.GetRoom(roomSpatialId);
+            if (roomSpatial == null)
+                throw new InternalException(
+                    ResponseCode.CollisionService_RoomSpatialNotFoundOnQueryPoint,
+                    $"Room spatial with room spatial ID: {roomSpatialId} not found on query point");
 
             Span<(int x, int y)> buffer = stackalloc (int, int)[256];
 
@@ -118,7 +171,7 @@ namespace Application.Services.WorldService
             {
                 var (cellX, cellY) = buffer[i];
 
-                var (_, entityIds) = world.QuerySpatial(
+                var (_, entityIds) = worldContext.QuerySpatial(
                     roomSpatialId,
                     cellX,
                     cellY,
@@ -126,12 +179,15 @@ namespace Application.Services.WorldService
 
                 foreach (var entityId in entityIds)
                 {
-                    var entity = world.Get<EntityInstance>(entityId);
+                    var entity = worldContext.GetEntity<EntityInstance>(entityId);
                     if (entity == null)
                         continue;
 
                     bool intersects =
-                        shape.Intersects(position, entity.CollisionShape, entity.Position);
+                        shape.Intersects(
+                            position, 
+                            entity.CollisionShape,
+                            entity.Position);
 
                     if (!intersects)
                         continue;
@@ -192,7 +248,7 @@ namespace Application.Services.WorldService
                     // DYNAMIC ENTITIES
                     // =====================================================
 
-                    var (_, entityIds) = world.QuerySpatial(
+                    var (_, entityIds) = worldContext.QuerySpatial(
                         self.RoomSpatialID,
                         cellX,
                         cellY,
@@ -200,9 +256,7 @@ namespace Application.Services.WorldService
 
                     foreach (var entityId in entityIds)
                     {
-                        var entity =
-                            world.Get<EntityInstance>(entityId);
-
+                        var entity = worldContext.GetEntity<EntityInstance>(entityId);
                         if (entity == null)
                             continue;
 

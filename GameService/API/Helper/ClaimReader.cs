@@ -14,7 +14,9 @@ namespace API.Helper
             var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userId))
-                throw new Unauthorized(ResponseCode.ClaimReader_ClaimMissingUserId);
+                throw new Unauthorized(
+                    ResponseCode.ClaimReader_ClaimMissingUserId,
+                    "User has no user ID in token");
 
             var steamId = user.FindFirst("steamId")?.Value;
             var role = user.FindFirst(ClaimTypes.Role)?.Value;

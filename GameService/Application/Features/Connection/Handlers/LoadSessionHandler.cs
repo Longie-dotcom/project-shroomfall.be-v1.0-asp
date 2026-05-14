@@ -1,16 +1,20 @@
-﻿using Application.Features.Abstraction;
+﻿using Application.Coordinator;
+using Application.DTO.Connection;
+using Application.DTO.Runtime;
+using Application.Features.Abstraction;
 using Application.Features.Connection.Commands;
 using Application.Interfaces.Security;
-using Application.Services.Abstraction.WorldService;
+using AutoMapper;
 using Domain.DomainException;
 using Domain.Shared;
 
 namespace Application.Features.Connection.Handlers
 {
-    public class LoadSessionHandler : IHandler<LoadSessionCommand>
+    public class LoadSessionHandler : IHandler<LoadSessionCommand, SaveGameDTO>
     {
         #region Attributes
-        private readonly IOrchestratorService orchestratorService;
+        private readonly IMapper mapper;
+        private readonly PlayerCoordinator playerCoordinator;
         private readonly ISessionManager sessionManager; 
         #endregion
 
@@ -18,15 +22,17 @@ namespace Application.Features.Connection.Handlers
         #endregion
 
         public LoadSessionHandler(
-            IOrchestratorService orchestratorService,
+            IMapper mapper,
+            PlayerCoordinator playerCoordinator,
             ISessionManager sessionManager)
         {
-            this.orchestratorService = orchestratorService;
+            this.mapper = mapper;
+            this.playerCoordinator = playerCoordinator;
             this.sessionManager = sessionManager;
         }
 
         #region Methods
-        public async Task Handle(
+        public async Task<SaveGameDTO> Handle(
             LoadSessionCommand command)
         {
             var dto = command.DTO;
@@ -38,10 +44,21 @@ namespace Application.Features.Connection.Handlers
                     $"Session of user with user ID: {command.UserID} already existed with player instance ID: {dto.PlayerInstanceID}");
 
             // Reload player instance (old save)
-            await orchestratorService.LoadExistedPlayer(dto.PlayerInstanceID);
+            var (player, snapshot) = await playerCoordinator.LoadExistedPlayer(dto.PlayerInstanceID, command.UserID);
 
             // Register session
             sessionManager.Add(command.UserID, dto.PlayerInstanceID);
+
+            // Rebuild save game snapshot
+            var saveGame = new SaveGameDTO()
+            {
+                PlayerData = mapper.Map<PlayerRuntimeDTO>(player),
+                RoomData = mapper.Map<RoomRuntimeDTO>(snapshot.Room)
+            };
+
+            saveGame.RoomData.Entities = mapper.Map<List<EntityRuntimeDTO>>(snapshot.Entities);
+
+            return saveGame;
         }
         #endregion
     }

@@ -20,7 +20,8 @@ namespace Infrastructure.Realtime.Handlers
         }
 
         #region Methods
-        public async Task Handle(IEvent @event)
+        public async Task Handle(
+            IEvent @event)
         {
             if (@event is not DefinitionUpdatedEvent e)
                 return;

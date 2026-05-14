@@ -1,5 +1,4 @@
-﻿using Domain.Document.EntityDomain;
-using Domain.Document.WorldDomain;
+﻿using Domain.Document.WorldDomain;
 
 namespace Application.Interfaces.Repository.NonRelational
 {

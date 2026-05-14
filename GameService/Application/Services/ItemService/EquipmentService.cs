@@ -1,6 +1,5 @@
 ﻿using Application.Interfaces.Cache;
-using Application.Services.Abstraction.AttributeService;
-using Application.Services.Abstraction.ItemService;
+using Application.Services.AttributeService;
 using Domain.Definition.ItemDomain;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
@@ -10,11 +9,11 @@ using Domain.Shared;
 
 namespace Application.Services.ItemService
 {
-    public class EquipmentService : IEquipmentService
+    public class EquipmentService
     {
         #region Attributes
-        private readonly IInventoryService inventoryService;
-        private readonly IEffectService effectService;
+        private readonly InventoryService inventoryService;
+        private readonly EffectService effectService;
         private readonly IItemCache itemCache;
         #endregion
 
@@ -22,8 +21,8 @@ namespace Application.Services.ItemService
         #endregion
 
         public EquipmentService(
-            IInventoryService inventoryService,
-            IEffectService effectService,
+            InventoryService inventoryService,
+            EffectService effectService,
             IItemCache itemCache)
         {
             this.inventoryService = inventoryService;
@@ -42,11 +41,15 @@ namespace Application.Services.ItemService
             // Validate item and resolve slot
             bool isEquipped = EquipmentMapping.Map.TryGetValue(itemDef.Category, out var slot);
             if (!isEquipped)
-                throw new BadRequest(ResponseCode.EquipmentService_InvalidItem);
+                throw new BadRequest(
+                    ResponseCode.EquipmentService_InvalidItem,
+                    $"Item is not an equipment, item defintion ID: {item.DefinitionID}, item instance ID: {item.ID}");
 
             // Prevent replacing equipped item
             if (creature.GetEquipment(slot) != null)
-                throw new BadRequest(ResponseCode.EquipmentService_EquipmentSlotOccupied);
+                throw new BadRequest(
+                    ResponseCode.EquipmentService_EquipmentSlotOccupied,
+                    $"Equipment slot has been occupied");
 
             // Remove from inventory
             var grabbed = inventoryService.RemoveForEquip(creature, item.ID);
@@ -68,12 +71,16 @@ namespace Application.Services.ItemService
 
             // Validate existed space to return back to inventory
             if (!inventoryService.CanAddItem(creature, equipped))
-                throw new BadRequest(ResponseCode.EquipmentService_InventoryFullOnUnequip);
+                throw new BadRequest(
+                    ResponseCode.EquipmentService_InventoryFullOnUnequip,
+                    $"Inventory is full, can not unequipped equipment");
 
             // Find item definition from cache
             var itemDef = itemCache.Get(equipped.DefinitionID);
             if (itemDef == null)
-                throw new InternalException(ResponseCode.EquipmentService_ItemDefinitionNotFound);
+                throw new InternalException(
+                    ResponseCode.EquipmentService_ItemDefinitionNotFound,
+                    $"Item defintion ID: {equipped.DefinitionID} was not found");
 
             // Remove equipment
             creature.RemoveEquipment(slot);
@@ -89,7 +96,9 @@ namespace Application.Services.ItemService
                 creature.SetEquipment(slot, equipped);
                 effectService.ApplyItemEffects(creature, itemDef, equipped.ID);
 
-                throw new InternalException(ResponseCode.EquipmentService_InventoryFullOnUnequip);
+                throw new InternalException(
+                    ResponseCode.EquipmentService_InventoryFullOnUnequip,
+                    $"Inventory is full, can not unequipped equipment");
             }
         }
 

@@ -1,6 +1,4 @@
-﻿using Application.DTO.Connection;
-
-namespace Application.Features.Connection.Commands
+﻿namespace Application.Features.Connection.Commands
 {
     public class UnloadSessionCommand
     {
@@ -9,12 +7,15 @@ namespace Application.Features.Connection.Commands
 
         #region Properties
         public string UserID { get; }
+        public string ConnectionID { get; }
         #endregion
 
         public UnloadSessionCommand(
-            string userId)
+            string userId,
+            string connectionId)
         {
             UserID = userId;
+            ConnectionID = connectionId;
         }
 
         #region Methods

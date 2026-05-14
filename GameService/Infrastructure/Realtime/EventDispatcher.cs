@@ -12,13 +12,15 @@ namespace Infrastructure.Realtime
         #region Properties
         #endregion
 
-        public EventDispatcher(IEnumerable<IEventHandler> handlers)
+        public EventDispatcher(
+            IEnumerable<IEventHandler> handlers)
         {
             this.handlers = handlers;
         }
 
         #region Methods
-        public async Task Dispatch(IEvent @event)
+        public async Task Dispatch(
+            IEvent @event)
         {
             foreach (var handler in handlers)
             {

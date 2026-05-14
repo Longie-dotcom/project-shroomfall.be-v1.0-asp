@@ -2,7 +2,7 @@
 using Application.Features.Abstraction;
 using Application.Features.Identity.Commands;
 using Application.Interfaces.Repository.Relational;
-using Application.Services.Abstraction.OtherService;
+using Application.Services.IdentityService;
 using Domain.DomainException;
 using Domain.Shared;
 
@@ -12,7 +12,7 @@ namespace Application.Features.Identity.Handlers
     {
         #region Attributes
         private readonly IRelationalUoW relational;
-        private readonly ITokenService tokenService;
+        private readonly TokenService tokenService;
         #endregion
 
         #region Properties
@@ -20,7 +20,7 @@ namespace Application.Features.Identity.Handlers
 
         public RefreshTokenHandler(
             IRelationalUoW relational,
-            ITokenService tokenService)
+            TokenService tokenService)
         {
             this.relational = relational;
             this.tokenService = tokenService;
@@ -38,7 +38,9 @@ namespace Application.Features.Identity.Handlers
             // Validate authentication
             var user = await userRepo.GetByIdAsync(command.UserID);
             if (user == null)
-                throw new NotFound(ResponseCode.RefreshToken_UserNotFound);
+                throw new NotFound(
+                    ResponseCode.RefreshToken_UserNotFound,
+                    $"User with user ID: {command.UserID} was not found");
 
             // Validate refresh token 
             user.ValidateRefreshToken(dto.RefreshToken, DateTime.UtcNow);

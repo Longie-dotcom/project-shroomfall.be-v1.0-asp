@@ -33,12 +33,15 @@ namespace Domain.Runtime.AttributeDomain
             return vitals;
         }
 
-        public float GetVital(AttributeType type)
+        public float GetVital(
+            AttributeType type)
         {
             return vitals.TryGetValue(type, out var v) ? v : 0f;
         }
 
-        public void SetVital(AttributeType type, float value)
+        public void SetVital(
+            AttributeType type,
+            float value)
         {
             if (AttributeDefinitions.Get(type).DomainType != DomainType.Vital)
                 throw new InternalException(
@@ -53,12 +56,15 @@ namespace Domain.Runtime.AttributeDomain
             return cores;
         }
 
-        public float GetCore(AttributeType type)
+        public float GetCore(
+            AttributeType type)
         {
             return cores.TryGetValue(type, out var v) ? v : 0f;
         }
 
-        public void SetCore(AttributeType type, float value)
+        public void SetCore(
+            AttributeType type,
+            float value)
         {
             if (AttributeDefinitions.Get(type).DomainType != DomainType.Core)
                 throw new InternalException(

@@ -1,7 +1,7 @@
 ﻿using Application.Interfaces.Cache;
 using Application.Interfaces.Factory;
-using Application.Services.Abstraction.AttributeService;
-using Application.Services.Abstraction.ItemService;
+using Application.Services.AttributeService;
+using Application.Services.ItemService;
 using Domain.Common;
 using Domain.Definition.EntityDomain;
 using Domain.Definition.EntityDomain.Component;
@@ -22,8 +22,8 @@ namespace Infrastructure.Factory
         private readonly IInventoryInstanceFactory inventoryInstanceFactory;
         private readonly ICharacteristicInstanceFactory characteristicInstanceFactory;
         private readonly IEffectInstanceFactory effectInstanceFactory;
-        private readonly ICharacteristicService characteristicService;
-        private readonly IEquipmentService equipmentService;
+        private readonly CharacteristicService characteristicService;
+        private readonly EquipmentService equipmentService;
         #endregion
 
         #region Properties
@@ -34,8 +34,8 @@ namespace Infrastructure.Factory
             IInventoryInstanceFactory inventoryInstanceFactory,
             ICharacteristicInstanceFactory characteristicInstanceFactory,
             IEffectInstanceFactory effectInstanceFactory,
-            ICharacteristicService characteristicService,
-            IEquipmentService equipmentService)
+            CharacteristicService characteristicService,
+            EquipmentService equipmentService)
         {
             this.entityCache = entityCache;
             this.inventoryInstanceFactory = inventoryInstanceFactory;

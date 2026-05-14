@@ -26,7 +26,7 @@ namespace Application.DTO.Definition
         public ItemCategory Category { get; set; }
         public int? Durability { get; set; }
         public bool Stackable { get; set; }
-        public string CharacteristicID { get; set; } = string.Empty;
+        public string? CharacteristicID { get; set; }
         public string? ProjectileID { get; set; }
         public string? AreaEffectID { get; set; }
         public string? WorldObjectID { get; set; }

@@ -33,7 +33,9 @@ namespace Application.Features.Identity.Handlers
             // Validate existence
             var user = await userRepo.GetByIdAsync(command.UserID);
             if (user == null)
-                throw new NotFound(ResponseCode.UpdateProfile_UserNotFound);
+                throw new NotFound(
+                    ResponseCode.UpdateProfile_UserNotFound,
+                    $"User with user ID: {command.UserID} was not found");
 
             // Apply domain - Update profile
             user.UpdateProfile(

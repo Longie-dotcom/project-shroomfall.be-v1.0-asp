@@ -5,6 +5,8 @@ namespace Application.Interfaces.Repository.NonRelational
     public interface IEntityDocumentRepository : IMongoGenericRepository<EntityDocument>, INonRelationalRepository
     {
         Task<IReadOnlyList<EntityDocument>> GetByRoomIdAsync(
-            string roomId);
+            string roomSpatialId);
+        Task<IReadOnlyCollection<PlayerDocument>> GetPlayerDocumentsByUserIdAsync(
+            string userId);
     }
 }

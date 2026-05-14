@@ -2,6 +2,6 @@
 {
     public enum InventoryType
     {
-        Player_Inventory, Creature_Bag
+        PlayerInventory, CreatureBag, Container
     }
 }

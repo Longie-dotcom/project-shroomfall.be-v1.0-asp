@@ -1,4 +1,5 @@
 ﻿using Application.Events.Abstraction;
+using Domain.Runtime.EntityDomain;
 
 namespace Application.Events.Event
 {
@@ -14,19 +15,19 @@ namespace Application.Events.Event
         #endregion
 
         #region Properties
-        public string EntityID { get; }
-        public string RoomID { get; }
+        public EntityInstance Entity { get; }
+        public string RoomSpatialID { get; }
         public EntityLifecycleType Type { get; }
         public DateTime OccurredAt { get; }
         #endregion
 
         public EntityLifecycleEvent(
-            string entityId,
-            string roomId,
+            EntityInstance entity,
+            string roomSpatialId,
             EntityLifecycleType type)
         {
-            EntityID = entityId;
-            RoomID = roomId;
+            Entity = entity;
+            RoomSpatialID = roomSpatialId;
             Type = type;
             OccurredAt = DateTime.UtcNow;
         }
