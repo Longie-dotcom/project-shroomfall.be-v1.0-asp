@@ -1,6 +1,5 @@
-﻿using Domain.Definition.AttributeDomain.Enum;
+﻿using Contract.Enum.AttributeDomain;
 using Domain.Definition.LocalizationDomain;
-using Domain.Shared;
 
 namespace Domain.Definition.AttributeDomain
 {

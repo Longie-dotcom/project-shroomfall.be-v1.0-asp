@@ -28,7 +28,8 @@ namespace Application.Features.Game.Handlers
         }
 
         #region Methods
-        public async Task Handle(MoveCommand command)
+        public async Task Handle(
+            MoveCommand command)
         {
             var dto = command.DTO;
 

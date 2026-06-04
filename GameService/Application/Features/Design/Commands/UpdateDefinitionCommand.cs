@@ -1,4 +1,4 @@
-﻿using Application.DTO.Design;
+﻿using Contract.DTO.Design;
 
 namespace Application.Features.Design.Commands
 {

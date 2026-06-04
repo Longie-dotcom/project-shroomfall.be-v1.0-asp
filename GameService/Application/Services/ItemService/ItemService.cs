@@ -1,6 +1,6 @@
 ﻿using Application.Interfaces.Cache;
+using Contract.Enum.ItemDomain;
 using Domain.Common;
-using Domain.Definition.ItemDomain.Enum;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
 using Domain.Shared;

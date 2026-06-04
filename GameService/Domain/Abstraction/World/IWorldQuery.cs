@@ -13,5 +13,7 @@ namespace Domain.Abstraction.World
             int x, int y, int z);
         RoomSpatial? GetRoom(
             string roomSpatialId);
+        RoomConnectionInstance? GetConnectionByEntityInstanceID(
+            string entityInstanceId);
     }
 }

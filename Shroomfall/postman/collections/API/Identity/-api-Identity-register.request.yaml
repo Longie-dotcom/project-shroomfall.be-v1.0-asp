@@ -1,0 +1,17 @@
+$kind: http-request
+name: /api/Identity/register
+url: "{{baseUrl}}/api/Identity/register"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "string",
+      "password": "string",
+      "name": "string",
+      "preferredLocale": "string"
+    }
+examples: ./.resources/-api-Identity-register.resources/examples
+order: 2000

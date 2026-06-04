@@ -15,8 +15,8 @@ namespace Infrastructure.Cache
         private readonly IInventoryCache inventoryCache;
         private readonly IItemCache itemCache;
         private readonly ILocaleCache localeCache;
+        private readonly IRoomConnectionCache roomConnectionCache;
         private readonly IRoomCache roomCache;
-        private readonly ITileCache tileCache;
         #endregion
 
         #region Properties
@@ -32,8 +32,8 @@ namespace Infrastructure.Cache
              IInventoryCache inventoryCache,
              IItemCache itemCache,
              ILocaleCache localeCache,
-             IRoomCache roomCache,
-             ITileCache tileCache)
+             IRoomConnectionCache roomConnectionCache,
+             IRoomCache roomCache)
         {
             this.relational = relational;
 
@@ -44,53 +44,58 @@ namespace Infrastructure.Cache
             this.inventoryCache = inventoryCache;
             this.itemCache = itemCache;
             this.localeCache = localeCache;
+            this.roomConnectionCache = roomConnectionCache;
             this.roomCache = roomCache;
-            this.tileCache = tileCache;
         }
 
         #region Methods
         public async Task LoadAllAsync()
         {
-            var attributeValuesTask =
-                relational.GetRepository<IAttributeValueRepository>().GetAllAsync();
-            var characteristicsTask = 
-                relational.GetRepository<ICharacteristicRepository>().GetAllWithAttributeValuesAsync();
-            var effectsTask = 
-                relational.GetRepository<IEffectRepository>().GetAllAsync();
-            var entitiesTask = 
-                relational.GetRepository<IEntityRepository>().GetAllAsync();
-            var inventoriesTask = 
-                relational.GetRepository<IInventoryRepository>().GetAllWithDefaultItemsAsync();
-            var itemsTask = 
-                relational.GetRepository<IItemRepository>().GetAllWithEffectsAsync();
-            var localeTask = 
-                relational.GetRepository<ILocaleRepository>().GetAllWithLocalizationEntriesAsync();
-            var roomsTask = 
-                relational.GetRepository<IRoomRepository>().GetAllWithCellsAndSpawnRulesAsync();
-            var tilesTask = 
-                relational.GetRepository<ITileRepository>().GetAllAsync();
+            var attributeValues = await relational
+                .GetRepository<IAttributeValueRepository>()
+                .GetAllAsync();
 
-            await Task.WhenAll(
-                attributeValuesTask,
-                characteristicsTask,
-                effectsTask,
-                entitiesTask,
-                inventoriesTask,
-                itemsTask,
-                localeTask,
-                roomsTask,
-                tilesTask
-            );
+            var characteristics = await relational
+                .GetRepository<ICharacteristicRepository>()
+                .GetAllWithAttributeValuesAsync();
 
-            attributeValueCache.Load(await attributeValuesTask);
-            characteristicCache.Load(await characteristicsTask);
-            effectCache.Load(await effectsTask);
-            entityCache.Load(await entitiesTask);
-            inventoryCache.Load(await inventoriesTask);
-            itemCache.Load(await itemsTask);
-            localeCache.Load(await localeTask);
-            roomCache.Load(await roomsTask);
-            tileCache.Load(await tilesTask);
+            var effects = await relational
+                .GetRepository<IEffectRepository>()
+                .GetAllAsync();
+
+            var entities = await relational
+                .GetRepository<IEntityRepository>()
+                .GetAllAsync();
+
+            var inventories = await relational
+                .GetRepository<IInventoryRepository>()
+                .GetAllWithDefaultItemsAsync();
+
+            var items = await relational
+                .GetRepository<IItemRepository>()
+                .GetAllWithEffectsAsync();
+
+            var locales = await relational
+                .GetRepository<ILocaleRepository>()
+                .GetAllWithLocalizationEntriesAsync();
+
+            var roomConnections = await relational
+                .GetRepository<IRoomConnectionRepository>()
+                .GetAllAsync();
+
+            var rooms = await relational
+                .GetRepository<IRoomRepository>()
+                .GetAllWithCellsAndSpawnRulesAsync();
+
+            attributeValueCache.Load(attributeValues);
+            characteristicCache.Load(characteristics);
+            effectCache.Load(effects);
+            entityCache.Load(entities);
+            inventoryCache.Load(inventories);
+            itemCache.Load(items);
+            localeCache.Load(locales);
+            roomConnectionCache.Load(roomConnections);
+            roomCache.Load(rooms);
         }
         #endregion
     }

@@ -45,16 +45,6 @@ namespace Application.Persistence
 
             await roomRepo.UpdateAsync(doc);
         }
-
-        public async Task SaveManyAsync(
-            IEnumerable<RoomSpatial> rooms)
-        {
-            var roomRepo = nonRelational.GetRepository<IRoomDocumentRepository>();
-
-            var docs = rooms.Select(mapper.Map<RoomDocument>).ToList();
-
-            await roomRepo.UpdateManyAsync(docs);
-        }
         #endregion
     }
 }

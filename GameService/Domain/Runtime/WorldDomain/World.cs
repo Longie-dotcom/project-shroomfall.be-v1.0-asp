@@ -13,6 +13,7 @@ namespace Domain.Runtime.WorldDomain
         private readonly Dictionary<string, EntityInstance> entities;
         private readonly Dictionary<Type, IList> entityTypeIndex;
         private readonly SpatialIndex spatialIndex;
+        private readonly ConnectionTopology connectionTopology;
         #endregion
 
         #region Properties
@@ -23,6 +24,7 @@ namespace Domain.Runtime.WorldDomain
             entities = new Dictionary<string, EntityInstance>();
             entityTypeIndex = new Dictionary<Type, IList>();
             spatialIndex = new SpatialIndex();
+            connectionTopology = new ConnectionTopology();
         }
 
         #region Command
@@ -114,6 +116,18 @@ namespace Domain.Runtime.WorldDomain
         {
             spatialIndex.RemoveRoom(roomSpatialId);
         }
+
+        public void AddConnection(
+            RoomConnectionInstance connection)
+        {
+            connectionTopology.AddConnection(connection);
+        }
+
+        public void RemoveConnection(
+            string connectionId)
+        {
+            connectionTopology.RemoveConnection(connectionId);
+        }
         #endregion
 
         #region Query
@@ -183,6 +197,12 @@ namespace Domain.Runtime.WorldDomain
 
                 type = type.BaseType;
             }
+        }
+
+        public RoomConnectionInstance? GetConnectionByEntityInstanceID(
+            string entityInstanceId)
+        {
+            return connectionTopology.GetConnectionByEntityInstanceID(entityInstanceId);
         }
         #endregion
     }

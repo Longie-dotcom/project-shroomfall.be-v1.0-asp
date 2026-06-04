@@ -1,11 +1,11 @@
-﻿using Application.DTO.Identity;
-using Application.Features.Abstraction;
+﻿using Application.Features.Abstraction;
 using Application.Features.Identity.Commands;
 using Application.Interfaces.Repository.Relational;
 using Application.Services.IdentityService;
+using Contract.DTO.Identity;
+using Contract.Enum.IdentityDomain;
 using Domain.DomainException;
 using Domain.Other.IdentityDomain;
-using Domain.Other.IdentityDomain.Enum;
 using Domain.Shared;
 
 namespace Application.Features.Identity.Handlers

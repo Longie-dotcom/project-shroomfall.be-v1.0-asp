@@ -1,7 +1,7 @@
-﻿using Application.DTO.Definition;
-using Application.DTO.Design;
-using Application.Interfaces.Cache;
+﻿using Application.Interfaces.Cache;
 using AutoMapper;
+using Contract.DTO.Definition;
+using Contract.DTO.Design;
 using Domain.Shared;
 
 namespace Application.Services.DesignService
@@ -17,7 +17,7 @@ namespace Application.Services.DesignService
         private readonly IInventoryCache inventoryCache;
         private readonly IEntityCache entityCache;
         private readonly IRoomCache roomCache;
-        private readonly ITileCache tileCache;
+        private readonly IRoomConnectionCache roomConnectionCache;
         private readonly ILocaleCache localeCache;
         #endregion
 
@@ -33,7 +33,7 @@ namespace Application.Services.DesignService
             IInventoryCache inventoryCache,
             IEntityCache entityCache,
             IRoomCache roomCache,
-            ITileCache tileCache,
+            IRoomConnectionCache roomConnectionCache,
             ILocaleCache localeCache)
         {
             this.mapper = mapper;
@@ -44,7 +44,7 @@ namespace Application.Services.DesignService
             this.inventoryCache = inventoryCache;
             this.entityCache = entityCache;
             this.roomCache = roomCache;
-            this.tileCache = tileCache;
+            this.roomConnectionCache = roomConnectionCache;
             this.localeCache = localeCache;
         }
 
@@ -62,7 +62,7 @@ namespace Application.Services.DesignService
             var inventories = inventoryCache.GetAll();
             var entities = entityCache.GetAll();
             var rooms = roomCache.GetAll();
-            var tiles = tileCache.GetAll();
+            var roomConnections = roomConnectionCache.GetAll();
             var locales = localeCache.GetAll();
 
             return new DefinitionSnapshotDTO
@@ -91,15 +91,6 @@ namespace Application.Services.DesignService
                 // ─────────────────────────────
                 // Item domain
                 // ─────────────────────────────
-                Items = items
-                    .Select(x => mapper.Map<ItemDefinitionDTO>(x))
-                    .ToList(),
-
-                ItemEffects = items
-                    .SelectMany(i => i.Effects)
-                    .Select(e => mapper.Map<ItemEffectDefinitionDTO>(e))
-                    .ToList(),
-
                 InventoryItems = inventories
                     .SelectMany(i => i.DefaultItems)
                     .Select(x => mapper.Map<InventoryItemDefinitionDTO>(x))
@@ -107,6 +98,20 @@ namespace Application.Services.DesignService
 
                 Inventories = inventories
                     .Select(x => mapper.Map<InventoryDefinitionDTO>(x))
+                    .ToList(),
+
+                Items = items
+                    .Select(x => mapper.Map<ItemDefinitionDTO>(x))
+                    .ToList(),
+
+                ItemConfigurations = items
+                    .SelectMany(i => i.Configurations)
+                    .Select(e => mapper.Map<ItemConfigurationDefinitionDTO>(e))
+                    .ToList(),
+
+                ItemEffects = items
+                    .SelectMany(i => i.Effects)
+                    .Select(e => mapper.Map<ItemEffectDefinitionDTO>(e))
                     .ToList(),
 
                 // ─────────────────────────────
@@ -133,14 +138,14 @@ namespace Application.Services.DesignService
                     .Select(x => mapper.Map<RoomDefinitionDTO>(x))
                     .ToList(),
 
+                RoomConnections = roomConnections
+                    .Select(x => mapper.Map<RoomConnectionDefinitionDTO>(x))
+                    .ToList(),
+
                 SpawnAreas = rooms
                     .SelectMany(r => r.EntitySpawnRules)
                     .SelectMany(e => e.SpawnAreas)
                     .Select(x => mapper.Map<SpawnAreaDefinitionDTO>(x))
-                    .ToList(),
-
-                Tiles = tiles
-                    .Select(x => mapper.Map<TileDefinitionDTO>(x))
                     .ToList(),
 
                 // ─────────────────────────────

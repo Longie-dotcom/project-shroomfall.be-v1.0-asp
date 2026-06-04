@@ -1,8 +1,8 @@
-﻿using Domain.Abstraction;
+﻿using Contract.Enum.EntityDomain;
+using Domain.Abstraction;
 using Domain.Common;
 using Domain.Runtime.AttributeDomain;
 using Domain.Runtime.EntityDomain.Component;
-using Domain.Runtime.EntityDomain.Enum;
 using Domain.Runtime.ItemDomain;
 
 namespace Domain.Runtime.EntityDomain

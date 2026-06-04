@@ -2,8 +2,8 @@
 using Application.Persistence;
 using Application.Services.WorldService;
 using Domain.DomainException;
-using Domain.Runtime.WorldDomain;
 using Domain.Shared;
+using System.Collections.Concurrent;
 
 namespace Application.Systems.Tick
 {
@@ -24,7 +24,9 @@ namespace Application.Systems.Tick
     public class ResidencyTick
     {
         #region Attributes
-        private readonly Dictionary<string, RoomNode> nodes = new();
+        private readonly ConcurrentDictionary<string, SemaphoreSlim> roomLocks = new();
+        private readonly ConcurrentDictionary<string, RoomNode> nodes = new();
+
         private readonly TimeSpan warmTTL = TimeSpan.FromSeconds(30);
         private readonly WorldContext worldContext;
         private readonly SnapshotPersistence snapshotPersistence;
@@ -84,51 +86,63 @@ namespace Application.Systems.Tick
         public async Task<RoomSnapshot> EnsureRoomLoaded(
             string roomSpatialId)
         {
-            // Get or create room residency node
-            var node = GetOrCreate(roomSpatialId);
+            var roomLock = GetRoomLock(roomSpatialId);
+            await roomLock.WaitAsync();
 
-            // Already resident
-            if (node.State != RoomResidencyState.Cold)
+            RoomNode node;
+            RoomSnapshot? snapshot;
+            bool needLoadFromPersistence = false;
+
+            try
             {
-                // Refresh node lifetime
-                node.LastAccessUtc = DateTime.UtcNow;
+                // Get or create node
+                node = GetOrCreate(roomSpatialId);
 
-                // Retrieve room on runtime
-                var room = worldContext.GetRoom(roomSpatialId);
-                if (room == null)
-                    throw new InternalException(
-                        ResponseCode.ResidencyTick_RoomSpatialNotFoundInRuntime,
-                        $"Room spatial not found when ensured from loaded: {roomSpatialId}");
-
-                return new RoomSnapshot
+                // Already loaded in runtime (Warm/Hot)
+                if (node.State != RoomResidencyState.Cold)
                 {
-                    Room = room,
-                    Entities = worldContext
-                        .GetEntitiesByRoom(roomSpatialId)
-                        .ToList()
-                };
+                    node.LastAccessUtc = DateTime.UtcNow;
+
+                    var room = worldContext.GetRoom(roomSpatialId);
+                    if (room == null)
+                        throw new InternalException(
+                            ResponseCode.ResidencyTick_RoomSpatialNotFoundInRuntime,
+                            $"Room spatial not found when ensured from loaded: {roomSpatialId}");
+
+                    return new RoomSnapshot
+                    {
+                        Room = room,
+                        Entities = worldContext
+                            .GetEntitiesByRoom(roomSpatialId)
+                            .ToList()
+                    };
+                }
+
+                // Mark intention to load (still inside lock)
+                needLoadFromPersistence = true;
+
+                snapshot = await snapshotPersistence.LoadRoomSnapshotAsync(roomSpatialId);
+                if (snapshot == null)
+                    throw new InternalException(
+                        ResponseCode.ResidencyTick_RoomSnapshotNotFoundInPersistence,
+                        $"Room snapshot not found in persistence when ensure loaded: {roomSpatialId}");
+
+                // Update state only (no world mutation yet)
+                node.State = RoomResidencyState.Warm;
+                node.LastAccessUtc = DateTime.UtcNow;
+            }
+            finally
+            {
+                roomLock.Release();
             }
 
-            // Retrieve from persistence
-            var snapshot = await snapshotPersistence.LoadRoomSnapshotAsync(roomSpatialId);
-            if (snapshot == null)
-                throw new InternalException(
-                    ResponseCode.ResidencyTick_RoomSnapshotNotFoundInPersistence,
-                    $"Room snapshot not found in persistence when ensure loaded: {roomSpatialId}");
+            // IMPORTANT: mutate runtime OUTSIDE lock
+            if (needLoadFromPersistence && snapshot != null)
+            {
+                worldContext.Load(snapshot);
+            }
 
-            // Reload room graph to runtime
-            worldContext.Load(
-                new WorldGraph
-                {
-                    Rooms = new List<RoomSpatial> { snapshot.Room },
-                    Entities = snapshot.Entities
-                });
-
-            // Refresh node lifetime
-            node.State = RoomResidencyState.Warm;
-            node.LastAccessUtc = DateTime.UtcNow;
-
-            return snapshot;
+            return snapshot!;
         }
 
         public async Task Tick(
@@ -159,24 +173,39 @@ namespace Application.Systems.Tick
             }
         }
 
-        private async Task EvictToCold(
-            RoomNode node)
+        private async Task EvictToCold(RoomNode node)
         {
-            // Already cold
-            if (node.State == RoomResidencyState.Cold)
-                return;
+            var roomLock = GetRoomLock(node.RoomSpatialID);
+            await roomLock.WaitAsync();
 
-            // Snapshot runtime state
-            // (NOTE: ALREADY ENSURED ENVIRONMENT ENTITIES UNLOADING ONLY)
-            var snapshot = worldContext.Unload(node.RoomSpatialID);
+            RoomSnapshot? snapshot;
+            bool shouldEvict = false;
 
-            if (snapshot != null)
+            try
+            {
+                // Already cold
+                if (node.State == RoomResidencyState.Cold)
+                    return;
+
+                shouldEvict = true;
+
+                // Only mark state change inside lock
+                node.State = RoomResidencyState.Cold;
+                node.LastAccessUtc = DateTime.UtcNow;
+
+                // IMPORTANT: unload runtime state inside lock is OK ONLY if it's fast & deterministic
+                snapshot = worldContext.Unload(node.RoomSpatialID);
+            }
+            finally
+            {
+                roomLock.Release();
+            }
+
+            // Do persistence OUTSIDE lock
+            if (shouldEvict && snapshot != null)
             {
                 await snapshotPersistence.SaveRoomSnapshotAsync(snapshot);
             }
-
-            // Mark as cold
-            node.State = RoomResidencyState.Cold;
         }
 
         private RoomNode GetOrCreate(
@@ -195,6 +224,13 @@ namespace Application.Systems.Tick
             }
 
             return node;
+        }
+
+        private SemaphoreSlim GetRoomLock(string roomId)
+        {
+            return roomLocks.GetOrAdd(
+                roomId,
+                _ => new SemaphoreSlim(1, 1));
         }
         #endregion
     }

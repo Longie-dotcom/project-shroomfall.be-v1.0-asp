@@ -1,4 +1,5 @@
-﻿using Domain.Definition.AttributeDomain.Enum;
+﻿
+using Contract.Enum.AttributeDomain;
 
 namespace Domain.Document.AttributeDomain
 {

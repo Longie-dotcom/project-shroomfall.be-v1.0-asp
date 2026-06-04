@@ -1,8 +1,8 @@
-﻿using Application.DTO.Game;
-using Application.DTO.Runtime;
-using Application.Interfaces.Realtime;
+﻿using Application.Interfaces.Realtime;
+using Contract;
+using Contract.DTO.Game;
+using Contract.DTO.Runtime;
 using Microsoft.AspNetCore.SignalR;
-using SignalHub;
 
 namespace Infrastructure.Realtime
 {
@@ -31,7 +31,7 @@ namespace Infrastructure.Realtime
         {
             return hub.Clients
                 .Group(roomId)
-                .SendAsync("EntityMoved", payload);
+                .SendAsync(NetworkMethod.OnEntityMoved, payload);
         }
 
         // ─────────────────────────────
@@ -43,7 +43,7 @@ namespace Infrastructure.Realtime
         {
             return hub.Clients
                 .Group(roomId)
-                .SendAsync("EntitySpawned", entity);
+                .SendAsync(NetworkMethod.OnEntitySpawned, entity);
         }
 
         // ─────────────────────────────
@@ -55,7 +55,19 @@ namespace Infrastructure.Realtime
         {
             return hub.Clients
                 .Group(roomId)
-                .SendAsync("EntityDespawned", entityId);
+                .SendAsync(NetworkMethod.OnEntityDespawned, entityId);
+        }
+
+        // ─────────────────────────────
+        // Player Appearance Changed (broadcast to room)
+        // ─────────────────────────────
+        public Task SendPlayerAppearanceChanged(
+            string roomId,
+            PlayerAppearanceChangedDTO appearanceChanged)
+        {
+            return hub.Clients
+                .Group(roomId)
+                .SendAsync(NetworkMethod.OnPlayerAppearanceChanged, appearanceChanged);
         }
 
         // ─────────────────────────────
@@ -67,7 +79,7 @@ namespace Infrastructure.Realtime
         {
             return hub.Clients
                 .All
-                .SendAsync("DefinitionUpdated", new
+                .SendAsync(NetworkMethod.OnDefinitionUpdated, new
                 {
                     Key = key,
                     Version = version

@@ -1,0 +1,10 @@
+$kind: http-request
+name: /api/Design/:version
+url: "{{baseUrl}}/api/Design/:version"
+method: GET
+headers:
+  Accept: text/plain
+pathVariables:
+  version: string
+examples: ./.resources/-api-Design-version.resources/examples
+order: 1000

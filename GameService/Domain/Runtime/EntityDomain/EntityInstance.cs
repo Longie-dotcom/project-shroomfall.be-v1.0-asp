@@ -1,4 +1,5 @@
-﻿using Domain.Abstraction;
+﻿using Contract;
+using Domain.Abstraction;
 using Domain.Common;
 using Domain.Runtime.EntityDomain.Component;
 using Domain.Shared;

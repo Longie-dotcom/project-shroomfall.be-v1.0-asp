@@ -1,4 +1,4 @@
-﻿using Domain.Definition.EntityDomain.Enum;
+﻿using Contract.Enum.EntityDomain;
 using Domain.DomainException;
 using Domain.Shared;
 

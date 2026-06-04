@@ -1,5 +1,5 @@
-﻿using Domain.Definition.EntityDomain.Component;
-using Domain.Definition.EntityDomain.Enum;
+﻿using Contract.Enum.EntityDomain;
+using Domain.Definition.EntityDomain.Component;
 using Domain.Definition.LocalizationDomain;
 
 namespace Domain.Definition.EntityDomain
@@ -11,7 +11,6 @@ namespace Domain.Definition.EntityDomain
         public bool IsInteractable { get; private set; }
         public bool IsPickupable { get; private set; }
         public string? InventoryID { get; private set; }
-        public string? RoomID { get; private set; }
         #endregion
 
         #region Properties
@@ -31,8 +30,7 @@ namespace Domain.Definition.EntityDomain
             WorldObjectInteractionType interactionType,
             bool isInteractable,
             bool isPickupable,
-            string? inventoryId,
-            string? roomId) : base(
+            string? inventoryId) : base(
                 id,
                 type,
                 localizedText,
@@ -43,7 +41,6 @@ namespace Domain.Definition.EntityDomain
             IsInteractable = isInteractable;
             IsPickupable = isPickupable;
             InventoryID = inventoryId;
-            RoomID = roomId;
         }
 
         #region Methods

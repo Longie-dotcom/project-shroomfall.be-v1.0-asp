@@ -1,6 +1,6 @@
 ﻿using Application.Interfaces.Cache;
 using Application.Interfaces.Factory;
-using Domain.Definition.ItemDomain.Enum;
+using Contract.Enum.ItemDomain;
 using Domain.Document.ItemDomain;
 using Domain.DomainException;
 using Domain.Runtime.ItemDomain;
@@ -31,7 +31,6 @@ namespace Infrastructure.Factory
             ItemQuality quality)
         {
             var itemDef = itemCache.Get(definitionId);
-
             if (itemDef == null)
                 throw new InternalException(
                     ResponseCode.ItemInstanceFactory_DefinitionNotFound,
@@ -55,7 +54,6 @@ namespace Infrastructure.Factory
                     "Item document is null");
 
             var itemDef = itemCache.Get(doc.DefinitionID);
-
             if (itemDef == null)
                 throw new InternalException(
                     ResponseCode.ItemInstanceFactory_DefinitionFromDocumentNotFound,

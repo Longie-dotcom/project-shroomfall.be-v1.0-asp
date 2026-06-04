@@ -12,7 +12,6 @@ namespace Domain.Runtime.EntityDomain
 
         #region Properties
         public InventoryInstance? Inventory { get; private set; }
-        public string? RoomSpatialReferenceID { get; private set; } = string.Empty;
         #endregion
 
         public WorldObjectInstance(
@@ -24,8 +23,7 @@ namespace Domain.Runtime.EntityDomain
             Vector2 position,
             Vector2 direction,
             AppearanceInstance appearance,
-            InventoryInstance? inventory,
-            string? roomSpatialReferenceId) : base(
+            InventoryInstance? inventory) : base(
                 id,
                 definitionId,
                 collisionShape,
@@ -36,7 +34,6 @@ namespace Domain.Runtime.EntityDomain
                 appearance)
         {
             Inventory = inventory;
-            RoomSpatialReferenceID = roomSpatialReferenceId;
         }
 
         #region Methods

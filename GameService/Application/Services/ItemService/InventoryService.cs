@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces.Cache;
 using Application.Interfaces.Factory;
+using Contract;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.ItemDomain;
@@ -40,7 +41,7 @@ namespace Application.Services.ItemService
                 throw new InternalException(
                     ResponseCode.InventoryService_DefinitionNotFound,
                     $"Inventory definition with ID: {inventory.DefinitionID} was not found in cache"
-);
+            );
 
             var itemDef = itemCache.Get(item.DefinitionID);
             if (itemDef == null)

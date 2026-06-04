@@ -1,9 +1,9 @@
-﻿using Application.DTO.Design;
-using Application.Features.Abstraction;
+﻿using Application.Features.Abstraction;
 using Application.Features.Design.Commands;
 using Application.Interfaces.Repository.Relational;
 using Application.Services.DesignService;
-using Domain.Shared;
+using Contract;
+using Contract.DTO.Design;
 
 namespace Application.Features.Design.Handlers
 {

@@ -1,6 +1,6 @@
-﻿using Domain.Abstraction;
+﻿using Contract.Enum.EntityDomain;
+using Domain.Abstraction;
 using Domain.Definition.EntityDomain.Component;
-using Domain.Definition.EntityDomain.Enum;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain.Component;
 

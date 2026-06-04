@@ -1,5 +1,5 @@
 ﻿using Application.Interfaces.Cache;
-using Domain.Definition.AttributeDomain.Enum;
+using Contract.Enum.AttributeDomain;
 using Domain.Document.AttributeDomain;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain;

@@ -1,5 +1,5 @@
-﻿using Domain.Definition.EntityDomain.Component;
-using Domain.Definition.EntityDomain.Enum;
+﻿using Contract.Enum.EntityDomain;
+using Domain.Definition.EntityDomain.Component;
 using Domain.Definition.LocalizationDomain;
 using Domain.DomainException;
 using Domain.Shared;

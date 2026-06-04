@@ -1,15 +1,22 @@
 ﻿using Application.Interfaces.Cache;
 using Application.Interfaces.Factory;
+using Contract.Enum.EntityDomain;
+using Contract.Enum.WorldDomain;
 using Domain.Common;
 using Domain.Definition.EntityDomain;
-using Domain.Definition.EntityDomain.Enum;
-using Domain.Definition.WorldDomain.Enum;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
+using Domain.Runtime.WorldDomain;
 using Domain.Shared;
 
 namespace Application.Services.WorldService
 {
+    public class RoomSnapshot
+    {
+        public RoomSpatial Room { get; set; } = default!;
+        public List<EntityInstance> Entities { get; set; } = new List<EntityInstance>();
+    }
+
     public class InitializationService
     {
         #region Attributes
@@ -18,6 +25,7 @@ namespace Application.Services.WorldService
         private readonly IEntityCache entityCache;
         private readonly ICreatureInstanceFactory creatureInstanceFactory;
         private readonly IWorldObjectInstanceFactory worldObjectInstanceFactory;
+        private readonly IRoomSpatialFactory roomSpatialFactory;
         private readonly SpawnService spawnService;
         #endregion
 
@@ -29,6 +37,7 @@ namespace Application.Services.WorldService
             IEntityCache entityCache,
             ICreatureInstanceFactory creatureInstanceFactory,
             IWorldObjectInstanceFactory worldObjectInstanceFactory,
+            IRoomSpatialFactory roomSpatialFactory,
             SpawnService spawnService)
         {
             random = new Random();
@@ -36,15 +45,22 @@ namespace Application.Services.WorldService
             this.entityCache = entityCache;
             this.creatureInstanceFactory = creatureInstanceFactory;
             this.worldObjectInstanceFactory = worldObjectInstanceFactory;
+            this.roomSpatialFactory = roomSpatialFactory;
             this.spawnService = spawnService;
         }
 
         #region Methods
-        public WorldGraph InitializeRoomEnvironment(
+        public RoomSnapshot InitializeRoom(
+            string roomDefinitionId,
             string roomSpatialId,
-            string roomDefinitionId)
+            string? ownerId)
         {
-            var worldGraph = new WorldGraph();
+            var room = roomSpatialFactory.Create(
+                definitionId: roomDefinitionId,
+                instanceId: roomSpatialId,
+                ownerId: ownerId);
+
+            var entities = new List<EntityInstance>();
 
             // Validate room definition existence
             var roomDef = roomCache.Get(roomDefinitionId);
@@ -53,7 +69,7 @@ namespace Application.Services.WorldService
                     ResponseCode.InitializationService_RoomDefinitionNotFound,
                     $"Room with definition ID: {roomDefinitionId} was not found");
 
-            // Only initialize environment instances
+            // Only initialize environment instances, does not include player instance
             var rules = roomDef.EntitySpawnRules
                 .Where(x => x.Type == SpawnRuleType.Environment)
                 .ToList();
@@ -90,10 +106,9 @@ namespace Application.Services.WorldService
                                         roomSpatialId: roomSpatialId,
                                         layerZ: layerZ,
                                         position: position,
-                                        direction: new Vector2(0, 1),
-                                        worldGraph);
+                                        direction: new Vector2(0, 1));
 
-                                worldGraph.Entities.Add(worldObject);
+                                entities.Add(worldObject);
                                 break;
                             }
 
@@ -107,14 +122,18 @@ namespace Application.Services.WorldService
                                         position: position,
                                         direction: new Vector2(0, 1));
 
-                                worldGraph.Entities.Add(creature);
+                                entities.Add(creature);
                                 break;
                             }
                     }
                 }
             }
 
-            return worldGraph;
+            return new RoomSnapshot()
+            {
+                Room = room,
+                Entities = entities,
+            };
         }
 
         private WorldObjectInstance SpawnWorldObject(
@@ -122,13 +141,12 @@ namespace Application.Services.WorldService
             string roomSpatialId,
             int layerZ,
             Vector2 position,
-            Vector2 direction,
-            WorldGraph worldGraph)
+            Vector2 direction)
         {
             var timestamp = Guid.NewGuid().ToString("N");
             var worldObjectInstanceId = $"WORLD_OBJECT_{timestamp}";
 
-            var (worldObject, linkedRoomSpatialId, linkedRoomDefinitionId) =
+            var worldObject =
                 worldObjectInstanceFactory.Create(
                     definitionId: worldObjectDefinitionId,
                     instanceId: worldObjectInstanceId,
@@ -136,16 +154,6 @@ namespace Application.Services.WorldService
                     layerZ: layerZ,
                     position: position,
                     direction: direction);
-
-            if (!string.IsNullOrWhiteSpace(linkedRoomSpatialId)
-                && !string.IsNullOrWhiteSpace(linkedRoomDefinitionId))
-            {
-                worldGraph.PendingRooms.Add(new PendingRoomInitialization
-                {
-                    RoomSpatialID = linkedRoomSpatialId,
-                    RoomDefinitionID = linkedRoomDefinitionId
-                });
-            }
 
             return worldObject;
         }

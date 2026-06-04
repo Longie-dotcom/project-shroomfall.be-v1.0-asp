@@ -28,6 +28,7 @@ namespace Infrastructure.Persistence
         public DbSet<Inventory> Inventories { get; set; }
         public DbSet<InventoryItem> InventoryItems { get; set; }
         public DbSet<Item> Items { get; set; }
+        public DbSet<ItemConfiguration> ItemConfigurations { get; set; }
         public DbSet<ItemEffect> ItemEffects { get; set; }
 
         public DbSet<Locale> Locales { get; set; }
@@ -36,8 +37,8 @@ namespace Infrastructure.Persistence
         public DbSet<Cell> Cells { get; set; }
         public DbSet<EntitySpawnRule> EntitySpawnRules { get; set; }
         public DbSet<Room> Rooms { get; set; }
+        public DbSet<RoomConnection> RoomConnections { get; set; }
         public DbSet<SpawnArea> SpawnAreas { get; set; }
-        public DbSet<Tile> Tiles { get; set; }
         #endregion
 
         public RelationalDB(
@@ -308,11 +309,12 @@ namespace Infrastructure.Persistence
                 // Discriminator
                 // ─────────────────────────────
                 entity.HasDiscriminator<string>("Discriminator")
+                    .HasValue<AreaEffect>("AreaEffect")
                     .HasValue<Creature>("Creature")
                     .HasValue<Player>("Player")
+                    .HasValue<Portal>("Portal")
                     .HasValue<Projectile>("Projectile")
-                    .HasValue<WorldObject>("WorldObject")
-                    .HasValue<AreaEffect>("AreaEffect");
+                    .HasValue<WorldObject>("WorldObject");
             });
 
             modelBuilder.Entity<Creature>(entity =>
@@ -357,8 +359,6 @@ namespace Infrastructure.Persistence
                     .IsRequired();
 
                 entity.Property(x => x.InventoryID);
-
-                entity.Property(x => x.RoomID);
             });
 
             modelBuilder.Entity<AreaEffect>(entity =>
@@ -381,7 +381,7 @@ namespace Infrastructure.Persistence
                     a.Property(p => p.HairID)
                         .IsRequired();
 
-                    a.Property(p => p.GlassesID)
+                    a.Property(p => p.EyesID)
                         .IsRequired();
 
                     a.Property(p => p.ShirtID)
@@ -390,17 +390,34 @@ namespace Infrastructure.Persistence
                     a.Property(p => p.PantID)
                         .IsRequired();
 
-                    a.Property(p => p.ShoeID)
-                        .IsRequired();
-
-                    a.Property(p => p.EyesID)
-                        .IsRequired();
-
                     a.OwnsOne(p => p.HairColor);
 
                     a.OwnsOne(p => p.PantColor);
+                });
+            });
 
-                    a.OwnsOne(p => p.EyeColor);
+            modelBuilder.Entity<Portal>(entity =>
+            {
+                // ─────────────────────────────
+                // Properties
+                // ─────────────────────────────
+                entity.OwnsOne(x => x.Entrance, e =>
+                {
+                    e.Property(p => p.ShapeType)
+                        .HasConversion<string>()
+                        .IsRequired();
+
+                    e.Property(p => p.IsBlocking)
+                        .IsRequired();
+
+                    e.Property(p => p.IsTrigger)
+                        .IsRequired();
+                });
+
+                entity.OwnsOne(x => x.EntrancePosition, p =>
+                {
+                    p.Property(v => v.X).IsRequired();
+                    p.Property(v => v.Y).IsRequired();
                 });
             });
             #endregion
@@ -499,11 +516,9 @@ namespace Infrastructure.Persistence
 
                 entity.Property(x => x.CharacteristicID);
 
-                entity.Property(x => x.ProjectileID);
-
-                entity.Property(x => x.AreaEffectID);
-
-                entity.Property(x => x.WorldObjectID);
+                entity.HasMany(x => x.Configurations)
+                    .WithOne(x => x.Item)
+                    .HasForeignKey(x => x.ItemID);
 
                 entity.HasMany(x => x.Effects)
                     .WithOne(x => x.Item)
@@ -517,12 +532,49 @@ namespace Infrastructure.Persistence
                 entity.HasIndex(x => x.Category);
 
                 entity.HasIndex(x => x.CharacteristicID);
+            });
 
-                entity.HasIndex(x => x.ProjectileID);
+            modelBuilder.Entity<ItemConfiguration>(entity =>
+            {
+                // ─────────────────────────────
+                // Table
+                // ─────────────────────────────
+                entity.ToTable("ItemConfigurations");
 
-                entity.HasIndex(x => x.AreaEffectID);
+                // ─────────────────────────────
+                // Primary Key
+                // ─────────────────────────────
+                entity.HasKey(x => x.ID);
 
-                entity.HasIndex(x => x.WorldObjectID);
+                // ─────────────────────────────
+                // Properties
+                // ─────────────────────────────
+                entity.Property(x => x.Type)
+                    .HasConversion<string>()
+                    .IsRequired();
+
+                entity.Property(x => x.ItemID)
+                    .IsRequired();
+
+                entity.Property(x => x.EntityID)
+                    .IsRequired();
+
+                entity.HasOne(x => x.Item)
+                    .WithMany()
+                    .HasForeignKey(x => x.ItemID);
+
+                entity.HasOne(x => x.Entity)
+                    .WithMany()
+                    .HasForeignKey(x => x.EntityID);
+
+                // ─────────────────────────────
+                // Indexes
+                // ─────────────────────────────
+                entity.HasIndex(x => x.ItemID);
+
+                entity.HasIndex(x => x.EntityID);
+
+                entity.HasIndex(x => new { x.ItemID, x.Type });
             });
 
             modelBuilder.Entity<ItemEffect>(entity =>
@@ -657,15 +709,14 @@ namespace Infrastructure.Persistence
                 entity.Property(x => x.TileID)
                     .IsRequired();
 
+                entity.Property(x => x.Type)
+                    .HasConversion<string>()
+                    .IsRequired();
+
                 entity.HasOne(x => x.Room)
                     .WithMany(r => r.Cells)
                     .HasForeignKey(x => x.RoomID)
                     .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(x => x.Tile)
-                    .WithMany()
-                    .HasForeignKey(x => x.TileID)
-                    .OnDelete(DeleteBehavior.Restrict);
 
                 // ─────────────────────────────
                 // Indexes
@@ -757,6 +808,60 @@ namespace Infrastructure.Persistence
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
+            modelBuilder.Entity<RoomConnection>(entity =>
+            {
+                // ─────────────────────────────
+                // Table
+                // ─────────────────────────────
+                entity.ToTable("RoomConnections");
+
+                // ─────────────────────────────
+                // Primary Key
+                // ─────────────────────────────
+                entity.HasKey(x => x.ID);
+
+                // ─────────────────────────────
+                // Properties
+                // ─────────────────────────────
+                entity.Property(x => x.SourceRoomID)
+                    .IsRequired();
+
+                entity.Property(x => x.SourceEntityID)
+                    .IsRequired();
+
+                entity.Property(x => x.DestinationRoomID)
+                    .IsRequired();
+
+                entity.Property(x => x.DestinationEntityID)
+                    .IsRequired();
+
+                entity.HasOne<Room>()
+                    .WithMany()
+                    .HasForeignKey(x => x.SourceRoomID)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne<Room>()
+                    .WithMany()
+                    .HasForeignKey(x => x.DestinationRoomID)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // ─────────────────────────────
+                // Indexes
+                // ─────────────────────────────
+                entity.HasIndex(x => new
+                {
+                    x.SourceRoomID,
+                    x.SourceEntityID
+                })
+                .IsUnique();
+
+                entity.HasIndex(x => new
+                {
+                    x.DestinationRoomID,
+                    x.DestinationEntityID
+                });
+            });
+
             modelBuilder.Entity<SpawnArea>(entity =>
             {
                 // ─────────────────────────────
@@ -804,33 +909,6 @@ namespace Infrastructure.Persistence
                 entity.HasIndex(x => new { x.MinX, x.MinY });
 
                 entity.HasIndex(x => new { x.MaxX, x.MaxY });
-            });
-
-            modelBuilder.Entity<Tile>(entity =>
-            {
-                // ─────────────────────────────
-                // Table
-                // ─────────────────────────────
-                entity.ToTable("Tiles");
-
-                // ─────────────────────────────
-                // Primary Key
-                // ─────────────────────────────
-                entity.HasKey(x => x.ID);
-
-                // ─────────────────────────────
-                // Properties
-                // ─────────────────────────────
-                entity.Property(x => x.Type)
-                    .HasConversion<string>()
-                    .IsRequired();
-
-                entity.OwnsOne(x => x.LocalizedText);
-
-                // ─────────────────────────────
-                // Index
-                // ─────────────────────────────
-                entity.HasIndex(x => x.Type);
             });
             #endregion
         }

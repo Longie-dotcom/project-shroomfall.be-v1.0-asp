@@ -11,4 +11,8 @@
     <PackageReference Include="MongoDB.Bson" Version="3.7.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\project-shroomfall.contracts\Contract\Contract\Contract.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -1,9 +1,9 @@
 ﻿using Application.Coordinator;
-using Application.DTO.Connection;
-using Application.DTO.Runtime;
 using Application.Features.Abstraction;
 using Application.Features.Connection.Commands;
 using AutoMapper;
+using Contract.DTO.Connection;
+using Contract.DTO.Runtime;
 
 namespace Application.Features.Connection.Handlers
 {
@@ -32,7 +32,7 @@ namespace Application.Features.Connection.Handlers
             var dto = command.DTO;
 
             // Create new player instance (new save)
-            var playerInstance = await playerCoordinator.CreateNewPlayer(
+            var playerInstance = await playerCoordinator.CreatePlayer(
                 dto.PlayerDefinitionID,
                 dto.RoomDefinitionID,
                 command.UserID);

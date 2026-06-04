@@ -1,7 +1,7 @@
 ﻿using Application.Interfaces.Cache;
+using Contract.Enum.WorldDomain;
 using Domain.Common;
 using Domain.Definition.WorldDomain;
-using Domain.Definition.WorldDomain.Enum;
 using Domain.DomainException;
 using Domain.Shared;
 

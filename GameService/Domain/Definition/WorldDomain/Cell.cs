@@ -1,4 +1,5 @@
-﻿using Domain.DomainException;
+﻿using Contract.Enum.WorldDomain;
+using Domain.DomainException;
 using Domain.Shared;
 
 namespace Domain.Definition.WorldDomain
@@ -11,12 +12,12 @@ namespace Domain.Definition.WorldDomain
         #region Properties
         public string RoomID { get; private set; }
         public string TileID { get; private set; }
+        public CellType Type { get; private set; }
         public int X { get; private set; }
         public int Y { get; private set; }
         public int Z { get; private set; }
 
         public Room Room { get; private set; }
-        public Tile Tile { get; private set; }
         #endregion
 
         protected Cell() 
@@ -27,6 +28,7 @@ namespace Domain.Definition.WorldDomain
         public Cell(
             string roomId, 
             string tileId, 
+            CellType type,
             int x, 
             int y, 
             int z)
@@ -39,6 +41,7 @@ namespace Domain.Definition.WorldDomain
 
             RoomID = roomId;
             TileID = tileId;
+            Type = type;
             X = x;
             Y = y;
             Z = z;

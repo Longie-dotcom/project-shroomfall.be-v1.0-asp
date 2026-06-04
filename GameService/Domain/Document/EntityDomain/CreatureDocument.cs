@@ -1,6 +1,6 @@
-﻿using Domain.Document.AttributeDomain;
+﻿using Contract.Enum.EntityDomain;
+using Domain.Document.AttributeDomain;
 using Domain.Document.ItemDomain;
-using Domain.Runtime.EntityDomain.Enum;
 using Domain.Runtime.ItemDomain;
 
 namespace Domain.Document.EntityDomain

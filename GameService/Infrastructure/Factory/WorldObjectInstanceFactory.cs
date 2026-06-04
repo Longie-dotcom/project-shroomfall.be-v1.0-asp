@@ -31,7 +31,7 @@ namespace Infrastructure.Factory
         }
 
         #region Methods
-        public (WorldObjectInstance worldObject, string? linkedRoomSpatialId, string? linkedRoomDefinitionId) Create(
+        public WorldObjectInstance Create(
             string definitionId,
             string instanceId,
             string roomSpatialId,
@@ -45,10 +45,6 @@ namespace Infrastructure.Factory
                     ResponseCode.WorldObjectInstanceFactory_DefinitionNotFound,
                     $"World object definition with ID: {definitionId} is not found in cache");
 
-            var roomSpatialReferenceId = !string.IsNullOrWhiteSpace(worldObjectDef.RoomID) 
-                ? $"WORLD_OBJECT_ROOM_{Guid.NewGuid():N}"
-                : null;
-
             var instance = new WorldObjectInstance(
                 id: instanceId,
                 definitionId: worldObjectDef.ID,
@@ -61,11 +57,10 @@ namespace Infrastructure.Factory
 
                 inventory: !string.IsNullOrWhiteSpace(worldObjectDef.InventoryID) 
                     ? inventoryInstanceFactory.Create(worldObjectDef.InventoryID) 
-                    : null,
-                roomSpatialReferenceId: roomSpatialReferenceId
+                    : null
             );
 
-            return (instance, roomSpatialReferenceId, worldObjectDef.RoomID);
+            return instance;
         }
 
         public WorldObjectInstance CreateFromDocument(
@@ -94,8 +89,7 @@ namespace Infrastructure.Factory
 
                 inventory: doc.Inventory != null
                     ? inventoryInstanceFactory.CreateFromDocument(doc.Inventory)
-                    : null,
-                roomSpatialReferenceId: doc.RoomSpatialReferenceID
+                    : null
             );
 
             return instance;

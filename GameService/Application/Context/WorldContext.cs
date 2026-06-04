@@ -1,4 +1,5 @@
-﻿using Application.Persistence;
+﻿using Application.Interfaces.Cache;
+using Application.Interfaces.Factory;
 using Application.Services.WorldService;
 using Domain.Abstraction.World;
 using Domain.Common;
@@ -13,6 +14,8 @@ namespace Application.Context
         private readonly IWorldQuery worldQuery;
         private readonly IEntityCommand entityCommand;
         private readonly IRoomCommand roomCommand;
+        private readonly IRoomConnectionCache roomConnectionCache;
+        private readonly IRoomConnectionInstanceFactory roomConnectionInstanceFactory;
         #endregion
 
         #region Properties
@@ -21,25 +24,26 @@ namespace Application.Context
         public WorldContext(
             IWorldQuery worldQuery,
             IEntityCommand entityCommand,
-            IRoomCommand roomCommand)
+            IRoomCommand roomCommand,
+            IRoomConnectionCache roomConnectionCache,
+            IRoomConnectionInstanceFactory roomConnectionInstanceFactory)
         {
             this.worldQuery = worldQuery;
             this.entityCommand = entityCommand;
             this.roomCommand = roomCommand;
+            this.roomConnectionCache = roomConnectionCache;
+            this.roomConnectionInstanceFactory = roomConnectionInstanceFactory;
         }
 
         #region Methods
         public void Load(
-            WorldGraph graph)
+            RoomSnapshot roomSnapshot)
         {
-            // Load rooms first
-            foreach (var room in graph.Rooms)
-            {
-                roomCommand.AddRoom(room);
-            }
+            // Load room first
+            roomCommand.AddRoom(roomSnapshot.Room);
 
             // Then load entities
-            foreach (var entityInstance in graph.Entities)
+            foreach (var entityInstance in roomSnapshot.Entities)
             {
                 AddEntity(entityInstance);
             }
@@ -109,6 +113,17 @@ namespace Application.Context
                 newRoomSpatialId);
         }
 
+        public void AddConnection(
+            RoomConnectionInstance connection)
+        {
+            roomCommand.AddConnection(connection);
+        }
+
+        public void RemoveConnection(
+            string connectionInstanceId)
+        {
+            roomCommand.RemoveConnection(connectionInstanceId);
+        }
 
         public IEnumerable<T> GetEntities<T>() where T : EntityInstance
         {
@@ -132,6 +147,12 @@ namespace Application.Context
             int x, int y, int z)
         {
             return worldQuery.QuerySpatial(roomSpatialId, x, y, z);
+        }
+
+        public RoomConnectionInstance? GetConnectionByEntityInstanceID(
+            string entityInstanceId)
+        {
+            return worldQuery.GetConnectionByEntityInstanceID(entityInstanceId);
         }
 
         public List<EntityInstance> GetEnvironmentEntitiesByRoom(

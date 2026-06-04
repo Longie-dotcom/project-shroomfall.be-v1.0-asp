@@ -3,8 +3,7 @@ using Application.Systems.Request;
 using Application.Systems.Resolver;
 using Application.Systems.Tick;
 using Application.Systems.Trigger;
-using Domain.Shared;
-using Infrastructure.Realtime;
+using Contract;
 using Microsoft.Extensions.Hosting;
 
 namespace Infrastructure.Background
@@ -21,7 +20,7 @@ namespace Infrastructure.Background
         private readonly EffectTick effectTickSystem;
 
         private readonly IEventBus eventBus;
-        private readonly EventDispatcher dispatcher;
+        private readonly IEventDispatcher dispatcher;
 
         private readonly List<CollisionRequest> collisionRequests;
         #endregion
@@ -39,7 +38,7 @@ namespace Infrastructure.Background
             EffectTick effectTickSystem,
 
             IEventBus eventBus,
-            EventDispatcher dispatcher)
+            IEventDispatcher dispatcher)
         {
             this.movementRequest = movementRequest;
 
@@ -58,7 +57,8 @@ namespace Infrastructure.Background
         #region Methods
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(Constraint.DELTA_TIME));
+            var timer = new PeriodicTimer(
+                TimeSpan.FromSeconds(Constraint.DELTA_TIME));
 
             while (await timer.WaitForNextTickAsync(stoppingToken))
             {

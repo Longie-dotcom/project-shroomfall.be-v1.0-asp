@@ -1,5 +1,5 @@
-﻿using Domain.DomainException;
-using Domain.Other.IdentityDomain.Enum;
+﻿using Contract.Enum.IdentityDomain;
+using Domain.DomainException;
 using Domain.Shared;
 
 namespace Domain.Other.IdentityDomain

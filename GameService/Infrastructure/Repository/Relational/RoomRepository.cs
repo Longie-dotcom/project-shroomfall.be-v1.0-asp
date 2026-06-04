@@ -26,9 +26,9 @@ namespace Infrastructure.Repository.Relational
         {
             return await context.Rooms
                 .Include(r => r.Cells)
-                    .ThenInclude(c => c.Tile)
                 .Include(r => r.EntitySpawnRules)
                     .ThenInclude(e => e.SpawnAreas)
+                .AsSplitQuery()
                 .AsNoTracking()
                 .ToListAsync();
         }

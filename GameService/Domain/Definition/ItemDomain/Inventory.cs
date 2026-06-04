@@ -1,4 +1,4 @@
-﻿using Domain.Definition.ItemDomain.Enum;
+﻿using Contract.Enum.ItemDomain;
 using Domain.Definition.LocalizationDomain;
 using Domain.DomainException;
 using Domain.Shared;

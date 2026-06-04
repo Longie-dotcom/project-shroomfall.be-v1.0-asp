@@ -1,5 +1,5 @@
-﻿using Domain.Definition.AttributeDomain;
-using Domain.Definition.AttributeDomain.Enum;
+﻿using Contract.Enum.AttributeDomain;
+using Domain.Definition.AttributeDomain;
 
 namespace Application.Interfaces.Cache
 {

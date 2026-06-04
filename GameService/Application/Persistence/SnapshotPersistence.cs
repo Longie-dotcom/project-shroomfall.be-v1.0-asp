@@ -1,20 +1,7 @@
-﻿using Domain.Runtime.EntityDomain;
-using Domain.Runtime.WorldDomain;
+﻿using Application.Services.WorldService;
 
 namespace Application.Persistence
 {
-    public class RoomSnapshot
-    {
-        public RoomSpatial Room { get; set; }
-        public List<EntityInstance> Entities { get; set; } = new List<EntityInstance>();
-    }
-
-    public class WorldSnapshot
-    {
-        public List<RoomSpatial> Rooms { get; set; } = new();
-        public List<EntityInstance> Entities { get; set; } = new();
-    }
-
     public class SnapshotPersistence
     {
         #region Attributes
@@ -54,14 +41,6 @@ namespace Application.Persistence
             RoomSnapshot snapshot)
         {
             await roomPersistence.SaveAsync(snapshot.Room);
-
-            await entityPersistence.SaveManyAsync(snapshot.Entities);
-        }
-
-        public async Task SaveWorldSnapshotAsync(
-            WorldSnapshot snapshot)
-        {
-            await roomPersistence.SaveManyAsync(snapshot.Rooms);
 
             await entityPersistence.SaveManyAsync(snapshot.Entities);
         }

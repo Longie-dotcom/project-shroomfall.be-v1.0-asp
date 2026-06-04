@@ -1,0 +1,15 @@
+$kind: http-request
+name: /api/Identity/login
+url: "{{baseUrl}}/api/Identity/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "string",
+      "password": "string"
+    }
+examples: ./.resources/-api-Identity-login.resources/examples
+order: 3000

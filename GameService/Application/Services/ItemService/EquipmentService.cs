@@ -1,9 +1,9 @@
 ﻿using Application.Interfaces.Cache;
 using Application.Services.AttributeService;
+using Contract.Enum.EntityDomain;
 using Domain.Definition.ItemDomain;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
-using Domain.Runtime.EntityDomain.Enum;
 using Domain.Runtime.ItemDomain;
 using Domain.Shared;
 

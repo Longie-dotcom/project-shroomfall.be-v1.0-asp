@@ -1,4 +1,4 @@
-﻿using Application.DTO.Game;
+﻿using Contract.DTO.Game;
 
 namespace Application.Features.Game.Commands
 {

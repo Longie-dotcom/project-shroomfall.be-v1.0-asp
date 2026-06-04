@@ -1,12 +1,13 @@
 using API.Middleware;
 using Application;
+using Application.Bootstrapper;
 using Application.Interfaces.Cache;
 using Infrastructure;
 using Infrastructure.Persistence;
+using Infrastructure.Realtime;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using SignalHub;
 using System.Text;
 
 namespace API
@@ -24,6 +25,22 @@ namespace API
             builder.Services.AddControllers();
             builder.Services.AddApplication();
             builder.Services.AddInfrastructure();
+
+            // ─────────────────────────────
+            // SWAGGER
+            // ─────────────────────────────
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen(options =>
+            {
+                options.TagActionsBy(api =>
+                {
+                    if (api.GroupName != null)
+                        return new[] { api.GroupName };
+
+                    var controller = api.ActionDescriptor.RouteValues["controller"];
+                    return new[] { controller! };
+                });
+            });
 
             // ─────────────────────────────
             // JWT AUTH
@@ -110,12 +127,42 @@ namespace API
             }
 
             // ─────────────────────────────
+            // INITIALIZE DATA
+            // ─────────────────────────────
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<RelationalDB>();
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+                logger.LogInformation("Seeding initial data...");
+                await DataInitializer.SeedAsync(db);
+                logger.LogInformation("Data seeding completed.");
+            }
+
+            // ─────────────────────────────
             // LOAD CACHE
             // ─────────────────────────────
             using (var scope = app.Services.CreateScope())
             {
                 var loader = scope.ServiceProvider.GetRequiredService<ICacheLoader>();
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+                logger.LogInformation("Caching definition/meta data...");
                 await loader.LoadAllAsync();
+                logger.LogInformation("Metadata caching completed.");
+            }
+
+            // ─────────────────────────────
+            // TOPOLOGY BOOTSTRAP
+            // ─────────────────────────────
+            using (var scope = app.Services.CreateScope())
+            {
+                var bootstrap = scope.ServiceProvider.GetRequiredService<TopologyBootstrap>();
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+                logger.LogInformation("Reloading topology data...");
+                await bootstrap.LoadAsync();
+                logger.LogInformation("Topology reloading completed.");
             }
 
             // ─────────────────────────────
@@ -127,6 +174,9 @@ namespace API
             // MIDDLEWARE PIPELINE
             // ─────────────────────────────
             app.UseMiddleware<GlobalExceptionHandler>();
+
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
             app.UseAuthentication();
             app.UseAuthorization();

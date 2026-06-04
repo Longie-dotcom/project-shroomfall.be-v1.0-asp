@@ -1,4 +1,4 @@
-﻿using Domain.Definition.ItemDomain.Enum;
+﻿using Contract.Enum.ItemDomain;
 using Domain.Definition.LocalizationDomain;
 using Domain.DomainException;
 using Domain.Shared;
@@ -18,10 +18,8 @@ namespace Domain.Definition.ItemDomain
         public int? Durability { get; private set; }
         public bool Stackable { get; set; }
         public string? CharacteristicID { get; private set; }
-        public string? ProjectileID { get; private set; }
-        public string? AreaEffectID { get; private set; }
-        public string? WorldObjectID { get; private set; }
 
+        public ICollection<ItemConfiguration> Configurations { get; private set; } = new List<ItemConfiguration>();
         public ICollection<ItemEffect> Effects { get; private set; } = new List<ItemEffect>();
         #endregion
 
@@ -37,10 +35,7 @@ namespace Domain.Definition.ItemDomain
             ItemCategory category,
             int? durability,
             bool stackable,
-            string? characteristicId,
-            string? projectileId,
-            string? areaEffectId,
-            string? worldObjectId)
+            string? characteristicId)
         {
             if (string.IsNullOrWhiteSpace(id))
                 throw new BadRequest(ResponseCode.Item_InvalidId);
@@ -64,9 +59,6 @@ namespace Domain.Definition.ItemDomain
             Durability = durability;
             Stackable = stackable;
             CharacteristicID = characteristicId;
-            ProjectileID = projectileId;
-            AreaEffectID = areaEffectId;
-            WorldObjectID = worldObjectId;
         }
 
         #region Methods

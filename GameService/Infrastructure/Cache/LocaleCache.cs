@@ -1,6 +1,5 @@
 ﻿using Application.Interfaces.Cache;
 using Domain.Definition.LocalizationDomain;
-using Domain.Shared;
 
 namespace Infrastructure.Cache
 {
@@ -9,6 +8,7 @@ namespace Infrastructure.Cache
         #region Attributes
         private Dictionary<string, Locale> map = new();
         private Dictionary<string, Dictionary<string, LocalizationEntry>> entriesByLocale = new();
+        private string defaultLocale = string.Empty;
         #endregion
 
         #region Properties
@@ -33,7 +33,12 @@ namespace Infrastructure.Cache
                     .Where(x => !x.IsDeleted)
                     .ToDictionary(x => x.Key);
             }
+
+            defaultLocale = data
+                .FirstOrDefault(x => x.IsDefault)?.Code
+                ?? throw new Exception("No default locale configured.");
         }
+
 
         public IReadOnlyCollection<Locale> GetAll()
         {
@@ -41,21 +46,21 @@ namespace Infrastructure.Cache
         }
 
         public string Resolve(
-            string key, 
+            string key,
             string locale)
         {
-            // Resolved result
+            // Requested locale
             if (entriesByLocale.TryGetValue(locale, out var dict) &&
                 dict.TryGetValue(key, out var entry))
                 return entry.Value;
 
-            // Fallback result
-            if (locale != Constraint.DEFAULT_LOCALIZATION &&
-                entriesByLocale.TryGetValue(Constraint.DEFAULT_LOCALIZATION, out var fallback) &&
+            // Default locale fallback
+            if (locale != defaultLocale &&
+                entriesByLocale.TryGetValue(defaultLocale, out var fallback) &&
                 fallback.TryGetValue(key, out var fallbackEntry))
                 return fallbackEntry.Value;
 
-            // Fallback key
+            // Key fallback
             return key;
         }
 

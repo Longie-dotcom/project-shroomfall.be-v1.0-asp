@@ -1,5 +1,5 @@
-﻿using Domain.Definition.ItemDomain.Enum;
-using Domain.Runtime.EntityDomain.Enum;
+﻿using Contract.Enum.EntityDomain;
+using Contract.Enum.ItemDomain;
 
 namespace Domain.Shared
 {

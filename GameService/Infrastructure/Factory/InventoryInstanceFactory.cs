@@ -30,7 +30,6 @@ namespace Infrastructure.Factory
             string definitionId)
         {
             var inventoryDef = inventoryCache.Get(definitionId);
-
             if (inventoryDef == null)
                 throw new InternalException(
                     ResponseCode.InventoryInstanceFactory_DefinitionNotFound,
@@ -61,7 +60,6 @@ namespace Infrastructure.Factory
                     "Inventory document is null");
 
             var inventoryDef = inventoryCache.Get(doc.DefinitionID);
-
             if (inventoryDef == null)
                 throw new InternalException(
                     ResponseCode.InventoryInstanceFactory_DefinitionFromDocumentNotFound,

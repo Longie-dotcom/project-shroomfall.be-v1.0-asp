@@ -1,9 +1,9 @@
-﻿using Application.DTO.Common;
-using Application.DTO.Connection;
-using Application.DTO.Runtime;
-using Application.Features.Abstraction;
+﻿using Application.Features.Abstraction;
 using Application.Features.Connection.Commands;
 using Application.Interfaces.Repository.NonRelational;
+using Contract.DTO.Common;
+using Contract.DTO.Connection;
+using Contract.DTO.Runtime;
 
 namespace Application.Features.Connection.Handlers
 {
@@ -47,11 +47,9 @@ namespace Application.Features.Connection.Handlers
                             SkinID = x.PlayerAppearance.SkinID,
 
                             HairID = x.PlayerAppearance.HairID,
-                            GlassesID = x.PlayerAppearance.GlassesID,
+                            EyesID = x.PlayerAppearance.EyesID,
                             ShirtID = x.PlayerAppearance.ShirtID,
                             PantID = x.PlayerAppearance.PantID,
-                            ShoeID = x.PlayerAppearance.ShoeID,
-                            EyesID = x.PlayerAppearance.EyesID,
 
                             SkinColor = new HSVDTO
                             {
@@ -65,13 +63,6 @@ namespace Application.Features.Connection.Handlers
                                 H = x.PlayerAppearance.HairColor.H,
                                 S = x.PlayerAppearance.HairColor.S,
                                 V = x.PlayerAppearance.HairColor.V
-                            },
-
-                            EyeColor = new HSVDTO
-                            {
-                                H = x.PlayerAppearance.EyeColor.H,
-                                S = x.PlayerAppearance.EyeColor.S,
-                                V = x.PlayerAppearance.EyeColor.V
                             },
 
                             PantColor = new HSVDTO

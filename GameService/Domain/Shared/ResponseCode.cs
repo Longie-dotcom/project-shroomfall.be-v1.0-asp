@@ -55,7 +55,9 @@
         // Collision Service
         // ─────────────────────────────
         public const string CollisionService_RoomSpatialNotFoundOnQueryMovement = "collision_service.room_spatial_not_found_on_query_movement";
-        public const string CollisionService_RoomSpatialNotFoundOnQueryPoint = "collision_service.room_spatial_not_found_on_query_point";
+        public const string CollisionService_RoomSpatialNotFoundOnValidateSpawn = "collision_service.room_spatial_not_found_on_validate_spawn";
+        public const string CollisionService_SpawnBlockedByEntity = "collision_service.spawn_blocked_by_entity";
+        public const string CollisionService_SpawnBlockedByTile = "collision_service.spawn_blocked_by_tile";
 
         // ─────────────────────────────
         // Characteristic Service 
@@ -103,6 +105,14 @@
         public const string ItemService_ItemDefinitionNotFound = "item_service.item_definition_not_found";
         public const string ItemService_TypeNotSupported = "item_service.type_not_support";
 
+        // ─────────────────────────────
+        // Topology Service
+        // ─────────────────────────────
+        public const string TopologyService_EntityNotFound = "topology_service.entity_not_found";
+        public const string TopologyService_RoomNotFound = "topology_service.room_not_found";
+        public const string TopologyService_NoConnectionDefinition = "topology_service.no_connection_definition";
+        public const string TopologyService_DestinationEntityMissing = "topology_service.destination_entity_missing";
+        
         // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
         // COORDINATOR
         // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -111,14 +121,7 @@
         // ─────────────────────────────
         public const string PlayerCoordinator_PlayerInstanceNotFoundInPersistence = "player_coordinator.player_instance_not_found_in_persistence";
         public const string PlayerCoordinator_PlayerInstanceNotFoundInRuntime = "player_coordinator.player_instance_not_found_in_runtime";
-        public const string PlayerCoordinator_NoValidSpawn = "player_coordinator.no_valid_spawn";
         public const string PlayerCoordinator_UnauthorizedPlayerInstance = "player_coordinator.unauthorized_player_instance";
-
-        // ─────────────────────────────
-        // Spawn Coordinator
-        // ─────────────────────────────
-        public const string SpawnCoordinator_WorldObjectCreationHasNoValidSpawn = "spawn_coordinator.world_object_creation_has_no_valid_spawn";
-        public const string SpawnCoordinator_ExpansionFailed = "spawn_coordinator.expansion_failed";
 
         // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
         // SYSTEM - TICK
@@ -194,8 +197,6 @@
         // Tile
         // ─────────────────────────────
         public const string Tile_InvalidId = "tile.invalid_id";
-        public const string Tile_InvalidName = "tile.invalid_name";
-        public const string Tile_InvalidDescription = "tile.invalid_description";
 
         // ─────────────────────────────
         // Cell
@@ -219,6 +220,15 @@
         public const string SpawnArea_InvalidMinCount = "spawn_area.invalid_min_count";
         public const string SpawnArea_InvalidMaxCount = "spawn_area.invalid_max_count";
         public const string SpawnArea_InvalidWeight = "spawn_area.invalid_weight";
+
+        // ─────────────────────────────
+        // Room Connection
+        // ─────────────────────────────
+        public const string RoomConnection_InvalidId = "room_connection.invalid_id";
+        public const string RoomConnection_InvalidSourceRoomId = "room_connection.invalid_source_room_id";
+        public const string RoomConnection_InvalidSourceEntityId = "room_connection.invalid_source_entity_id";
+        public const string RoomConnection_InvalidDestinationRoomId = "room_connection.invalid_destination_room_id";
+        public const string RoomConnection_InvalidDestinationEntityId = "room_connection.invalid_destination_entity_id";
 
         // ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
         // ATTRIBUTE DOMAIN
@@ -268,6 +278,13 @@
         public const string Creature_InvalidLevel = "creature.invalid_level";
 
         // ─────────────────────────────
+        // Portal
+        // ─────────────────────────────
+        public const string Portal_InvalidEntrance = "portal.invalid_entrance";
+        public const string Portal_EntranceMustBeNonBlocking = "portal.entrance_must_be_non_blocking";
+        public const string Portal_EntranceMustBeTrigger = "portal.entrance_must_be_trigger";
+
+        // ─────────────────────────────
         // Collision
         // ─────────────────────────────
         public const string Collision_InvalidShapeType = "collision.invalid_shape_type";
@@ -302,6 +319,13 @@
         public const string Item_InvalidDescription = "item.invalid_description";
         public const string Item_InvalidDurability = "item.invalid_durability";
         public const string Item_InvalidStackableDurability = "item.invalid_stackable_durability";
+
+        // ─────────────────────────────
+        // Item Configuration
+        // ─────────────────────────────
+        public const string ItemConfiguration_InvalidId = "item_configuration.invalid_id";
+        public const string ItemConfiguration_InvalidItemId = "item_configuration.invalid_item_id";
+        public const string ItemConfiguration_InvalidEntityId = "item_configuration.invalid_entity_id";
 
         // ─────────────────────────────
         // Item Effect
@@ -355,6 +379,12 @@
         // ─────────────────────────────
         public const string Item_InvalidAmount = "item.invalid_amount";
         public const string Item_NotEnoughAmount = "item.not_enough_item";
+
+        // ─────────────────────────────
+        // Room Connection Instance
+        // ─────────────────────────────
+        public const string RoomConnectionInstance_InvalidDestinationRoomSpatialId = "room_connection_instance.invalid_destination_room_spatial_id";
+        public const string RoomConnectionInstance_InvalidDestinationEntityInstanceId = "room_connection_instance.invalid_destination_entity_instance_id";
         #endregion
 
         #region Infrastructure
@@ -426,6 +456,14 @@
         public const string RoomSpatialFactory_RoomWithoutCells = "room_spatial_factory.room_without_cells";
         public const string RoomSpatialFactory_DocumentNotFound = "room_spatial_factory.document_not_found";
         public const string RoomSpatialFactory_DefinitionFromDocumentNotFound = "room_spatial_factory.definition_from_document_not_found";
+
+        // ─────────────────────────────
+        // Room Connection Instance Factory
+        // ─────────────────────────────
+        public const string RoomConnectionInstanceFactory_DefinitionNotFound = "room_connection_instance_factory.definition_not_found";
+        public const string RoomConnectionInstanceFactory_InvalidInstanceData = "room_connection_instance_factory.invalid_instance_data";
+        public const string RoomConnectionInstanceFactory_DocumentNull = "room_connection_instance_factory.document_null";
+        public const string RoomConnectionInstanceFactory_DefinitionFromDocumentNotFound = "room_connection_instance_factory.definition_from_document_not_found";
 
         // ─────────────────────────────
         // Entity Instance Factory

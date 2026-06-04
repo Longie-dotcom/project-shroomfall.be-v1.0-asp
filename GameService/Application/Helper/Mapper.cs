@@ -1,9 +1,9 @@
-﻿using Application.DTO.Common;
-using Application.DTO.Definition;
-using Application.DTO.Design;
-using Application.DTO.Identity;
-using Application.DTO.Runtime;
-using AutoMapper;
+﻿using AutoMapper;
+using Contract.DTO.Common;
+using Contract.DTO.Definition;
+using Contract.DTO.Design;
+using Contract.DTO.Identity;
+using Contract.DTO.Runtime;
 using Domain.Common;
 using Domain.Definition.AttributeDomain;
 using Domain.Definition.EntityDomain;
@@ -71,7 +71,6 @@ namespace Application.Helper
             CreateMap<PlayerAppearance, PlayerAppearanceDefinitionDTO>()
                 .IncludeBase<Appearance, AppearanceDefinitionDTO>()
                 .ForMember(d => d.HairColor, o => o.MapFrom(s => s.HairColor))
-                .ForMember(d => d.EyeColor, o => o.MapFrom(s => s.EyeColor))
                 .ForMember(d => d.PantColor, o => o.MapFrom(s => s.PantColor));
 
             CreateMap<Entity, EntityDefinitionDTO>()
@@ -90,6 +89,10 @@ namespace Application.Helper
                 .IncludeBase<Entity, EntityDefinitionDTO>();
             CreateMap<WorldObject, WorldObjectDefinitionDTO>()
                 .IncludeBase<Entity, EntityDefinitionDTO>();
+            CreateMap<Portal, PortalDefinitionDTO>()
+                .IncludeBase<Entity, EntityDefinitionDTO>()
+                .ForMember(d => d.Entrance, o => o.MapFrom(s => s.Entrance))
+                .ForMember(d => d.EntrancePosition, o => o.MapFrom(s => s.EntrancePosition));
 
             CreateMap<Player, PlayerDefinitionDTO>()
                 .IncludeBase<Creature, CreatureDefinitionDTO>()
@@ -101,6 +104,7 @@ namespace Application.Helper
             CreateMap<InventoryItem, InventoryItemDefinitionDTO>();
             CreateMap<Item, ItemDefinitionDTO>()
                 .ForMember(d => d.LocalizedText, o => o.MapFrom(s => s.LocalizedText));
+            CreateMap<ItemConfiguration, ItemConfigurationDefinitionDTO>();
             CreateMap<ItemEffect, ItemEffectDefinitionDTO>();
 
             // World Domain
@@ -108,9 +112,8 @@ namespace Application.Helper
             CreateMap<EntitySpawnRule, EntitySpawnRuleDefinitionDTO>();
             CreateMap<Room, RoomDefinitionDTO>()
                 .ForMember(d => d.LocalizedText, o => o.MapFrom(s => s.LocalizedText));
+            CreateMap<RoomConnection, RoomConnectionDefinitionDTO>();
             CreateMap<SpawnArea, SpawnAreaDefinitionDTO>();
-            CreateMap<Tile, TileDefinitionDTO>()
-                .ForMember(d => d.LocalizedText, o => o.MapFrom(s => s.LocalizedText));
 
             // ─────────────────────────────
             // RUNTIME to DTO
@@ -144,7 +147,6 @@ namespace Application.Helper
             CreateMap<PlayerAppearanceInstance, PlayerAppearanceRuntimeDTO>()
                 .IncludeBase<AppearanceInstance, AppearanceRuntimeDTO>()
                 .ForMember(d => d.HairColor, o => o.MapFrom(s => s.HairColor))
-                .ForMember(d => d.EyeColor, o => o.MapFrom(s => s.EyeColor))
                 .ForMember(d => d.PantColor, o => o.MapFrom(s => s.PantColor));
 
             CreateMap<EntityInstance, EntityRuntimeDTO>()
@@ -180,6 +182,7 @@ namespace Application.Helper
 
             // World Domain
             CreateMap<RoomSpatial, RoomRuntimeDTO>();
+            CreateMap<RoomConnectionInstance, RoomConnectionRuntimeDTO>();
 
             // ─────────────────────────────
             // RUNTIME to DOCUMENT
@@ -200,7 +203,6 @@ namespace Application.Helper
             CreateMap<PlayerAppearanceInstance, PlayerAppearanceDocument>()
                 .IncludeBase<AppearanceInstance, AppearanceDocument>()
                 .ForMember(d => d.HairColor, o => o.MapFrom(s => s.HairColor))
-                .ForMember(d => d.EyeColor, o => o.MapFrom(s => s.EyeColor))
                 .ForMember(d => d.PantColor, o => o.MapFrom(s => s.PantColor));
 
             CreateMap<EntityInstance, EntityDocument>()
@@ -227,6 +229,7 @@ namespace Application.Helper
 
             // World Domain
             CreateMap<RoomSpatial, RoomDocument>();
+            CreateMap<RoomConnectionInstance, RoomConnectionDocument>();
         }
     }
 }

@@ -1,8 +1,8 @@
-﻿using Application.DTO.Identity;
-using Application.Features.Abstraction;
+﻿using Application.Features.Abstraction;
 using Application.Features.Identity.Commands;
 using Application.Interfaces.Repository.Relational;
 using Application.Services.IdentityService;
+using Contract.DTO.Identity;
 using Domain.DomainException;
 using Domain.Shared;
 

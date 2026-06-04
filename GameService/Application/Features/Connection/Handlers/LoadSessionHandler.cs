@@ -1,10 +1,10 @@
 ﻿using Application.Coordinator;
-using Application.DTO.Connection;
-using Application.DTO.Runtime;
 using Application.Features.Abstraction;
 using Application.Features.Connection.Commands;
 using Application.Interfaces.Security;
 using AutoMapper;
+using Contract.DTO.Connection;
+using Contract.DTO.Runtime;
 using Domain.DomainException;
 using Domain.Shared;
 
@@ -44,7 +44,7 @@ namespace Application.Features.Connection.Handlers
                     $"Session of user with user ID: {command.UserID} already existed with player instance ID: {dto.PlayerInstanceID}");
 
             // Reload player instance (old save)
-            var (player, snapshot) = await playerCoordinator.LoadExistedPlayer(dto.PlayerInstanceID, command.UserID);
+            var (player, snapshot) = await playerCoordinator.LoadPlayer(dto.PlayerInstanceID, command.UserID);
 
             // Register session
             sessionManager.Add(command.UserID, dto.PlayerInstanceID);

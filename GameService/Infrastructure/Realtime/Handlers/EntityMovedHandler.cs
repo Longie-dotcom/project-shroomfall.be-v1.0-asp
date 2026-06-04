@@ -1,7 +1,7 @@
-﻿using Application.DTO.Game;
-using Application.Events.Abstraction;
+﻿using Application.Events.Abstraction;
 using Application.Events.Event;
 using Application.Interfaces.Realtime;
+using Contract.DTO.Game;
 
 namespace Infrastructure.Realtime.Handlers
 {

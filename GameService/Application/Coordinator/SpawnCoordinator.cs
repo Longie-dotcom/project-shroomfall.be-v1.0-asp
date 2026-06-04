@@ -1,11 +1,9 @@
 ﻿using Application.Context;
 using Application.Events.Event;
+using Application.Interfaces.Factory;
 using Application.Interfaces.Realtime;
 using Application.Services.WorldService;
-using Application.Systems.Tick;
 using Domain.Common;
-using Domain.DomainException;
-using Domain.Shared;
 
 namespace Application.Coordinator
 {
@@ -13,10 +11,9 @@ namespace Application.Coordinator
     {
         #region Attributes
         private readonly IEventBus eventBus;
-        private readonly ResidencyTick residencyTick;
         private readonly WorldContext worldContext;
-        private readonly CreationService creationService;
         private readonly CollisionService collisionService;
+        private readonly IWorldObjectInstanceFactory worldObjectInstanceFactory;
         #endregion
 
         #region Properties
@@ -24,16 +21,14 @@ namespace Application.Coordinator
 
         public SpawnCoordinator(
             IEventBus eventBus,
-            ResidencyTick residencyTick,
             WorldContext worldContext,
-            CreationService creationService,
-            CollisionService collisionService)
+            CollisionService collisionService,
+            IWorldObjectInstanceFactory worldObjectInstanceFactory)
         {
             this.eventBus = eventBus;
-            this.residencyTick = residencyTick;
             this.worldContext = worldContext;
-            this.creationService = creationService;
             this.collisionService = collisionService;
+            this.worldObjectInstanceFactory = worldObjectInstanceFactory;
         }
 
         #region Methods
@@ -45,47 +40,31 @@ namespace Application.Coordinator
             Vector2 direction)
         {
             // Create new world object instance and expand linking rooms
-            var creation = creationService.CreateWorldObject(
-                worldObjectDefinitionId,
-                roomSpatialId,
-                layerZ,
-                position,
-                direction);
+            var worldObjectInstanceId = $"WORLD_OBJECT_{Guid.NewGuid():N}";
+
+            var worldObject = worldObjectInstanceFactory.Create(
+                definitionId: worldObjectDefinitionId,
+                instanceId: worldObjectInstanceId,
+                roomSpatialId: roomSpatialId,
+                layerZ: layerZ,
+                position: position,
+                direction: direction);
 
             // Validate world object's spawn point
-            var worldObject = creation.WorldObject;
-
-            var collision = collisionService.QueryPoint(
+            collisionService.ValidateSpawn(
                 shape: worldObject.CollisionShape,
                 roomSpatialId: roomSpatialId,
                 position: worldObject.Position,
                 layerZ: worldObject.LayerZ);
 
-            if (collision.IsBlocked)
-                throw new BadRequest(
-                    ResponseCode.SpawnCoordinator_WorldObjectCreationHasNoValidSpawn,
-                    $"Position of world object: ({worldObject.Position.X}, {worldObject.Position.Y}) at room with spatail ID: {roomSpatialId} was blocked");
-
             // Load spawned world object on runtime
-            CommitToWorld(creation);
+            worldContext.AddEntity(worldObject);
 
             // Publish spawn new world object in room
             eventBus.Publish(new EntityLifecycleEvent(
                 worldObject,
                 worldObject.RoomSpatialID,
                 EntityLifecycleType.Spawn));
-        }
-
-        private void CommitToWorld(WorldGraph context)
-        {
-            // Load into runtime
-            worldContext.Load(context);
-
-            // Register residency state
-            foreach (var room in context.Rooms)
-            {
-                residencyTick.TouchRoom(room.ID);
-            }
         }
         #endregion
     }

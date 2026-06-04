@@ -4,6 +4,7 @@ using Application.Features.Design.Commands;
 using Application.Interfaces.Cache;
 using Application.Interfaces.Realtime;
 using Application.Interfaces.Repository.Relational;
+using Contract;
 using Domain.DomainException;
 using Domain.Other.VersionDomain;
 using Domain.Shared;

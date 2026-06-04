@@ -1,8 +1,7 @@
 ﻿using API.Helper;
-using Application.DTO.Connection;
 using Application.Features.Abstraction;
 using Application.Features.Connection.Commands;
-using Application.Features.Connection.Handlers;
+using Contract.DTO.Connection;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -62,20 +61,6 @@ namespace API.Controllers
 
             var result = await dispatcher.Send<LoadSessionCommand, SaveGameDTO>(
                 new LoadSessionCommand(userId, dto)
-            );
-
-            return Ok(result);
-        }
-
-        [Authorize]
-        [HttpPatch("room/{newRoomSpatialId}")]
-        public async Task<IActionResult> ChangeRoom(
-            string newRoomSpatialId)
-        {
-            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
-
-            var result = await dispatcher.Send<ChangeRoomCommand, RoomSnapshotDTO>(
-                new ChangeRoomCommand(userId, newRoomSpatialId)
             );
 
             return Ok(result);

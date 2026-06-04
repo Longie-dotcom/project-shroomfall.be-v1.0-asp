@@ -72,13 +72,14 @@ namespace Infrastructure
             services.AddScoped<IInventoryRepository, InventoryRepository>();
             services.AddScoped<IItemRepository, ItemRepository>();
             services.AddScoped<ILocaleRepository, LocaleRepository>();
+            services.AddScoped<IRoomConnectionRepository, RoomConnectionRepository>();
             services.AddScoped<IRoomRepository, RoomRepository>();
-            services.AddScoped<ITileRepository, TileRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IDefinitionVersionLogRepository, DefinitionVersionLogRepository>();
 
             // Non-relational
             services.AddScoped<IEntityDocumentRepository, EntityDocumentRepository>();
+            services.AddScoped<IRoomConnectionDocumentRepository, RoomConnectionDocumentRepository>();
             services.AddScoped<IRoomDocumentRepository, RoomDocumentRepository>();
 
             // ─────────────────────────────
@@ -100,7 +101,7 @@ namespace Infrastructure
             services.AddSingleton<IItemCache, ItemCache>();
             services.AddSingleton<ILocaleCache, LocaleCache>();
             services.AddSingleton<IRoomCache, RoomCache>();
-            services.AddSingleton<ITileCache, TileCache>();
+            services.AddSingleton<IRoomConnectionCache, RoomConnectionCache>();
             services.AddScoped<ICacheLoader, CacheLoader>();
 
             // ─────────────────────────────
@@ -113,6 +114,7 @@ namespace Infrastructure
             services.AddScoped<IInventoryInstanceFactory, InventoryInstanceFactory>();
             services.AddScoped<IItemInstanceFactory, ItemInstanceFactory>();
             services.AddScoped<IPlayerInstanceFactory, PlayerInstanceFactory>();
+            services.AddScoped<IRoomConnectionInstanceFactory, RoomConnectionInstanceFactory>();
             services.AddScoped<IRoomSpatialFactory, RoomSpatialFactory>();
             services.AddScoped<IWorldObjectInstanceFactory, WorldObjectInstanceFactory>();
 
@@ -125,7 +127,7 @@ namespace Infrastructure
             // REALTIME
             // ─────────────────────────────
             // Core Realtime
-            services.AddSignalRCore();
+            services.AddSignalR();
             services.AddSingleton<IRealtimePublisher, RealtimePublisher>();
 
             // Connection
@@ -136,6 +138,7 @@ namespace Infrastructure
             services.AddSingleton<IEventHandler, DefinitionUpdatedHandler>();
             services.AddSingleton<IEventHandler, EntityLifecycleHandler>();
             services.AddSingleton<IEventHandler, EntityMovedHandler>();
+            services.AddSingleton<IEventHandler, PlayerAppearanceChangedHandler>();
             services.AddSingleton<IEventHandler, PlayerGroupedHandler>();
 
             // Events

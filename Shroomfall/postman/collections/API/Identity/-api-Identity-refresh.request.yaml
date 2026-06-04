@@ -1,0 +1,14 @@
+$kind: http-request
+name: /api/Identity/refresh
+url: "{{baseUrl}}/api/Identity/refresh"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "refreshToken": "string"
+    }
+examples: ./.resources/-api-Identity-refresh.resources/examples
+order: 4000

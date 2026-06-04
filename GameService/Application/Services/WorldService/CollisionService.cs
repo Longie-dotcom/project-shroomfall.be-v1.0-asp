@@ -1,8 +1,9 @@
 ﻿using Application.Context;
 using Application.Interfaces.Cache;
+using Contract;
+using Contract.Enum.WorldDomain;
 using Domain.Abstraction;
 using Domain.Common;
-using Domain.Definition.WorldDomain.Enum;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.WorldDomain;
@@ -149,19 +150,17 @@ namespace Application.Services.WorldService
             return result;
         }
 
-        public CollisionContext QueryPoint(
+        public void ValidateSpawn(
             ICollisionShape shape,
             string roomSpatialId,
             Vector2 position,
             int layerZ)
         {
-            var result = new CollisionContext();
-
             var roomSpatial = worldContext.GetRoom(roomSpatialId);
             if (roomSpatial == null)
                 throw new InternalException(
-                    ResponseCode.CollisionService_RoomSpatialNotFoundOnQueryPoint,
-                    $"Room spatial with room spatial ID: {roomSpatialId} not found on query point");
+                    ResponseCode.CollisionService_RoomSpatialNotFoundOnValidateSpawn,
+                    $"Room spatial with room spatial ID: {roomSpatialId} not found on validate spawn");
 
             Span<(int x, int y)> buffer = stackalloc (int, int)[256];
 
@@ -183,22 +182,18 @@ namespace Application.Services.WorldService
                     if (entity == null)
                         continue;
 
-                    bool intersects =
-                        shape.Intersects(
-                            position, 
-                            entity.CollisionShape,
-                            entity.Position);
+                    bool intersects = shape.Intersects(
+                        position,
+                        entity.CollisionShape,
+                        entity.Position);
 
                     if (!intersects)
                         continue;
 
-                    result.Entities.Add(entity);
-
                     if (entity.CollisionShape.IsBlocking)
-                        result.IsBlocked = true;
-
-                    if (entity.CollisionShape.IsTrigger)
-                        result.Triggers.Add(entity.ID);
+                        throw new InternalException(
+                            ResponseCode.CollisionService_SpawnBlockedByEntity,
+                            $"Spawn blocked by entity instance ID: {entity.ID}");
                 }
 
                 var cell = roomCache.GetTopCell(
@@ -206,11 +201,11 @@ namespace Application.Services.WorldService
                     cellX,
                     cellY);
 
-                if (cell != null && cell.Tile.Type != TileType.Walkable)
-                    result.IsBlocked = true;
+                if (cell != null && cell.Type != CellType.Walkable)
+                    throw new InternalException(
+                        ResponseCode.CollisionService_SpawnBlockedByTile,
+                        $"Spawn blocked by tile at ({cellX}, {cellY})");
             }
-
-            return result;
         }
 
         private bool ProcessAxis(
@@ -294,7 +289,7 @@ namespace Application.Services.WorldService
                 if (cell == null)
                     continue;
 
-                if (cell.Tile.Type != TileType.Walkable)
+                if (cell.Type != CellType.Walkable)
                     blocked = true;
             }
 

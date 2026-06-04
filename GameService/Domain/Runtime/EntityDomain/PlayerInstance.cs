@@ -48,6 +48,27 @@ namespace Domain.Runtime.EntityDomain
         }
 
         #region Methods
+        public void UpdateAppearance(
+            string skinId,
+            HSV skinColor,
+            string hairId,
+            string eyesId,
+            string shirtId,
+            string pantId,
+            HSV hairColor,
+            HSV pantColor)
+        {
+            PlayerAppearance = new PlayerAppearanceInstance(
+                skinId,
+                skinColor,
+                hairId,
+                eyesId,
+                shirtId,
+                pantId,
+                hairColor,
+                pantColor
+            );
+        }
         #endregion
     }
 }

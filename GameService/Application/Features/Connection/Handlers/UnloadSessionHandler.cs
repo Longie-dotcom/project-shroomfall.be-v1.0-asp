@@ -51,7 +51,7 @@ namespace Application.Features.Connection.Handlers
                     $"User with user ID: {userId} has no session found");
 
             // Persisted and unload player instance (saving)
-            await playerCoordinator.UnloadExistedPlayer(playerInstanceId);
+            await playerCoordinator.UnloadPlayer(playerInstanceId);
 
             // Cleanup gameplay session mapping
             sessionManager.Remove(userId);

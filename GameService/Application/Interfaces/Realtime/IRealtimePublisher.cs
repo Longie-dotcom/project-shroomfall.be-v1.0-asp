@@ -1,5 +1,5 @@
-﻿using Application.DTO.Game;
-using Application.DTO.Runtime;
+﻿using Contract.DTO.Game;
+using Contract.DTO.Runtime;
 
 namespace Application.Interfaces.Realtime
 {
@@ -21,6 +21,13 @@ namespace Application.Interfaces.Realtime
         Task SendEntityDespawned(
             string roomSpatialId, 
             string entityId);
+
+        // ─────────────────────────────
+        // Player Appearance (changed) 
+        // ─────────────────────────────
+        Task SendPlayerAppearanceChanged(
+            string roomSpatialId,
+            PlayerAppearanceChangedDTO appearanceChanged);
 
         // ─────────────────────────────
         // Definition Update Notification

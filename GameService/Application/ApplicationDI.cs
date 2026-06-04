@@ -1,8 +1,6 @@
-﻿using Application.Context;
+﻿using Application.Bootstrapper;
+using Application.Context;
 using Application.Coordinator;
-using Application.DTO.Connection;
-using Application.DTO.Design;
-using Application.DTO.Identity;
 using Application.Features;
 using Application.Features.Abstraction;
 using Application.Features.Connection.Commands;
@@ -14,7 +12,6 @@ using Application.Features.Game.Handlers;
 using Application.Features.Identity.Commands;
 using Application.Features.Identity.Handlers;
 using Application.Helper;
-using Application.Identity.Commands;
 using Application.Persistence;
 using Application.Services.AttributeService;
 using Application.Services.DesignService;
@@ -25,6 +22,9 @@ using Application.Systems.Request;
 using Application.Systems.Resolver;
 using Application.Systems.Tick;
 using Application.Systems.Trigger;
+using Contract.DTO.Connection;
+using Contract.DTO.Design;
+using Contract.DTO.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Application
@@ -40,6 +40,11 @@ namespace Application
         #region Methods
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
+            // ─────────────────────────────
+            // BOOTSTRAPPER
+            // ─────────────────────────────
+            services.AddScoped<TopologyBootstrap>();
+
             // ─────────────────────────────
             // CONTEXT
             // ─────────────────────────────
@@ -60,7 +65,6 @@ namespace Application
 
             // Connection
             services.AddScoped<IHandler<CreateSessionCommand, ExistedSessionEntryDTO>, CreateSessionHandler>();
-            services.AddScoped<IHandler<ChangeRoomCommand, RoomSnapshotDTO>, ChangeRoomHandler>();
             services.AddScoped<IHandler<FetchSessionCommand, ExistedSessionDTO>, FetchSessionHandler>();
             services.AddScoped<IHandler<LoadSessionCommand, SaveGameDTO>, LoadSessionHandler>();
             services.AddScoped<IHandler<UnloadSessionCommand>, UnloadSessionHandler>();
@@ -75,6 +79,8 @@ namespace Application
 
             // Game
             services.AddScoped<IHandler<MoveCommand>, MoveHandler>();
+            services.AddScoped<IHandler<TouchEntityCommand, RoomSnapshotDTO>, TouchEntityHandler>();
+            services.AddScoped<IHandler<UpdateAppearanceCommand>, UpdateAppearanceHandler>();
 
             // Design
             services.AddScoped<IHandler<UpdateDefinitionCommand>, UpdateDefinitionHandler>();
@@ -116,10 +122,9 @@ namespace Application
 
             // World service
             services.AddSingleton<CollisionService>();
-            services.AddSingleton<CreationService>();
             services.AddSingleton<InitializationService>();
             services.AddSingleton<SpawnService>();
-            services.AddSingleton<WorldExpansionService>();
+            services.AddSingleton<TopologyService>();
 
             // ─────────────────────────────
             // SYSTEMS

@@ -1,0 +1,348 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/Design/:version"
+  method: GET
+  headers:
+    Accept: text/plain
+  pathVariables:
+    version: string
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "version": 1665,
+        "attributeDefinitions": [
+          {
+            "type": 34,
+            "localizedText": {
+              "nameKey": "string",
+              "descriptionKey": "string"
+            },
+            "category": 4,
+            "domainType": 0
+          },
+          {
+            "type": 30,
+            "localizedText": {
+              "nameKey": "string",
+              "descriptionKey": "string"
+            },
+            "category": 1,
+            "domainType": 0
+          }
+        ],
+        "attributeValues": [
+          {
+            "type": 29,
+            "value": 8256.432112720939,
+            "level": 2377,
+            "min": 6508.699666632138,
+            "max": 3473.057925944899,
+            "characteristicID": "string"
+          },
+          {
+            "type": 9,
+            "value": 4908.443887370128,
+            "level": 4359,
+            "min": 1919.9341725408003,
+            "max": 1267.5589115203745,
+            "characteristicID": "string"
+          }
+        ],
+        "characteristics": [
+          {
+            "id": "string",
+            "type": 0,
+            "localizedText": {
+              "nameKey": "string",
+              "descriptionKey": "string"
+            }
+          },
+          {
+            "id": "string",
+            "type": 1,
+            "localizedText": {
+              "nameKey": "string",
+              "descriptionKey": "string"
+            }
+          }
+        ],
+        "effects": [
+          {
+            "id": "string",
+            "type": 10,
+            "localizedText": {
+              "nameKey": "string",
+              "descriptionKey": "string"
+            },
+            "attributeType": 17,
+            "value": 9798.342624626877,
+            "duration": 2587.775843750387,
+            "interval": 6722.693746227473
+          },
+          {
+            "id": "string",
+            "type": 14,
+            "localizedText": {
+              "nameKey": "string",
+              "descriptionKey": "string"
+            },
+            "attributeType": 1,
+            "value": 554.0866957342039,
+            "duration": 8534.058764758667,
+            "interval": 4626.630695262041
+          }
+        ],
+        "inventories": [
+          {
+            "id": "string",
+            "type": 2,
+            "localizedText": {
+              "nameKey": "string",
+              "descriptionKey": "string"
+            },
+            "slotCount": 5983
+          },
+          {
+            "id": "string",
+            "type": 2,
+            "localizedText": {
+              "nameKey": "string",
+              "descriptionKey": "string"
+            },
+            "slotCount": 2397
+          }
+        ],
+        "inventoryItems": [
+          {
+            "inventoryID": "string",
+            "itemID": "string",
+            "amount": 7991,
+            "quality": 2
+          },
+          {
+            "inventoryID": "string",
+            "itemID": "string",
+            "amount": 4613,
+            "quality": 2
+          }
+        ],
+        "items": [
+          {
+            "id": "string",
+            "type": 4,
+            "localizedText": {
+              "nameKey": "string",
+              "descriptionKey": "string"
+            },
+            "category": 5,
+            "durability": 5548,
+            "stackable": false,
+            "characteristicID": "string",
+            "projectileID": "string",
+            "areaEffectID": "string",
+            "worldObjectID": "string"
+          },
+          {
+            "id": "string",
+            "type": 0,
+            "localizedText": {
+              "nameKey": "string",
+              "descriptionKey": "string"
+            },
+            "category": 35,
+            "durability": 2314,
+            "stackable": true,
+            "characteristicID": "string",
+            "projectileID": "string",
+            "areaEffectID": "string",
+            "worldObjectID": "string"
+          }
+        ],
+        "itemEffects": [
+          {
+            "itemID": "string",
+            "effectID": "string"
+          },
+          {
+            "itemID": "string",
+            "effectID": "string"
+          }
+        ],
+        "entities": [
+          {
+            "id": "string",
+            "type": 4,
+            "localizedText": {
+              "nameKey": "string",
+              "descriptionKey": "string"
+            },
+            "appearance": {
+              "skinID": "string",
+              "skinColor": {
+                "h": 9041.774725418802,
+                "s": 6241.8837418675275,
+                "v": 2929.8599859908913
+              }
+            },
+            "collision": {
+              "shapeType": 1,
+              "width": 9970.63891156167,
+              "height": 598.0550499331616,
+              "radius": 1699.0425940307862,
+              "isBlocking": false,
+              "isTrigger": false
+            }
+          },
+          {
+            "id": "string",
+            "type": 2,
+            "localizedText": {
+              "nameKey": "string",
+              "descriptionKey": "string"
+            },
+            "appearance": {
+              "skinID": "string",
+              "skinColor": {
+                "h": 7499.49926205711,
+                "s": 7338.965537791344,
+                "v": 7667.587330490817
+              }
+            },
+            "collision": {
+              "shapeType": 1,
+              "width": 3866.589619044425,
+              "height": 9403.048420785117,
+              "radius": 4682.4863235714965,
+              "isBlocking": true,
+              "isTrigger": false
+            }
+          }
+        ],
+        "cells": [
+          {
+            "roomID": "string",
+            "tileID": "string",
+            "x": 8568,
+            "y": 4010,
+            "z": 9356
+          },
+          {
+            "roomID": "string",
+            "tileID": "string",
+            "x": 206,
+            "y": 9794,
+            "z": 1285
+          }
+        ],
+        "entitySpawnRules": [
+          {
+            "id": "string",
+            "type": 0,
+            "roomID": "string",
+            "entityID": "string"
+          },
+          {
+            "id": "string",
+            "type": 1,
+            "roomID": "string",
+            "entityID": "string"
+          }
+        ],
+        "rooms": [
+          {
+            "id": "string",
+            "type": 5,
+            "localizedText": {
+              "nameKey": "string",
+              "descriptionKey": "string"
+            }
+          },
+          {
+            "id": "string",
+            "type": 3,
+            "localizedText": {
+              "nameKey": "string",
+              "descriptionKey": "string"
+            }
+          }
+        ],
+        "roomConnections": [
+          {
+            "id": "string",
+            "sourceRoomID": "string",
+            "sourceEntityID": "string",
+            "destinationRoomID": "string",
+            "destinationEntityID": "string"
+          },
+          {
+            "id": "string",
+            "sourceRoomID": "string",
+            "sourceEntityID": "string",
+            "destinationRoomID": "string",
+            "destinationEntityID": "string"
+          }
+        ],
+        "spawnAreas": [
+          {
+            "id": "string",
+            "minX": 7852,
+            "minY": 3031,
+            "maxX": 894,
+            "maxY": 8234,
+            "minCount": 2822,
+            "maxCount": 9971,
+            "weight": 9613.412875403359,
+            "entitySpawnRuleID": "string"
+          },
+          {
+            "id": "string",
+            "minX": 6658,
+            "minY": 7396,
+            "maxX": 123,
+            "maxY": 5442,
+            "minCount": 6566,
+            "maxCount": 2964,
+            "weight": 5856.518052995452,
+            "entitySpawnRuleID": "string"
+          }
+        ],
+        "tiles": [
+          {
+            "id": "string",
+            "type": 0,
+            "localizedText": {
+              "nameKey": "string",
+              "descriptionKey": "string"
+            }
+          },
+          {
+            "id": "string",
+            "type": 0,
+            "localizedText": {
+              "nameKey": "string",
+              "descriptionKey": "string"
+            }
+          }
+        ],
+        "locales": [
+          {
+            "code": "string",
+            "name": "string",
+            "isDefault": false,
+            "isEnabled": true
+          },
+          {
+            "code": "string",
+            "name": "string",
+            "isDefault": false,
+            "isEnabled": true
+          }
+        ]
+      }
+order: 1000

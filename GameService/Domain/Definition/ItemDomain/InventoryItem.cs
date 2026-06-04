@@ -1,4 +1,5 @@
-﻿using Domain.Definition.ItemDomain.Enum;
+﻿using Contract;
+using Contract.Enum.ItemDomain;
 using Domain.DomainException;
 using Domain.Shared;
 

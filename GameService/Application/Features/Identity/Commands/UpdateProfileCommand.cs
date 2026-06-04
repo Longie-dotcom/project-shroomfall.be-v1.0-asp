@@ -1,5 +1,5 @@
-﻿using Application.DTO.Identity;
-using Application.Features.Abstraction;
+﻿using Application.Features.Abstraction;
+using Contract.DTO.Identity;
 
 namespace Application.Features.Identity.Commands
 {

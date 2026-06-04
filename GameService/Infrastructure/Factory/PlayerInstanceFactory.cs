@@ -141,14 +141,11 @@ namespace Infrastructure.Factory
                 skinId: def.SkinID,
                 skinColor: HSV.Clone(def.SkinColor),
                 hairId: def.HairID,
-                glassesId: def.GlassesID,
+                eyesId: def.EyesID,
                 shirtId: def.ShirtID,
                 pantId: def.PantID,
-                shoeId: def.ShoeID,
-                eyesId: def.EyesID,
                 hairColor: HSV.Clone(def.HairColor),
-                pantColor: HSV.Clone(def.PantColor),
-                eyeColor: HSV.Clone(def.EyeColor)
+                pantColor: HSV.Clone(def.PantColor)
             );
         }
 
@@ -163,11 +160,9 @@ namespace Infrastructure.Factory
                     doc.SkinColor.V),
 
                 hairId: doc.HairID,
-                glassesId: doc.GlassesID,
+                eyesId: doc.EyesID,
                 shirtId: doc.ShirtID,
                 pantId: doc.PantID,
-                shoeId: doc.ShoeID,
-                eyesId: doc.EyesID,
 
                 hairColor: new HSV(
                     doc.HairColor.H,
@@ -177,12 +172,7 @@ namespace Infrastructure.Factory
                 pantColor: new HSV(
                     doc.PantColor.H,
                     doc.PantColor.S,
-                    doc.PantColor.V),
-
-                eyeColor: new HSV(
-                    doc.EyeColor.H,
-                    doc.EyeColor.S,
-                    doc.EyeColor.V)
+                    doc.PantColor.V)
             );
         }
         #endregion

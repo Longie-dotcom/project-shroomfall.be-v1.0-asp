@@ -1,4 +1,4 @@
-﻿using Application.DTO.Connection;
+﻿using Contract.DTO.Connection;
 
 namespace Application.Features.Connection.Commands
 {

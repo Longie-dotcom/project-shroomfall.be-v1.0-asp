@@ -28,13 +28,10 @@ namespace Infrastructure.Factory
             string? sourceItemInstanceId = null)
         {
             var effectDef = effectCache.Get(definitionId);
-
             if (effectDef == null)
-            {
                 throw new InternalException(
                     ResponseCode.EffectInstanceFactory_DefinitionNotFound,
                     $"Effect definition with ID: {definitionId} is not found in cache");
-            }
 
             return new EffectInstance(
                 id: Guid.NewGuid().ToString(),
@@ -53,13 +50,10 @@ namespace Infrastructure.Factory
                     $"Effect document is not found");
 
             var effectDef = effectCache.Get(doc.DefinitionID);
-
             if (effectDef == null)
-            {
                 throw new InternalException(
                     ResponseCode.EffectInstanceFactory_DefinitionFromDocumentNotFound,
                     $"Effect definition with ID: {doc.DefinitionID} is not found in cache");
-            }
 
             var instance = new EffectInstance(
                 id: doc.ID,

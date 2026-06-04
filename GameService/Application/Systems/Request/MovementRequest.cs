@@ -1,7 +1,7 @@
 ﻿using Application.Context;
 using Application.Services.WorldService;
 using Application.Systems.Resolver;
-using Domain.Definition.AttributeDomain.Enum;
+using Contract.Enum.AttributeDomain;
 using Domain.Runtime.EntityDomain;
 
 namespace Application.Systems.Request

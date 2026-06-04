@@ -1,6 +1,5 @@
 ﻿using Application.Interfaces.Realtime;
 using Microsoft.AspNetCore.SignalR;
-using SignalHub;
 
 namespace Infrastructure.Realtime
 {

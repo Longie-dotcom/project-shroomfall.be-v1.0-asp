@@ -1,11 +1,12 @@
-﻿using Application.DTO.Game;
-using Application.Features.Abstraction;
+﻿using Application.Features.Abstraction;
 using Application.Features.Connection.Commands;
 using Application.Features.Game.Commands;
+using Contract;
+using Contract.DTO.Game;
 using Infrastructure.Helper;
 using Microsoft.AspNetCore.SignalR;
 
-namespace SignalHub
+namespace Infrastructure.Realtime
 {
     public class GameHub : Hub
     {
@@ -46,6 +47,7 @@ namespace SignalHub
             await base.OnDisconnectedAsync(exception);
         }
 
+        [HubMethodName(NetworkMethod.Move)]
         public async Task Move(
             MoveDTO dto)
         {

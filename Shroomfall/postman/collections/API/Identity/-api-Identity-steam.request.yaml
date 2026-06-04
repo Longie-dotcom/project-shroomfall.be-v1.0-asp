@@ -1,0 +1,16 @@
+$kind: http-request
+name: /api/Identity/steam
+url: "{{baseUrl}}/api/Identity/steam"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "steamTicket": "string",
+      "steamName": "string",
+      "preferredLocale": "string"
+    }
+examples: ./.resources/-api-Identity-steam.resources/examples
+order: 1000

@@ -1,8 +1,8 @@
-﻿using Application.DTO.Runtime;
-using Application.Events.Abstraction;
+﻿using Application.Events.Abstraction;
 using Application.Events.Event;
 using Application.Interfaces.Realtime;
 using AutoMapper;
+using Contract.DTO.Runtime;
 
 namespace Infrastructure.Realtime.Handlers
 {

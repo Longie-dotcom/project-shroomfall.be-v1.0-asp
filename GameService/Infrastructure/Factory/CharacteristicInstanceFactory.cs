@@ -27,15 +27,12 @@ namespace Infrastructure.Factory
             string definitionId)
         {
             var characteristicDef = characteristicCache.Get(definitionId);
-
             if (characteristicDef == null ||
                 characteristicDef.AttributeValues == null ||
                 characteristicDef.AttributeValues.Count == 0)
-            {
                 throw new InternalException(
                     ResponseCode.CharacteristicInstanceFactory_DefinitionNotFound,
                     $"Characteristic definition with ID: {definitionId} is not found in cache");
-            }
 
             return new CharacteristicInstance(
                 id: Guid.NewGuid().ToString(),
@@ -52,15 +49,12 @@ namespace Infrastructure.Factory
                     $"Characteristic document is not found");
 
             var characteristicDef = characteristicCache.Get(doc.DefinitionID);
-
             if (characteristicDef == null ||
                 characteristicDef.AttributeValues == null ||
                 characteristicDef.AttributeValues.Count == 0)
-            {
                 throw new InternalException(
                     ResponseCode.CharacteristicInstanceFactory_DefinitionFromDocumentNotFound,
                     $"Characteristic definition with ID: {doc.DefinitionID} is not found in cache");
-            }
 
             var instance = new CharacteristicInstance(
                 id: doc.ID,

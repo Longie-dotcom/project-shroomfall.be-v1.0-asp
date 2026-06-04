@@ -8,5 +8,9 @@ namespace Domain.Abstraction.World
             RoomSpatial roomSpatial);
         void RemoveRoom(
             string roomSpatialId);
+        public void AddConnection(
+            RoomConnectionInstance connection);
+        public void RemoveConnection(
+            string connectionId);
     }
 }
