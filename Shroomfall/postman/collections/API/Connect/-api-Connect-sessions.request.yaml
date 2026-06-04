@@ -1,6 +1,0 @@
-$kind: http-request
-name: /api/Connect/sessions
-url: "{{baseUrl}}/api/Connect/sessions"
-method: GET
-examples: ./.resources/-api-Connect-sessions.resources/examples
-order: 2000

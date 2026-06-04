@@ -1,6 +1,0 @@
-$kind: http-request
-name: /api/Connect/ping
-url: "{{baseUrl}}/api/Connect/ping"
-method: GET
-examples: ./.resources/-api-Connect-ping.resources/examples
-order: 1000
