@@ -1,5 +1,4 @@
-﻿using Contract;
-using Domain.Definition.LocalizationDomain;
+﻿using Domain.Definition.LocalizationDomain;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence
@@ -21,26 +20,15 @@ namespace Infrastructure.Persistence
                 new Locale(
                     "en-US",
                     "English (US)",
-                    true,
                     true
                 ),
                 new Locale(
                     "en-ME",
-                    "Medieval English",
-                    true,
-                    false
+                    "English (Fancy)"
                 ),
                 new Locale(
                     "vi-VN",
-                    "Tiếng Việt",
-                    true,
-                    false
-                ),
-                new Locale(
-                    "vi-MT",
-                    "Tiếng Việt (Miền Tây)",
-                    true,
-                    false
+                    "Vietnamese"
                 )
             );
 
