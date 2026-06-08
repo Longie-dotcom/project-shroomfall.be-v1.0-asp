@@ -100,6 +100,7 @@ namespace Application
             // PERSISTENCE
             // ─────────────────────────────
             services.AddSingleton<EntityPersistence>();
+            services.AddSingleton<RoomConnectionPersistence>();
             services.AddSingleton<RoomPersistence>();
             services.AddSingleton<SnapshotPersistence>();
 
