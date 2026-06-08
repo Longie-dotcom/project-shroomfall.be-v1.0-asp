@@ -156,7 +156,7 @@ namespace Application.Helper
                 .Include<WorldObjectInstance, WorldObjectRuntimeDTO>()
                 .Include<PlayerInstance, PlayerRuntimeDTO>()
                 .ForMember(d => d.Position, o => o.MapFrom(s => s.Position))
-                .ForMember(d => d.Direction, o => o.MapFrom(s => s.Direction))
+                .ForMember(d => d.MovementVector, o => o.MapFrom(s => s.MovementVector))
                 .ForMember(d => d.Appearance, o => o.MapFrom(s => s.Appearance));
 
             CreateMap<CreatureInstance, CreatureRuntimeDTO>()
@@ -212,7 +212,7 @@ namespace Application.Helper
                 .Include<WorldObjectInstance, WorldObjectDocument>()
                 .Include<PlayerInstance, PlayerDocument>()
                 .ForMember(d => d.Position, o => o.MapFrom(s => s.Position))
-                .ForMember(d => d.Direction, o => o.MapFrom(s => s.Direction))
+                .ForMember(d => d.MovementVector, o => o.MapFrom(s => s.MovementVector))
                 .ForMember(d => d.Appearance, o => o.MapFrom(s => s.Appearance));
 
             CreateMap<CreatureInstance, CreatureDocument>()

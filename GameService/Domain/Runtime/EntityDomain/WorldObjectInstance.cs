@@ -21,7 +21,7 @@ namespace Domain.Runtime.EntityDomain
             string roomSpatialId,
             int layerZ,
             Vector2 position,
-            Vector2 direction,
+            Vector2 movementVector,
             AppearanceInstance appearance,
             InventoryInstance? inventory) : base(
                 id,
@@ -30,7 +30,7 @@ namespace Domain.Runtime.EntityDomain
                 roomSpatialId,
                 layerZ,
                 position,
-                direction,
+                movementVector,
                 appearance)
         {
             Inventory = inventory;

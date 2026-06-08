@@ -27,7 +27,7 @@ namespace Domain.Runtime.EntityDomain
             string roomSpatialId,
             int layerZ,
             Vector2 position,
-            Vector2 direction,
+            Vector2 movementVector,
             AppearanceInstance appearance,
             CharacteristicInstance characteristic,
             InventoryInstance inventory,
@@ -38,8 +38,8 @@ namespace Domain.Runtime.EntityDomain
                 collisionShape,
                 roomSpatialId,
                 layerZ,
-                position, 
-                direction,
+                position,
+                movementVector,
                 appearance)
         {
             equipment = new();

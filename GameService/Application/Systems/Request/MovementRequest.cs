@@ -33,7 +33,7 @@ namespace Application.Systems.Request
 
                 // Resolve creature desired position
                 float speed = creature.Characteristic.GetCore(AttributeType.MoveSpeed);
-                var desired = creature.Position + creature.Direction * speed * dt;
+                var desired = creature.Position + creature.MovementVector * speed * dt;
 
                 // Request for collision resolving
                 var body = new CollisionBody(

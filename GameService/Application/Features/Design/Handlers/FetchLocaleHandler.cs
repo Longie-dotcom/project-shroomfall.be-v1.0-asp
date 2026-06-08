@@ -7,7 +7,7 @@ using Contract.DTO.Design;
 
 namespace Application.Features.Design.Handlers
 {
-    public class FetchLocaleHandler : IHandler<FetchLocaleCommand, ExistLocales>
+    public class FetchLocaleHandler : IHandler<FetchLocaleCommand, ExistLocalesDTO>
     {
         #region Attributes
         private readonly IMapper mapper;
@@ -26,7 +26,7 @@ namespace Application.Features.Design.Handlers
         }
 
         #region Methods
-        public async Task<ExistLocales> Handle(
+        public async Task<ExistLocalesDTO> Handle(
             FetchLocaleCommand command)
         {
             // Retrieve all existed locale
@@ -35,7 +35,7 @@ namespace Application.Features.Design.Handlers
             // Mapping and return
             var mapped = mapper.Map<List<LocaleDTO>>(locales);
 
-            return new ExistLocales()
+            return new ExistLocalesDTO()
             {
                 Locales = mapped,
             };

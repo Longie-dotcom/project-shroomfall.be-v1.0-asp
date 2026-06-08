@@ -47,10 +47,13 @@ namespace Application.Systems.Trigger
                 // Send update if they moved, OR if they just stopped moving (to settle the client)
                 if (entity.PositionChangedThisFrame || (wasMoving && !entity.WantsToMove))
                 {
-                    eventBus.Publish(new EntityMovedEvent(
+                    eventBus.Publish(new EntityActedEvent(
                         entity.ID,
                         entity.RoomSpatialID,
-                        entity.Position));
+                        entity.Position,
+                        entity.FacingDirection,
+                        entity.CurrentAction
+                    ));
                 }
             }
         }

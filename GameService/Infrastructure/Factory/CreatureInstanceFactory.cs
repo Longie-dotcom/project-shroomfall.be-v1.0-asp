@@ -52,7 +52,7 @@ namespace Infrastructure.Factory
             string roomSpatialId,
             int layerZ,
             Vector2 position,
-            Vector2 direction)
+            Vector2 movementVector)
         {
             var creatureDef = entityCache.Get<Creature>(definitionId);
             if (creatureDef == null)
@@ -67,7 +67,7 @@ namespace Infrastructure.Factory
                 roomSpatialId: roomSpatialId,
                 layerZ: layerZ,
                 position: position,
-                direction: direction,
+                movementVector: movementVector,
                 appearance: MapAppearance(creatureDef.Appearance),
 
                 characteristic: characteristicInstanceFactory.Create(
@@ -108,7 +108,7 @@ namespace Infrastructure.Factory
                 roomSpatialId: doc.RoomSpatialID,
                 layerZ: doc.LayerZ,
                 position: new Vector2(doc.Position.X, doc.Position.Y),
-                direction: new Vector2(doc.Direction.X, doc.Direction.Y),
+                movementVector: new Vector2(doc.MovementVector.X, doc.MovementVector.Y),
 
                 appearance: MapAppearance(doc.Appearance),
                 characteristic: characteristicInstanceFactory.CreateFromDocument(

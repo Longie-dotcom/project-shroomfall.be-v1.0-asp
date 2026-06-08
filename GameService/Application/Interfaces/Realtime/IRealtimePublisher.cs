@@ -6,11 +6,11 @@ namespace Application.Interfaces.Realtime
     public interface IRealtimePublisher
     {
         // ─────────────────────────────
-        // Movement (high frequency)
+        // Acted (high frequency)
         // ─────────────────────────────
-        Task SendEntityMoved(
+        Task SendEntityActed(
             string roomSpatialId, 
-            EntityMovedDTO payload);
+            EntityActedDTO payload);
 
         // ─────────────────────────────
         // Lifecycle (spawn / despawn)

@@ -25,13 +25,13 @@ namespace Infrastructure.Realtime
         // ─────────────────────────────
         // Movement (broadcast to room)
         // ─────────────────────────────
-        public Task SendEntityMoved(
+        public Task SendEntityActed(
             string roomId,
-            EntityMovedDTO payload)
+            EntityActedDTO payload)
         {
             return hub.Clients
                 .Group(roomId)
-                .SendAsync(NetworkMethod.OnEntityMoved, payload);
+                .SendAsync(NetworkMethod.OnEntityActed, payload);
         }
 
         // ─────────────────────────────

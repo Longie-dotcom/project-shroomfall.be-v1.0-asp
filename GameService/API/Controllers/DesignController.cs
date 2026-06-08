@@ -27,9 +27,9 @@ namespace API.Controllers
         #region Methods
         [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<ExistLocales>> GetLocales()
+        public async Task<ActionResult<ExistLocalesDTO>> GetLocales()
         {
-            var result = await dispatcher.Send<FetchLocaleCommand, ExistLocales>(
+            var result = await dispatcher.Send<FetchLocaleCommand, ExistLocalesDTO>(
                 new FetchLocaleCommand()
             );
 

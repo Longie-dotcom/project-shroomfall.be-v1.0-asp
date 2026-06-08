@@ -1,9 +1,10 @@
 ﻿using Application.Events.Abstraction;
+using Contract.Enum.EntityDomain;
 using Domain.Common;
 
 namespace Application.Events.Event
 {
-    public class EntityMovedEvent : IEvent
+    public class EntityActedEvent : IEvent
     {
         #region Attributes
         #endregion
@@ -12,17 +13,23 @@ namespace Application.Events.Event
         public string EntityInstanceID { get; }
         public string RoomSpatialID { get; }
         public Vector2 Position { get; }
+        public EntityDirection Direction { get; }
+        public EntityAction Action { get; }
         public DateTime OccurredAt { get; }
         #endregion
 
-        public EntityMovedEvent(
+        public EntityActedEvent(
             string entityInstanceId,
             string roomSpatialId,
-            Vector2 position)
+            Vector2 position,
+            EntityDirection direction,
+            EntityAction action)
         {
             EntityInstanceID = entityInstanceId;
             RoomSpatialID = roomSpatialId;
             Position = position;
+            Direction = direction;
+            Action = action;
             OccurredAt = DateTime.UtcNow;
         }
 

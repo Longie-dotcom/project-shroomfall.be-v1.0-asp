@@ -5,7 +5,7 @@ using Contract.DTO.Game;
 
 namespace Infrastructure.Realtime.Handlers
 {
-    public class EntityMovedHandler : IEventHandler
+    public class EntityActedHandler : IEventHandler
     {
         #region Attributes
         private readonly IRealtimePublisher publisher;
@@ -14,7 +14,7 @@ namespace Infrastructure.Realtime.Handlers
         #region Properties
         #endregion
 
-        public EntityMovedHandler(
+        public EntityActedHandler(
             IRealtimePublisher publisher)
         {
             this.publisher = publisher;
@@ -24,15 +24,18 @@ namespace Infrastructure.Realtime.Handlers
         public async Task Handle(
             IEvent @event)
         {
-            if (@event is not EntityMovedEvent moved)
+            if (@event is not EntityActedEvent acted)
                 return;
 
-            await publisher.SendEntityMoved(
-                moved.RoomSpatialID,
-                new EntityMovedDTO()
+            await publisher.SendEntityActed(
+                acted.RoomSpatialID,
+                new EntityActedDTO()
                 {
-                    X = moved.Position.X,
-                    Y = moved.Position.Y,
+                    X = acted.Position.X,
+                    Y = acted.Position.Y,
+                    Direction = acted.Direction,
+                    Action = acted.Action,
+                    EntityInstanceID = acted.EntityInstanceID
                 });
         }
         #endregion

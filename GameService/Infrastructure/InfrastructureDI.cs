@@ -137,7 +137,7 @@ namespace Infrastructure
             // Handlers
             services.AddSingleton<IEventHandler, DefinitionUpdatedHandler>();
             services.AddSingleton<IEventHandler, EntityLifecycleHandler>();
-            services.AddSingleton<IEventHandler, EntityMovedHandler>();
+            services.AddSingleton<IEventHandler, EntityActedHandler>();
             services.AddSingleton<IEventHandler, PlayerAppearanceChangedHandler>();
             services.AddSingleton<IEventHandler, PlayerGroupedHandler>();
 

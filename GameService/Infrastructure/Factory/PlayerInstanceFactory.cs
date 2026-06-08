@@ -53,7 +53,7 @@ namespace Infrastructure.Factory
             string roomSpatialId,
             int layerZ,
             Vector2 position,
-            Vector2 direction)
+            Vector2 movementVector)
         {
             var playerDef = entityCache.Get<Player>(definitionId);
             if (playerDef == null)
@@ -68,7 +68,7 @@ namespace Infrastructure.Factory
                 roomSpatialId: roomSpatialId,
                 layerZ: layerZ,
                 position: position,
-                direction: direction,
+                movementVector: movementVector,
 
                 characteristic: characteristicInstanceFactory.Create(playerDef.CharacteristicID),
                 inventory: inventoryInstanceFactory.Create(playerDef.InventoryID),
@@ -109,7 +109,7 @@ namespace Infrastructure.Factory
                 roomSpatialId: doc.RoomSpatialID,
                 layerZ: doc.LayerZ,
                 position: new Vector2(doc.Position.X, doc.Position.Y),
-                direction: new Vector2(doc.Direction.X, doc.Direction.Y),
+                movementVector: new Vector2(doc.MovementVector.X, doc.MovementVector.Y),
 
                 characteristic: characteristicInstanceFactory.CreateFromDocument(doc.Characteristic),
                 inventory: inventoryInstanceFactory.CreateFromDocument(doc.Inventory),
