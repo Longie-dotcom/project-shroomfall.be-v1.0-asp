@@ -23,6 +23,7 @@ using Application.Systems.Resolver;
 using Application.Systems.Tick;
 using Application.Systems.Trigger;
 using Contract.DTO.Connection;
+using Contract.DTO.Definition;
 using Contract.DTO.Design;
 using Contract.DTO.Identity;
 using Microsoft.Extensions.DependencyInjection;
@@ -84,6 +85,7 @@ namespace Application
             services.AddScoped<IHandler<UpdateAppearanceCommand>, UpdateAppearanceHandler>();
 
             // Design
+            services.AddScoped<IHandler<FetchLocaleCommand, IEnumerable<LocaleDTO>>, FetchLocaleHandler>();
             services.AddScoped<IHandler<UpdateDefinitionCommand>, UpdateDefinitionHandler>();
             services.AddScoped<IHandler<UserRefreshCommand, DefinitionSnapshotDTO?>, UserRefreshHandler>();
 

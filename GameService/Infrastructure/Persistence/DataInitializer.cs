@@ -12,29 +12,40 @@ namespace Infrastructure.Persistence
         #region Properties
         #endregion
 
-            public static async Task SeedAsync(RelationalDB db)
-            {
-                // Check if default locale exists
-                var exists = await db.Locales
-                    .AnyAsync(x => x.Code == Constraint.DEFAULT_LOCALE);
+        #region Methods
+        public static async Task SeedAsync(RelationalDB db)
+        {
+            await db.Locales.ExecuteDeleteAsync();
 
-                if (exists)
-                    return;
-
-                // Create default locale
-                var locale = new Locale
-                (
-                    Constraint.DEFAULT_LOCALE,
+            await db.Locales.AddRangeAsync(
+                new Locale(
+                    "en-US",
                     "English (US)",
                     true,
                     true
-                );
+                ),
+                new Locale(
+                    "en-ME",
+                    "Medieval English",
+                    true,
+                    false
+                ),
+                new Locale(
+                    "vi-VN",
+                    "Tiếng Việt",
+                    true,
+                    false
+                ),
+                new Locale(
+                    "vi-MT",
+                    "Tiếng Việt (Miền Tây)",
+                    true,
+                    false
+                )
+            );
 
-                await db.Locales.AddAsync(locale);
-                await db.SaveChangesAsync();
-            }
-
-        #region Methods
+            await db.SaveChangesAsync();
+        }
         #endregion
     }
 }
