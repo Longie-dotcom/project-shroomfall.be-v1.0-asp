@@ -27,7 +27,7 @@ namespace Domain.Definition.WorldDomain
 
         public Cell(
             string roomId, 
-            string tileId, 
+            string tileId,
             CellType type,
             int x, 
             int y, 

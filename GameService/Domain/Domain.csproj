@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\project-shroomfall.contracts\Contract\Contract\Contract.csproj" />
+    <ProjectReference Include="..\..\Contracts\Contract\Contract\Contract.csproj" />
   </ItemGroup>
 
 </Project>
