@@ -57,7 +57,7 @@ namespace API
                     {
                         ValidateIssuer = true,
                         ValidateAudience = true,
-                        ValidateLifetime = false,
+                        ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
 
                         ValidIssuer = issuer,
@@ -66,7 +66,7 @@ namespace API
                             Encoding.UTF8.GetBytes(jwtKey)
                         ),
 
-                        ClockSkew = TimeSpan.Zero
+                        ClockSkew = TimeSpan.FromSeconds(15)
                     };
 
                     options.Events = new JwtBearerEvents
