@@ -57,7 +57,7 @@ namespace API
                     {
                         ValidateIssuer = true,
                         ValidateAudience = true,
-                        ValidateLifetime = true,
+                        ValidateLifetime = false,
                         ValidateIssuerSigningKey = true,
 
                         ValidIssuer = issuer,
@@ -78,7 +78,7 @@ namespace API
                             var path = context.HttpContext.Request.Path;
 
                             if (!string.IsNullOrEmpty(accessToken) &&
-                                path.StartsWithSegments("/hub/game"))
+                                path.StartsWithSegments("/hubs/game"))
                             {
                                 context.Token = accessToken;
                             }
