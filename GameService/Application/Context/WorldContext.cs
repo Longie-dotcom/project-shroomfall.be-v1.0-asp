@@ -1,6 +1,4 @@
-﻿using Application.Interfaces.Cache;
-using Application.Interfaces.Factory;
-using Application.Services.WorldService;
+﻿using Application.Services.WorldService;
 using Domain.Abstraction.World;
 using Domain.Common;
 using Domain.Runtime.EntityDomain;
@@ -14,8 +12,6 @@ namespace Application.Context
         private readonly IWorldQuery worldQuery;
         private readonly IEntityCommand entityCommand;
         private readonly IRoomCommand roomCommand;
-        private readonly IRoomConnectionCache roomConnectionCache;
-        private readonly IRoomConnectionInstanceFactory roomConnectionInstanceFactory;
         #endregion
 
         #region Properties
@@ -24,15 +20,11 @@ namespace Application.Context
         public WorldContext(
             IWorldQuery worldQuery,
             IEntityCommand entityCommand,
-            IRoomCommand roomCommand,
-            IRoomConnectionCache roomConnectionCache,
-            IRoomConnectionInstanceFactory roomConnectionInstanceFactory)
+            IRoomCommand roomCommand)
         {
             this.worldQuery = worldQuery;
             this.entityCommand = entityCommand;
             this.roomCommand = roomCommand;
-            this.roomConnectionCache = roomConnectionCache;
-            this.roomConnectionInstanceFactory = roomConnectionInstanceFactory;
         }
 
         #region Methods

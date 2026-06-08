@@ -18,6 +18,7 @@ namespace Domain.Runtime.EntityDomain
         public string RoomSpatialID { get; protected set; }
         public int LayerZ { get; protected set; }
         public Vector2 Position { get; protected set; }
+        public bool PositionChangedThisFrame { get; private set; }
         public bool WantsToMove { get; private set; }
         public Vector2 Direction { get; protected set; }
         public AppearanceInstance Appearance { get; protected set; }
@@ -45,10 +46,11 @@ namespace Domain.Runtime.EntityDomain
         }
 
         #region Methods
-        public void SetPosition(
-            Vector2 position, 
-            int layerZ)
+        public void SetPosition(Vector2 position, int layerZ)
         {
+            // Check if the new position actually shifts away from old coordinates
+            PositionChangedThisFrame = (Position - position).LengthSquared() > 0.0001f;
+
             Position = position;
             LayerZ = layerZ;
         }

@@ -35,14 +35,17 @@ namespace Application.Systems.Trigger
                 if (entity == null)
                     return;
 
+                // Cache state before updating position index
+                bool wasMoving = entity.WantsToMove || entity.PositionChangedThisFrame;
+
                 // Update context and spatial indexing
                 worldContext.EntityMove(
                     entity.ID,
                     result.FinalPosition,
                     result.LayerZ);
 
-                // Only publish event when position is new
-                if (!entity.Position.NearlyEquals(entity.Position))
+                // Send update if they moved, OR if they just stopped moving (to settle the client)
+                if (entity.PositionChangedThisFrame || (wasMoving && !entity.WantsToMove))
                 {
                     eventBus.Publish(new EntityMovedEvent(
                         entity.ID,

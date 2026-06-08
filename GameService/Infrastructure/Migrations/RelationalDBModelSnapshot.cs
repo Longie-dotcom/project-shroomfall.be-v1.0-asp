@@ -158,9 +158,6 @@ namespace Infrastructure.Migrations
                     b.Property<string>("ID")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("AreaEffectID")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("Category")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -171,9 +168,6 @@ namespace Infrastructure.Migrations
                     b.Property<int?>("Durability")
                         .HasColumnType("int");
 
-                    b.Property<string>("ProjectileID")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<bool>("Stackable")
                         .HasColumnType("bit");
 
@@ -181,24 +175,48 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("WorldObjectID")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("ID");
-
-                    b.HasIndex("AreaEffectID");
 
                     b.HasIndex("Category");
 
                     b.HasIndex("CharacteristicID");
 
-                    b.HasIndex("ProjectileID");
-
                     b.HasIndex("Type");
 
-                    b.HasIndex("WorldObjectID");
-
                     b.ToTable("Items", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Definition.ItemDomain.ItemConfiguration", b =>
+                {
+                    b.Property<string>("ID")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("EntityID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ItemID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ItemID1")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("EntityID");
+
+                    b.HasIndex("ItemID");
+
+                    b.HasIndex("ItemID1");
+
+                    b.HasIndex("ItemID", "Type");
+
+                    b.ToTable("ItemConfigurations", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Definition.ItemDomain.ItemEffect", b =>
@@ -306,6 +324,10 @@ namespace Infrastructure.Migrations
                     b.Property<string>("TileID")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("RoomID", "X", "Y", "Z");
 
@@ -429,22 +451,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("SpawnAreas", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Definition.WorldDomain.Tile", b =>
-                {
-                    b.Property<string>("ID")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("Type");
-
-                    b.ToTable("Tiles", (string)null);
-                });
-
             modelBuilder.Entity("Domain.Other.IdentityDomain.User", b =>
                 {
                     b.Property<string>("ID")
@@ -565,6 +571,13 @@ namespace Infrastructure.Migrations
                     b.HasIndex("InventoryID");
 
                     b.HasDiscriminator().HasValue("Creature");
+                });
+
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Portal", b =>
+                {
+                    b.HasBaseType("Domain.Definition.EntityDomain.Entity");
+
+                    b.HasDiscriminator().HasValue("Portal");
                 });
 
             modelBuilder.Entity("Domain.Definition.EntityDomain.Projectile", b =>
@@ -852,6 +865,29 @@ namespace Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Domain.Definition.ItemDomain.ItemConfiguration", b =>
+                {
+                    b.HasOne("Domain.Definition.EntityDomain.Entity", "Entity")
+                        .WithMany()
+                        .HasForeignKey("EntityID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Definition.ItemDomain.Item", "Item")
+                        .WithMany()
+                        .HasForeignKey("ItemID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Definition.ItemDomain.Item", null)
+                        .WithMany("Configurations")
+                        .HasForeignKey("ItemID1");
+
+                    b.Navigation("Entity");
+
+                    b.Navigation("Item");
+                });
+
             modelBuilder.Entity("Domain.Definition.ItemDomain.ItemEffect", b =>
                 {
                     b.HasOne("Domain.Definition.AttributeDomain.Effect", "Effect")
@@ -894,15 +930,7 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Definition.WorldDomain.Tile", "Tile")
-                        .WithMany()
-                        .HasForeignKey("TileID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Room");
-
-                    b.Navigation("Tile");
                 });
 
             modelBuilder.Entity("Domain.Definition.WorldDomain.EntitySpawnRule", b =>
@@ -977,30 +1005,63 @@ namespace Infrastructure.Migrations
                     b.Navigation("EntitySpawnRule");
                 });
 
-            modelBuilder.Entity("Domain.Definition.WorldDomain.Tile", b =>
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Portal", b =>
                 {
-                    b.OwnsOne("Domain.Definition.LocalizationDomain.LocalizedText", "LocalizedText", b1 =>
+                    b.OwnsOne("Domain.Common.Vector2", "EntrancePosition", b1 =>
                         {
-                            b1.Property<string>("TileID")
+                            b1.Property<string>("PortalID")
                                 .HasColumnType("nvarchar(450)");
 
-                            b1.Property<string>("DescriptionKey")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
+                            b1.Property<float>("X")
+                                .HasColumnType("real");
 
-                            b1.Property<string>("NameKey")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
+                            b1.Property<float>("Y")
+                                .HasColumnType("real");
 
-                            b1.HasKey("TileID");
+                            b1.HasKey("PortalID");
 
-                            b1.ToTable("Tiles");
+                            b1.ToTable("Entities");
 
                             b1.WithOwner()
-                                .HasForeignKey("TileID");
+                                .HasForeignKey("PortalID");
                         });
 
-                    b.Navigation("LocalizedText")
+                    b.OwnsOne("Domain.Definition.EntityDomain.Component.Collision", "Entrance", b1 =>
+                        {
+                            b1.Property<string>("PortalID")
+                                .HasColumnType("nvarchar(450)");
+
+                            b1.Property<float>("Height")
+                                .HasColumnType("real");
+
+                            b1.Property<bool>("IsBlocking")
+                                .HasColumnType("bit");
+
+                            b1.Property<bool>("IsTrigger")
+                                .HasColumnType("bit");
+
+                            b1.Property<float>("Radius")
+                                .HasColumnType("real");
+
+                            b1.Property<string>("ShapeType")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<float>("Width")
+                                .HasColumnType("real");
+
+                            b1.HasKey("PortalID");
+
+                            b1.ToTable("Entities");
+
+                            b1.WithOwner()
+                                .HasForeignKey("PortalID");
+                        });
+
+                    b.Navigation("Entrance")
+                        .IsRequired();
+
+                    b.Navigation("EntrancePosition")
                         .IsRequired();
                 });
 
@@ -1012,10 +1073,6 @@ namespace Infrastructure.Migrations
                                 .HasColumnType("nvarchar(450)");
 
                             b1.Property<string>("EyesID")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("GlassesID")
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
@@ -1031,10 +1088,6 @@ namespace Infrastructure.Migrations
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.Property<string>("ShoeID")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
                             b1.Property<string>("SkinID")
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
@@ -1045,28 +1098,6 @@ namespace Infrastructure.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("PlayerID");
-
-                            b1.OwnsOne("Domain.Common.HSV", "EyeColor", b2 =>
-                                {
-                                    b2.Property<string>("PlayerAppearancePlayerID")
-                                        .HasColumnType("nvarchar(450)");
-
-                                    b2.Property<float>("H")
-                                        .HasColumnType("real");
-
-                                    b2.Property<float>("S")
-                                        .HasColumnType("real");
-
-                                    b2.Property<float>("V")
-                                        .HasColumnType("real");
-
-                                    b2.HasKey("PlayerAppearancePlayerID");
-
-                                    b2.ToTable("Entities");
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("PlayerAppearancePlayerID");
-                                });
 
                             b1.OwnsOne("Domain.Common.HSV", "HairColor", b2 =>
                                 {
@@ -1134,9 +1165,6 @@ namespace Infrastructure.Migrations
                                         .HasForeignKey("PlayerAppearancePlayerID");
                                 });
 
-                            b1.Navigation("EyeColor")
-                                .IsRequired();
-
                             b1.Navigation("HairColor")
                                 .IsRequired();
 
@@ -1163,6 +1191,8 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Definition.ItemDomain.Item", b =>
                 {
+                    b.Navigation("Configurations");
+
                     b.Navigation("Effects");
                 });
 

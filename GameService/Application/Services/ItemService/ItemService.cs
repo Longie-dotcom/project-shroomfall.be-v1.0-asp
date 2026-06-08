@@ -35,7 +35,7 @@ namespace Application.Services.ItemService
         public void Use(
             CreatureInstance creature, 
             string itemInstanceId,
-            Vector2 objectPosition)
+            Vector2 targetPosition)
         {
             var inventory = creature.Inventory;
 
@@ -64,7 +64,7 @@ namespace Application.Services.ItemService
                     break;
 
                 case ItemType.Object:
-                    placementService.Place(creature, item, itemDef, objectPosition);
+                    placementService.Place(creature, item, itemDef, targetPosition);
                     break;
 
                 default:

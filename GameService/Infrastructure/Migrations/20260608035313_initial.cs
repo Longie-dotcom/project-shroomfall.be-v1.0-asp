@@ -81,24 +81,27 @@ namespace Infrastructure.Migrations
                     InventoryID = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     Level = table.Column<int>(type: "int", nullable: true),
                     PlayerAppearance_HairID = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PlayerAppearance_GlassesID = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PlayerAppearance_EyesID = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PlayerAppearance_ShirtID = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PlayerAppearance_PantID = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PlayerAppearance_ShoeID = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PlayerAppearance_EyesID = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PlayerAppearance_HairColor_H = table.Column<float>(type: "real", nullable: true),
                     PlayerAppearance_HairColor_S = table.Column<float>(type: "real", nullable: true),
                     PlayerAppearance_HairColor_V = table.Column<float>(type: "real", nullable: true),
                     PlayerAppearance_PantColor_H = table.Column<float>(type: "real", nullable: true),
                     PlayerAppearance_PantColor_S = table.Column<float>(type: "real", nullable: true),
                     PlayerAppearance_PantColor_V = table.Column<float>(type: "real", nullable: true),
-                    PlayerAppearance_EyeColor_H = table.Column<float>(type: "real", nullable: true),
-                    PlayerAppearance_EyeColor_S = table.Column<float>(type: "real", nullable: true),
-                    PlayerAppearance_EyeColor_V = table.Column<float>(type: "real", nullable: true),
                     PlayerAppearance_SkinID = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PlayerAppearance_SkinColor_H = table.Column<float>(type: "real", nullable: true),
                     PlayerAppearance_SkinColor_S = table.Column<float>(type: "real", nullable: true),
                     PlayerAppearance_SkinColor_V = table.Column<float>(type: "real", nullable: true),
+                    Entrance_ShapeType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Entrance_Width = table.Column<float>(type: "real", nullable: true),
+                    Entrance_Height = table.Column<float>(type: "real", nullable: true),
+                    Entrance_Radius = table.Column<float>(type: "real", nullable: true),
+                    Entrance_IsBlocking = table.Column<bool>(type: "bit", nullable: true),
+                    Entrance_IsTrigger = table.Column<bool>(type: "bit", nullable: true),
+                    EntrancePosition_X = table.Column<float>(type: "real", nullable: true),
+                    EntrancePosition_Y = table.Column<float>(type: "real", nullable: true),
                     InteractionType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsInteractable = table.Column<bool>(type: "bit", nullable: true),
                     IsPickupable = table.Column<bool>(type: "bit", nullable: true),
@@ -135,10 +138,7 @@ namespace Infrastructure.Migrations
                     Category = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Durability = table.Column<int>(type: "int", nullable: true),
                     Stackable = table.Column<bool>(type: "bit", nullable: false),
-                    CharacteristicID = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    ProjectileID = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    AreaEffectID = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    WorldObjectID = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    CharacteristicID = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -171,20 +171,6 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Rooms", x => x.ID);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Tiles",
-                columns: table => new
-                {
-                    ID = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Type = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    LocalizedText_NameKey = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    LocalizedText_DescriptionKey = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Tiles", x => x.ID);
                 });
 
             migrationBuilder.CreateTable(
@@ -259,6 +245,38 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ItemConfigurations",
+                columns: table => new
+                {
+                    ID = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ItemID = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    EntityID = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ItemID1 = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ItemConfigurations", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_ItemConfigurations_Entities_EntityID",
+                        column: x => x.EntityID,
+                        principalTable: "Entities",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ItemConfigurations_Items_ItemID",
+                        column: x => x.ItemID,
+                        principalTable: "Items",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ItemConfigurations_Items_ItemID1",
+                        column: x => x.ItemID1,
+                        principalTable: "Items",
+                        principalColumn: "ID");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ItemEffects",
                 columns: table => new
                 {
@@ -314,6 +332,28 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Cells",
+                columns: table => new
+                {
+                    RoomID = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    X = table.Column<int>(type: "int", nullable: false),
+                    Y = table.Column<int>(type: "int", nullable: false),
+                    Z = table.Column<int>(type: "int", nullable: false),
+                    TileID = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Cells", x => new { x.RoomID, x.X, x.Y, x.Z });
+                    table.ForeignKey(
+                        name: "FK_Cells_Rooms_RoomID",
+                        column: x => x.RoomID,
+                        principalTable: "Rooms",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "EntitySpawnRules",
                 columns: table => new
                 {
@@ -362,33 +402,6 @@ namespace Infrastructure.Migrations
                         name: "FK_RoomConnections_Rooms_SourceRoomID",
                         column: x => x.SourceRoomID,
                         principalTable: "Rooms",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Cells",
-                columns: table => new
-                {
-                    RoomID = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    X = table.Column<int>(type: "int", nullable: false),
-                    Y = table.Column<int>(type: "int", nullable: false),
-                    Z = table.Column<int>(type: "int", nullable: false),
-                    TileID = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Cells", x => new { x.RoomID, x.X, x.Y, x.Z });
-                    table.ForeignKey(
-                        name: "FK_Cells_Rooms_RoomID",
-                        column: x => x.RoomID,
-                        principalTable: "Rooms",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Cells_Tiles_TileID",
-                        column: x => x.TileID,
-                        principalTable: "Tiles",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -472,6 +485,26 @@ namespace Infrastructure.Migrations
                 column: "ItemID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ItemConfigurations_EntityID",
+                table: "ItemConfigurations",
+                column: "EntityID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ItemConfigurations_ItemID",
+                table: "ItemConfigurations",
+                column: "ItemID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ItemConfigurations_ItemID_Type",
+                table: "ItemConfigurations",
+                columns: new[] { "ItemID", "Type" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ItemConfigurations_ItemID1",
+                table: "ItemConfigurations",
+                column: "ItemID1");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ItemEffects_EffectID",
                 table: "ItemEffects",
                 column: "EffectID");
@@ -480,11 +513,6 @@ namespace Infrastructure.Migrations
                 name: "IX_ItemEffects_ItemID1",
                 table: "ItemEffects",
                 column: "ItemID1");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Items_AreaEffectID",
-                table: "Items",
-                column: "AreaEffectID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Items_Category",
@@ -497,19 +525,9 @@ namespace Infrastructure.Migrations
                 column: "CharacteristicID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Items_ProjectileID",
-                table: "Items",
-                column: "ProjectileID");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Items_Type",
                 table: "Items",
                 column: "Type");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Items_WorldObjectID",
-                table: "Items",
-                column: "WorldObjectID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Locales_Code",
@@ -564,11 +582,6 @@ namespace Infrastructure.Migrations
                 columns: new[] { "MinX", "MinY" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tiles_Type",
-                table: "Tiles",
-                column: "Type");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Users_Email",
                 table: "Users",
                 column: "Email",
@@ -599,6 +612,9 @@ namespace Infrastructure.Migrations
                 name: "InventoryItems");
 
             migrationBuilder.DropTable(
+                name: "ItemConfigurations");
+
+            migrationBuilder.DropTable(
                 name: "ItemEffects");
 
             migrationBuilder.DropTable(
@@ -615,9 +631,6 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Characteristics");
-
-            migrationBuilder.DropTable(
-                name: "Tiles");
 
             migrationBuilder.DropTable(
                 name: "Inventories");

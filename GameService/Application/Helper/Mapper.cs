@@ -52,8 +52,10 @@ namespace Application.Helper
             CreateMap<DefinitionVersionLog, DefinitionVersionLogDTO>();
 
             // Localization Domain
+            CreateMap<LocalizationEntry, LocalizationEntryDTO>();
             CreateMap<LocalizedText, LocalizedTextDTO>();
-            CreateMap<Locale, LocaleDTO>();
+            CreateMap<Locale, LocaleDTO>()
+                .ForMember(d => d.LocalizationEntries, o => o.MapFrom(s => s.LocalizationEntries));
 
             // Attribute Domain
             CreateMap<AttributeDefinition, AttributeDefinitionDTO>()

@@ -85,6 +85,20 @@ namespace API.Controllers
 
             return NoContent();
         }
+
+        [Authorize]
+        [HttpPut("preferred-locale/{locale}")]
+        public async Task<IActionResult> UpdatePreferredLocale(
+            string locale)
+        {
+            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
+
+            await dispatcher.Send<UpdatePreferredLocaleCommand>(
+                new UpdatePreferredLocaleCommand(userId, locale)
+            );
+
+            return NoContent();
+        }
         #endregion
     }
 }

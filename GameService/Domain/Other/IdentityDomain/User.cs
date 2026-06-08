@@ -120,6 +120,12 @@ namespace Domain.Other.IdentityDomain
                 Gender = gender;
             }
         }
+
+        public void UpdatePreferredLocale(
+            string preferredLocale)
+        {
+            PreferredLocale = preferredLocale;
+        }
         #endregion
     }
 }

@@ -75,6 +75,7 @@ namespace Application
             services.AddScoped<IHandler<RefreshTokenCommand, TokenDTO>, RefreshTokenHandler>();
             services.AddScoped<IHandler<RegisterCommand, TokenDTO>, RegisterHandler>();
             services.AddScoped<IHandler<SteamAuthCommand, TokenDTO>, SteamAuthHandler>();
+            services.AddScoped<IHandler<UpdatePreferredLocaleCommand>, UpdatePreferredLocaleHandler>();
             services.AddScoped<IHandler<UpdateProfileCommand>, UpdateProfileHandler>();
 
             // Game

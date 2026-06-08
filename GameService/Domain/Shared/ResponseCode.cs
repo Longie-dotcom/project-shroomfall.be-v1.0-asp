@@ -29,6 +29,7 @@
         public const string SteamAuth_InvalidSteamTicket = "steam_auth.invalid_steam_ticket";
         public const string SteamAuth_SteamValidationFailed = "steam_auth.steam_validation_failed";
         public const string UpdateProfile_UserNotFound = "update_profile.user_not_found";
+        public const string UpdateProfile_LocaleFound = "update_profile.locale_found";
 
         // ─────────────────────────────
         // Game Features 
