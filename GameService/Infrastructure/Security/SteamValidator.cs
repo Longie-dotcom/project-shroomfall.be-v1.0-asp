@@ -25,27 +25,35 @@ namespace Infrastructure.Security
         }
 
         #region Methods
-        public async Task<string?> ValidateTicket(
-            string ticket)
+        public async Task<string?> ValidateTicket(string ticket)
         {
-            var url = $"https://api.steampowered.com/ISteamUserAuth/AuthenticateUserTicket/v1/" +
-                      $"?key={apiKey}&appid={appId}&ticket={ticket}";
+            var url =
+                "https://api.steampowered.com/ISteamUserAuth/AuthenticateUserTicket/v1/" +
+                $"?key={apiKey}&appid={appId}&ticket={ticket}";
 
             var response = await httpClient.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-
             var json = await response.Content.ReadAsStringAsync();
 
-            // parse steamid (use System.Text.Json)
             using var doc = JsonDocument.Parse(json);
 
-            var steamId = doc.RootElement
-                .GetProperty("response")
-                .GetProperty("params")
-                .GetProperty("steamid")
-                .GetString();
+            var root = doc.RootElement.GetProperty("response");
 
-            return steamId;
+            if (root.TryGetProperty("error", out var error))
+            {
+                var errorMsg = error.TryGetProperty("errordesc", out var desc)
+                    ? desc.GetString()
+                    : "Unknown Steam error";
+
+                throw new Exception($"Steam validation failed: {errorMsg}");
+            }
+
+            if (!root.TryGetProperty("params", out var parameters))
+                return null;
+
+            if (!parameters.TryGetProperty("steamid", out var steamId))
+                return null;
+
+            return steamId.GetString();
         }
         #endregion
     }
