@@ -1,7 +1,6 @@
 ﻿using API.Helper;
 using Application.Features.Abstraction;
 using Application.Features.Design.Commands;
-using Contract.DTO.Definition;
 using Contract.DTO.Design;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,9 +27,9 @@ namespace API.Controllers
         #region Methods
         [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<LocaleDTO>>> GetLocales()
+        public async Task<ActionResult<ExistLocales>> GetLocales()
         {
-            var result = await dispatcher.Send<FetchLocaleCommand, IEnumerable<LocaleDTO>>(
+            var result = await dispatcher.Send<FetchLocaleCommand, ExistLocales>(
                 new FetchLocaleCommand()
             );
 

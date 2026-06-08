@@ -85,7 +85,7 @@ namespace Application
             services.AddScoped<IHandler<UpdateAppearanceCommand>, UpdateAppearanceHandler>();
 
             // Design
-            services.AddScoped<IHandler<FetchLocaleCommand, IEnumerable<LocaleDTO>>, FetchLocaleHandler>();
+            services.AddScoped<IHandler<FetchLocaleCommand, ExistLocales>, FetchLocaleHandler>();
             services.AddScoped<IHandler<UpdateDefinitionCommand>, UpdateDefinitionHandler>();
             services.AddScoped<IHandler<UserRefreshCommand, DefinitionSnapshotDTO?>, UserRefreshHandler>();
 
