@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(RelationalDB))]
-    [Migration("20260610120844_initial")]
+    [Migration("20260610123205_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -728,13 +728,19 @@ namespace Infrastructure.Migrations
                                         .HasColumnType("nvarchar(450)");
 
                                     b2.Property<float>("H")
-                                        .HasColumnType("real");
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("real")
+                                        .HasDefaultValue(0f);
 
                                     b2.Property<float>("S")
-                                        .HasColumnType("real");
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("real")
+                                        .HasDefaultValue(0f);
 
                                     b2.Property<float>("V")
-                                        .HasColumnType("real");
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("real")
+                                        .HasDefaultValue(0f);
 
                                     b2.HasKey("AppearanceEntityID");
 
@@ -750,13 +756,19 @@ namespace Infrastructure.Migrations
                                         .HasColumnType("nvarchar(450)");
 
                                     b2.Property<float>("H")
-                                        .HasColumnType("real");
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("real")
+                                        .HasDefaultValue(0f);
 
                                     b2.Property<float>("S")
-                                        .HasColumnType("real");
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("real")
+                                        .HasDefaultValue(0f);
 
                                     b2.Property<float>("V")
-                                        .HasColumnType("real");
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("real")
+                                        .HasDefaultValue(0f);
 
                                     b2.HasKey("AppearanceEntityID");
 
@@ -772,13 +784,19 @@ namespace Infrastructure.Migrations
                                         .HasColumnType("nvarchar(450)");
 
                                     b2.Property<float>("H")
-                                        .HasColumnType("real");
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("real")
+                                        .HasDefaultValue(0f);
 
                                     b2.Property<float>("S")
-                                        .HasColumnType("real");
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("real")
+                                        .HasDefaultValue(0f);
 
                                     b2.Property<float>("V")
-                                        .HasColumnType("real");
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("real")
+                                        .HasDefaultValue(0f);
 
                                     b2.HasKey("AppearanceEntityID");
 

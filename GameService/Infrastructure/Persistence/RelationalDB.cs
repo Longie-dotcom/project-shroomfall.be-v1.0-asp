@@ -288,26 +288,26 @@ namespace Infrastructure.Persistence
                     a.Property(p => p.SkinID).IsRequired();
                     a.OwnsOne(p => p.SkinColor, s =>
                     {
-                        s.Property(h => h.H);
-                        s.Property(h => h.S);
-                        s.Property(h => h.V);
+                        s.Property(h => h.H).IsRequired().HasDefaultValue(0.0f);
+                        s.Property(h => h.S).IsRequired().HasDefaultValue(0.0f);
+                        s.Property(h => h.V).IsRequired().HasDefaultValue(0.0f);
                     });
 
-                    a.Property(p => p.HairID);
-                    a.Property(p => p.EyesID);
-                    a.Property(p => p.ShirtID);
-                    a.Property(p => p.PantID);
+                    a.Property(p => p.HairID).IsRequired(false);
+                    a.Property(p => p.EyesID).IsRequired(false);
+                    a.Property(p => p.ShirtID).IsRequired(false);
+                    a.Property(p => p.PantID).IsRequired(false);
                     a.OwnsOne(p => p.HairColor, s =>
                     {
-                        s.Property(h => h.H);
-                        s.Property(h => h.S);
-                        s.Property(h => h.V);
+                        s.Property(h => h.H).IsRequired().HasDefaultValue(0.0f);
+                        s.Property(h => h.S).IsRequired().HasDefaultValue(0.0f);
+                        s.Property(h => h.V).IsRequired().HasDefaultValue(0.0f);
                     });
                     a.OwnsOne(p => p.PantColor, s =>
                     {
-                        s.Property(h => h.H);
-                        s.Property(h => h.S);
-                        s.Property(h => h.V);
+                        s.Property(h => h.H).IsRequired().HasDefaultValue(0.0f);
+                        s.Property(h => h.S).IsRequired().HasDefaultValue(0.0f);
+                        s.Property(h => h.V).IsRequired().HasDefaultValue(0.0f);
                     });
                 });
 

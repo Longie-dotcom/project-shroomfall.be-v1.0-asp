@@ -6,9 +6,9 @@
         #endregion
 
         #region Properties
-        public float H { get; set; }
-        public float S { get; set; }
-        public float V { get; set; }
+        public float H { get; set; } = 0.0f;
+        public float S { get; set; } = 0.0f;
+        public float V { get; set; } = 0.0f;
         #endregion
 
         public HSV(

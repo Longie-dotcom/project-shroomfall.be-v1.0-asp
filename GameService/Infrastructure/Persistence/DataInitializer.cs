@@ -1,4 +1,5 @@
-﻿using Domain.Definition.AttributeDomain;
+﻿using Contract;
+using Domain.Definition.AttributeDomain;
 using Domain.Definition.EntityDomain;
 using Domain.Definition.ItemDomain;
 using Domain.Definition.LocalizationDomain;
@@ -33,6 +34,22 @@ namespace Infrastructure.Persistence
 
             await EntitySeeder.SeedPlayerDefinitionsAsync(db);
             await EntitySeeder.SeedEntityDefinitionsAsync(db);
+
+            await SeedVersionAsync(db);
+        }
+
+        public static async Task SeedVersionAsync(RelationalDB db)
+        {
+            // Create new version entry
+            var newVersion = new DefinitionVersionLog(
+                id: Guid.NewGuid().ToString(),
+                key: Constraint.GLOBAL_DEFINITION_VERSION,
+                version: DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), // Or a simple counter
+                description: "Updated item and entity definitions"
+            );
+
+            await db.DefinitionVersionLogs.AddAsync(newVersion);
+            await db.SaveChangesAsync();
         }
 
         public static async Task ClearDatabase(RelationalDB db)
