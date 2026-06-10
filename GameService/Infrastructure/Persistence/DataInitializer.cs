@@ -33,6 +33,7 @@ namespace Infrastructure.Persistence
             await InventoryItemSeeder.SeedAsync(db);
 
             await EntitySeeder.SeedPlayerDefinitionsAsync(db);
+            await EntitySeeder.SeedCreatureDefinitionsAsync(db);
             await EntitySeeder.SeedEntityDefinitionsAsync(db);
 
             await SeedVersionAsync(db);
