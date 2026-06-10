@@ -14,8 +14,6 @@ namespace Domain.Shared
                 // ───────── Combat ─────────
                 [AttributeType.AttackDamage] = CreateCore(AttributeType.AttackDamage, "attack_damage"),
                 [AttributeType.AttackSpeed] = CreateCore(AttributeType.AttackSpeed, "attack_speed"),
-                [AttributeType.AttackStability] = CreateCore(AttributeType.AttackStability, "attack_stability"),
-                [AttributeType.AttackArea] = CreateCore(AttributeType.AttackArea, "attack_area"),
                 [AttributeType.AttackRange] = CreateCore(AttributeType.AttackRange, "attack_range"),
 
                 [AttributeType.FirePower] = CreateCore(AttributeType.FirePower, "fire_power"),
@@ -25,11 +23,7 @@ namespace Domain.Shared
                 [AttributeType.LightPower] = CreateCore(AttributeType.LightPower, "light_power"),
 
                 // ───────── Resistance ─────────
-                [AttributeType.MeleeResistance] = CreateCore(AttributeType.MeleeResistance, "melee_resistance"),
-                [AttributeType.RangedResistance] = CreateCore(AttributeType.RangedResistance, "ranged_resistance"),
-                [AttributeType.MagicResistance] = CreateCore(AttributeType.MagicResistance, "magic_resistance"),
-                [AttributeType.HeavyResistance] = CreateCore(AttributeType.HeavyResistance, "heavy_resistance"),
-                [AttributeType.ThrowableResistance] = CreateCore(AttributeType.ThrowableResistance, "throwable_resistance"),
+                [AttributeType.DamageResistance] = CreateCore(AttributeType.DamageResistance, "damage_resistance"),
                 [AttributeType.FireResistance] = CreateCore(AttributeType.FireResistance, "fire_resistance"),
                 [AttributeType.IceResistance] = CreateCore(AttributeType.IceResistance, "ice_resistance"),
                 [AttributeType.EarthResistance] = CreateCore(AttributeType.EarthResistance, "earth_resistance"),
@@ -39,8 +33,6 @@ namespace Domain.Shared
                 // ───────── Extraction ─────────
                 [AttributeType.ExtractDamage] = CreateCore(AttributeType.ExtractDamage, "extract_damage"),
                 [AttributeType.ExtractSpeed] = CreateCore(AttributeType.ExtractSpeed, "extract_speed"),
-                [AttributeType.ExtractStability] = CreateCore(AttributeType.ExtractStability, "extract_stability"),
-                [AttributeType.ExtractArea] = CreateCore(AttributeType.ExtractArea, "extract_area"),
                 [AttributeType.ExtractRange] = CreateCore(AttributeType.ExtractRange, "extract_range"),
 
                 // ───────── Farming ─────────

@@ -1,6 +1,7 @@
 ﻿using Application.Context;
 using Application.Interfaces.Cache;
 using Application.Services.AttributeService;
+using Application.Services.EntityService;
 using Application.Services.WorldService;
 using Application.Systems.Resolver;
 using Contract.Enum.AttributeDomain;
@@ -15,6 +16,7 @@ namespace Application.Systems.Request
         private readonly WorldContext worldContext;
         private readonly CharacteristicService characteristicService;
         private readonly IEffectCache effectCache;
+        private readonly CreatureAIService creatureAIService;
         #endregion
 
         #region Properties
@@ -23,11 +25,13 @@ namespace Application.Systems.Request
         public CreatureRequest(
             WorldContext worldContext,
             CharacteristicService characteristicService,
-            IEffectCache effectCache)
+            IEffectCache effectCache,
+            CreatureAIService creatureAIService)
         {
             this.worldContext = worldContext;
             this.characteristicService = characteristicService;
             this.effectCache = effectCache;
+            this.creatureAIService = creatureAIService;
         }
 
         #region Methods
@@ -37,6 +41,8 @@ namespace Application.Systems.Request
         {
             foreach (var creature in worldContext.GetEntities<CreatureInstance>())
             {
+                creatureAIService.TickAI(dt, creature);
+
                 TickEffect(dt, creature);
 
                 TickMovement(dt, creature, contexts);
@@ -65,10 +71,22 @@ namespace Application.Systems.Request
                 //  Processes interval consumption for Regen/DoT effects
                 if (effectDef.Interval.HasValue)
                 {
-                    // Uses your exact method name and tracks perfectly
                     if (effect.TryConsumeInterval(effectDef.Interval.Value))
                     {
-                        characteristicService.ModifyVitalValue(creature, effectDef.AttributeType, effectDef.Value);
+                        float value = effectDef.Value;
+
+                        if (value < 0) // damage effect
+                        {
+                            value = -CombatService.ResolveMitigatedDamage(
+                                creature,
+                                Math.Abs(value),
+                                effectDef.AttributeType);
+                        }
+
+                        characteristicService.ModifyVitalValue(
+                            creature,
+                            effectDef.AttributeType,
+                            value);
                     }
                 }
 

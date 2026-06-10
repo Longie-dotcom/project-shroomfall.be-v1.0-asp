@@ -43,6 +43,7 @@ namespace Domain.Runtime.EntityDomain
                 activeEffects)
         {
             UserID = userId;
+            IsAIControlled = false;
         }
 
         #region Methods

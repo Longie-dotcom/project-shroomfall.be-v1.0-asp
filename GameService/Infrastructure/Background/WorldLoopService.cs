@@ -19,14 +19,22 @@ namespace Infrastructure.Background
         private readonly ProjectileResolver projectileResolver;
         private readonly ProjectileTrigger projectileTrigger;
 
+        private readonly AreaEffectRequest areaEffectRequest;
+        private readonly AreaEffectResolver areaEffectResolver;
+        private readonly AreaEffectTrigger areaEffectTrigger;
+
         private readonly ResidencyTick residencyTick;
 
         private readonly IEventBus eventBus;
         private readonly IEventDispatcher dispatcher;
 
         private readonly List<CreatureContext> creatureContexts;
+
         private readonly List<ProjectileContext> projectileContexts;
         private readonly List<string> projectileExpirations;
+
+        private readonly List<AreaEffectContext> areaEffectContexts;
+        private readonly List<string> areaEffectExpirations;
         #endregion
 
         #region Properties
@@ -41,6 +49,10 @@ namespace Infrastructure.Background
             ProjectileResolver projectileResolver,
             ProjectileTrigger projectileTrigger,
 
+            AreaEffectRequest areaEffectRequest,
+            AreaEffectResolver areaEffectResolver,
+            AreaEffectTrigger areaEffectTrigger,
+
             ResidencyTick residencyTick,
 
             IEventBus eventBus,
@@ -49,6 +61,10 @@ namespace Infrastructure.Background
             this.creatureRequest = creatureRequest;
             this.creatureResolver = creatureResolver;
             this.creatureTrigger = creatureTrigger;
+
+            this.areaEffectRequest = areaEffectRequest;
+            this.areaEffectResolver = areaEffectResolver;
+            this.areaEffectTrigger = areaEffectTrigger;
 
             this.projectileRequest = projectileRequest;
             this.projectileResolver = projectileResolver;
@@ -60,8 +76,12 @@ namespace Infrastructure.Background
             this.dispatcher = dispatcher;
 
             creatureContexts = new List<CreatureContext>();
+
             projectileContexts = new List<ProjectileContext>();
             projectileExpirations = new List<string>();
+
+            areaEffectContexts = new List<AreaEffectContext>();
+            areaEffectExpirations = new List<string>();
         }
 
         #region Methods
@@ -75,14 +95,17 @@ namespace Infrastructure.Background
                 // Request systems
                 creatureRequest.Update(Constraint.DELTA_TIME, creatureContexts);
                 projectileRequest.Update(Constraint.DELTA_TIME, projectileContexts, projectileExpirations);
+                areaEffectRequest.Update(Constraint.DELTA_TIME, areaEffectContexts, areaEffectExpirations);
 
                 // Resolver systems 
                 var creatureResults = creatureResolver.Resolve(creatureContexts);
                 var projectileResults = projectileResolver.Resolve(projectileContexts);
+                var areaEffectResults = areaEffectResolver.Resolve(areaEffectContexts);
 
                 // Trigger systems
                 creatureTrigger.Apply(creatureResults);
                 projectileTrigger.Apply(projectileResults, projectileExpirations);
+                areaEffectTrigger.Apply(areaEffectResults, areaEffectExpirations);
 
                 // Stats systems
                 await residencyTick.Tick(Constraint.DELTA_TIME); 

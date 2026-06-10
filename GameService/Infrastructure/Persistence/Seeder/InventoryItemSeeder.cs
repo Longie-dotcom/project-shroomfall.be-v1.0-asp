@@ -1,5 +1,6 @@
 ﻿using Contract.Enum.ItemDomain;
 using Domain.Definition.ItemDomain;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.Seeder
 {
@@ -7,8 +8,11 @@ namespace Infrastructure.Persistence.Seeder
     {
         public static async Task SeedAsync(RelationalDB db)
         {
-            // 2. Define the new starter kits
-            var starterItems = new List<InventoryItem>
+            // 1. Clear existing items to prevent unique constraint violations on re-seed
+            await db.Set<InventoryItem>().ExecuteDeleteAsync();
+
+            // 2. Define the starter kits and creature loot drops
+            var inventoryItems = new List<InventoryItem>
             {
                 // ==========================================
                 // 🏹 ARCHER STARTER KIT
@@ -31,10 +35,38 @@ namespace Infrastructure.Persistence.Seeder
                 new InventoryItem(EntitySeeder.WarriorInventoryId, ItemSeeder.IRON_SWORD_ID, 1, ItemQuality.Medium),
                 new InventoryItem(EntitySeeder.WarriorInventoryId, ItemSeeder.IRON_CHEST_ID, 1, ItemQuality.Medium),
                 new InventoryItem(EntitySeeder.WarriorInventoryId, ItemSeeder.HP_POTION_ID, 3, ItemQuality.Low),
+
+                // ==========================================
+                // 🍄 FIRE SHROOM LOOT
+                // ==========================================
+                new InventoryItem(EntitySeeder.FireShroomInventoryId, ItemSeeder.HP_POTION_ID, 2, ItemQuality.Low),
+                new InventoryItem(EntitySeeder.FireShroomInventoryId, ItemSeeder.STAMINA_POTION_ID, 1, ItemQuality.Low),
+
+                // ==========================================
+                // ❄️ ICE SHROOM LOOT
+                // ==========================================
+                new InventoryItem(EntitySeeder.IceShroomInventoryId, ItemSeeder.HP_POTION_ID, 1, ItemQuality.Low),
+                new InventoryItem(EntitySeeder.IceShroomInventoryId, ItemSeeder.STAMINA_POTION_ID, 2, ItemQuality.Low),
+
+                // ==========================================
+                // ⛰️ EARTH SHROOM LOOT
+                // ==========================================
+                new InventoryItem(EntitySeeder.EarthShroomInventoryId, ItemSeeder.HP_POTION_ID, 3, ItemQuality.Low),
+
+                // ==========================================
+                // 🌌 DARK SHROOM LOOT
+                // ==========================================
+                new InventoryItem(EntitySeeder.DarkShroomInventoryId, ItemSeeder.STAMINA_POTION_ID, 3, ItemQuality.Low),
+
+                // ==========================================
+                // ☀️ LIGHT SHROOM LOOT
+                // ==========================================
+                new InventoryItem(EntitySeeder.LightShroomInventoryId, ItemSeeder.HP_POTION_ID, 2, ItemQuality.Low),
+                new InventoryItem(EntitySeeder.LightShroomInventoryId, ItemSeeder.STAMINA_POTION_ID, 2, ItemQuality.Low),
             };
 
             // 3. Batch insert the items
-            await db.Set<InventoryItem>().AddRangeAsync(starterItems);
+            await db.Set<InventoryItem>().AddRangeAsync(inventoryItems);
             await db.SaveChangesAsync();
         }
     }

@@ -3,6 +3,7 @@ using Application.Coordinator;
 using Application.Events.Event;
 using Application.Interfaces.Realtime;
 using Application.Services.AttributeService;
+using Application.Services.ItemService;
 using Application.Systems.Resolver;
 using Contract.Enum.AttributeDomain;
 using Contract.Enum.EntityDomain;
@@ -14,6 +15,7 @@ namespace Application.Systems.Trigger
     public class ProjectileTrigger
     {
         #region Attributes
+        private readonly InventoryService inventoryService;
         private readonly WorldContext worldContext;
         private readonly EntityLifeCycleCoordinator entityLifeCycleCoordinator;
         private readonly IEventBus eventBus;
@@ -24,11 +26,13 @@ namespace Application.Systems.Trigger
         #endregion
 
         public ProjectileTrigger(
+            InventoryService inventoryService,
             WorldContext worldContext,
             EntityLifeCycleCoordinator entityLifeCycleCoordinator,
             IEventBus eventBus,
             EffectService effectService)
         {
+            this.inventoryService = inventoryService;
             this.worldContext = worldContext;
             this.entityLifeCycleCoordinator = entityLifeCycleCoordinator;
             this.eventBus = eventBus;
@@ -61,28 +65,40 @@ namespace Application.Systems.Trigger
 
                 if (result.DidImpact)
                 {
-                    // Publish unified impact event first so clients catch structural data
-                    eventBus.Publish(new ImpactOccurredEvent(
-                        sourceInstanceId: proj.ID,
-                        sourceDefinitionId: proj.DefinitionID,
-                        roomSpatialId: proj.RoomSpatialID,
-                        position: result.FinalPosition,
-                        hitTargetInstanceIds: result.HitTargetIds
-                    ));
-
                     // Spawns the zone right where the impact occurred
                     TrySpawnAreaEffects(proj, result.FinalPosition, EntityRelationshipType.Throwable);
 
                     // Evaluate impact calculations for EVERY target caught inside the intersection box
+                    var looter = worldContext.GetEntity<CreatureInstance>(proj.EntityInstanceOwnerID); // 🧠 Retrive once here!
+
                     foreach (var targetId in result.HitTargetIds)
                     {
                         var target = worldContext.GetEntity<CreatureInstance>(targetId);
                         if (target == null) continue;
 
-                        effectService.ExecuteInstantPayload(target, proj.SourceDefinitionID, proj.ID);
+                        // Apply damage payload (make sure to pass OwnerID down to your new routing service logic)
+                        effectService.ExecuteInstantPayload(target, proj.SourceDefinitionID, proj.EntityInstanceOwnerID);
 
+                        // 💥 Publish unified DAMAGED event
+                        eventBus.Publish(new EntityActedEvent(
+                            entityInstanceId: target.ID,
+                            roomSpatialId: target.RoomSpatialID,
+                            position: target.Position,
+                            direction: target.FacingDirection,
+                            action: EntityAction.DAMAGED,
+                            usedItemDefinitionId: null
+                        ));
+
+                        // 💀 Target Died Rule
                         if (target.Characteristic.GetVital(AttributeType.Health) <= 0f)
                         {
+                            if (looter != null)
+                            {
+                                // Execute inventory transaction safely
+                                var overflows = inventoryService.TransferAllItems(target, looter);
+                            }
+
+                            // Wipe the creature entity from the simulation graph
                             entityLifeCycleCoordinator.Despawn(target);
                         }
                     }

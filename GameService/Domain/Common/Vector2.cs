@@ -104,6 +104,24 @@
             X /= length;
             Y /= length;
         }
+
+        public static float Distance(
+            Vector2 a, 
+            Vector2 b)
+        {
+            float dx = a.X - b.X;
+            float dy = a.Y - b.Y;
+            return MathF.Sqrt(dx * dx + dy * dy);
+        }
+
+        public static float DistanceSquared(
+            Vector2 a,
+            Vector2 b)
+        {
+            float dx = a.X - b.X;
+            float dy = a.Y - b.Y;
+            return dx * dx + dy * dy;
+        }
         #endregion
     }
 }

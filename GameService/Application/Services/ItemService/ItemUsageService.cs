@@ -1,9 +1,11 @@
 ﻿using Application.Coordinator;
 using Application.Interfaces.Cache;
 using Application.Services.AttributeService;
+using Contract.Enum.AttributeDomain;
 using Contract.Enum.EntityDomain;
 using Contract.Enum.ItemDomain;
 using Domain.Common;
+using Domain.Definition.EntityDomain;
 using Domain.Definition.ItemDomain;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
@@ -58,26 +60,11 @@ namespace Application.Services.ItemService
             {
                 case ItemType.RangedWeapon:
                 case ItemType.ThrowableWeapon:
-                    entityLifeCycleCoordinator.SpawnProjectile(
-                        projectileDefinitionId: item.DefinitionID,
-                        roomSpatialId: creature.RoomSpatialID,
-                        layerZ: creature.LayerZ,
-                        position: creature.Position,
-                        direction: targetVector,
-                        ownerId: creature.ID,
-                        sourceDefinitionId: itemDef.ID
-                    );
+                    ProjectileWeapon(targetVector, creature, itemDef, item);
                     break;
 
                 case ItemType.MeleeWeapon:
-                    entityLifeCycleCoordinator.SpawnAreaEffect(
-                        areaEffectDefinitionId: item.DefinitionID,
-                        roomSpatialId: creature.RoomSpatialID,
-                        layerZ: creature.LayerZ,
-                        position: creature.Position,
-                        ownerId: creature.ID,
-                        sourceDefinitionId: itemDef.ID
-                    );
+                    MeleeWeapon(targetVector, creature, itemDef, item);
                     break;
 
                 case ItemType.Placeable:
@@ -124,6 +111,62 @@ namespace Application.Services.ItemService
                     inventoryService.RemoveItem(creature, item);
                     break;
             }
+        }
+        #endregion
+
+        #region Weapon Operations
+        public void ProjectileWeapon(
+            Vector2 targetVector,
+            CreatureInstance creature,
+            Item itemDef,
+            ItemInstance item)
+        {
+            var direction = Vector2.Normalize(
+                targetVector - creature.Position
+            );
+
+            entityLifeCycleCoordinator.SpawnProjectile(
+                projectileDefinitionId: item.DefinitionID,
+                roomSpatialId: creature.RoomSpatialID,
+                layerZ: creature.LayerZ,
+                position: creature.Position,
+                direction: direction,
+                ownerId: creature.ID,
+                sourceDefinitionId: itemDef.ID
+            );
+        }
+
+        public void MeleeWeapon(
+            Vector2 targetVector,
+            CreatureInstance creature,
+            Item itemDef,
+            ItemInstance item)
+        {
+            Vector2 toTarget = targetVector - creature.Position;
+
+            float distance = toTarget.Length();
+            float range = creature.Characteristic.GetCore(AttributeType.AttackRange);
+
+            Vector2 castPosition;
+
+            if (distance > range)
+            {
+                Vector2 direction = Vector2.Normalize(toTarget);
+                castPosition = creature.Position + direction * range;
+            }
+            else
+            {
+                castPosition = targetVector;
+            }
+
+            entityLifeCycleCoordinator.SpawnAreaEffect(
+                areaEffectDefinitionId: item.DefinitionID,
+                roomSpatialId: creature.RoomSpatialID,
+                layerZ: creature.LayerZ,
+                position: creature.Position,
+                ownerId: creature.ID,
+                sourceDefinitionId: itemDef.ID
+            );
         }
         #endregion
 

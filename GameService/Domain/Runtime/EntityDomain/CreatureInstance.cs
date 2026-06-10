@@ -11,6 +11,7 @@ namespace Domain.Runtime.EntityDomain
     {
         #region Attributes
         private readonly Dictionary<EquipmentSlot, ItemInstance?> equipment;
+        private readonly Dictionary<string, float> threatTable;
         #endregion
 
         #region Properties
@@ -18,6 +19,17 @@ namespace Domain.Runtime.EntityDomain
         public InventoryInstance Inventory { get; private set; }
         public int Level { get; private set; }
         public List<EffectInstance> ActiveEffects { get; private set; }
+
+        // Runtime only
+        public float AttackTimer { get; set; }
+        public bool IsAIControlled { get; set; }
+        public AIState AIState { get; set; }
+        public Vector2 HomePosition { get; private set; }
+        public string? TargetEntityId { get; set; }
+        public IReadOnlyDictionary<string, float> ThreatTable
+            => threatTable;
+        public float LeashDistance { get; set; }
+        public float ThinkCooldownRemaining { get; set; }
         #endregion
 
         public CreatureInstance(
@@ -43,10 +55,19 @@ namespace Domain.Runtime.EntityDomain
                 appearance)
         {
             equipment = new();
+            threatTable = new();
+
             Characteristic = characteristic;
             Inventory = inventory;
             Level = level;
             ActiveEffects = activeEffects;
+            
+            AttackTimer = 0f;
+            IsAIControlled = true;
+            AIState = AIState.Idle;
+            HomePosition = position;
+            ThinkCooldownRemaining = 0f;
+            TargetEntityId = null;
         }
 
         #region Methods
@@ -73,6 +94,19 @@ namespace Domain.Runtime.EntityDomain
             EquipmentSlot slot)
         {
             equipment[slot] = null;
+        }
+
+        public void AddThreat(
+            string entityId,
+            float amount)
+        {
+            threatTable.TryGetValue(entityId, out float current);
+            threatTable[entityId] = current + amount;
+        }
+
+        public void ClearThreat()
+        {
+            threatTable.Clear();
         }
         #endregion
     }

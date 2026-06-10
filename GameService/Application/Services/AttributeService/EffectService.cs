@@ -1,6 +1,8 @@
-﻿using Application.Interfaces.Cache;
+﻿using Application.Context;
+using Application.Interfaces.Cache;
 using Application.Interfaces.Factory;
 using Contract.Enum.AttributeDomain;
+using Domain.Definition.AttributeDomain;
 using Domain.Definition.ItemDomain;
 using Domain.Runtime.EntityDomain;
 using Domain.Shared;
@@ -14,6 +16,7 @@ namespace Application.Services.AttributeService
         private readonly CharacteristicService characteristicService;
         private readonly IItemCache itemCache;
         private readonly IEffectCache effectCache;
+        private readonly WorldContext worldContext;
         #endregion
 
         #region Properties
@@ -23,12 +26,14 @@ namespace Application.Services.AttributeService
             IEffectInstanceFactory effectFactory,
             CharacteristicService characteristicService,
             IItemCache itemCache,
-            IEffectCache effectCache)
+            IEffectCache effectCache,
+            WorldContext worldContext)
         {
             this.effectFactory = effectFactory;
             this.characteristicService = characteristicService;
             this.itemCache = itemCache;
             this.effectCache = effectCache;
+            this.worldContext = worldContext;
         }
 
         #region Methods
@@ -60,46 +65,105 @@ namespace Application.Services.AttributeService
             characteristicService.RecalculateCoreValues(creature);
         }
 
-        // Passive 
+        // Passive / Combat Payload Execution Engine
         public void ExecuteInstantPayload(
             CreatureInstance target,
-            string sourceDefinitionId,
-            string sourceInstanceId)
+            string? sourceDefinitionId,
+            string sourceEntityOwnerId)
         {
-            var definition = itemCache.Get(sourceDefinitionId);
-            if (definition == null) return;
+            var attacker = worldContext.GetEntity<CreatureInstance>(sourceEntityOwnerId);
+            if (attacker == null) return;
 
-            foreach (var effectRef in definition.Effects)
+            if (!CanDamage(attacker, target))
+                return;
+
+            // ─────────────────────────────────────────────────────────
+            // CASE 1: Item-Driven Effects (Weapon/Spell/Projectile)
+            // ─────────────────────────────────────────────────────────
+            if (!string.IsNullOrEmpty(sourceDefinitionId))
             {
-                var effectDef = effectCache.Get(effectRef.EffectID);
-                if (effectDef == null) continue;
-                
-                var attrDef = AttributeDefinitions.Get(effectDef.AttributeType);
-                if (attrDef == null) continue;
+                var definition = itemCache.Get(sourceDefinitionId);
+                if (definition == null) return;
 
-                if (effectDef.Duration.HasValue)
+                foreach (var effectRef in definition.Effects)
                 {
-                    var liveEffect = effectFactory.Create(effectRef.EffectID, sourceInstanceId);
-                    target.ActiveEffects.Add(liveEffect);
+                    var effectDef = effectCache.Get(effectRef.EffectID);
+                    if (effectDef == null) continue;
 
-                    // If it targets a Core value, recalculate stats immediately so the buff/debuff applies right away
-                    if (attrDef.DomainType == DomainType.Core)
-                    {
-                        characteristicService.RecalculateCoreValues(target);
-                    }
-                    continue;
-                }
-
-                // Check if this effect targets a Vital pool (like Health or Mana)
-                if (attrDef.DomainType == DomainType.Vital)
-                {
-                    // If the database says -50, it reduces health. If it says +25, it restores health.
-                    characteristicService.ModifyVitalValue(
-                        target,
-                        effectDef.AttributeType,
-                        effectDef.Value);
+                    ProcessEffectPayload(target, attacker, effectDef, sourceEntityOwnerId);
                 }
             }
+            // ─────────────────────────────────────────────────────────
+            // CASE 2: Characteristic-Driven (Native Creature Attack)
+            // ─────────────────────────────────────────────────────────
+            else
+            {
+                // Run the raw monster attack through the mitigation resolver
+                float finalDamage = CombatService.ResolveMitigatedDamage(attacker, target);
+
+                // Apply health reduction
+                characteristicService.ModifyVitalValue(target, AttributeType.Health, -finalDamage);
+            }
+        }
+
+        /// <summary>
+        /// Dedicated worker method that isolates the shared core/vital execution 
+        /// pipeline for both items and creatures.
+        /// </summary>
+        private void ProcessEffectPayload(
+            CreatureInstance target,
+            CreatureInstance attacker,
+            Effect effectDef,
+            string sourceInstanceId)
+        {
+            var attrDef = AttributeDefinitions.Get(effectDef.AttributeType);
+            if (attrDef == null) return;
+
+            // Handle Duration-based status updates (Buffs, Debuffs, DoTs)
+            if (effectDef.Duration.HasValue)
+            {
+                var liveEffect = effectFactory.Create(effectDef.ID, sourceInstanceId);
+                target.ActiveEffects.Add(liveEffect);
+
+                if (attrDef.DomainType == DomainType.Core)
+                {
+                    characteristicService.RecalculateCoreValues(target);
+                }
+                return;
+            }
+
+            // Handle direct, flat instant Vital adjustments (Damage, Healing)
+            if (attrDef.DomainType == DomainType.Vital)
+            {
+                float finalPayloadDelta = effectDef.Value; // This is damage (effect on that same type) like: effect == Health meant this effect is modify health
+
+                // Only perform combat resistance scaling if this effect is harmful (negative value)
+                if (effectDef.Value < 0f)
+                {
+                    // Pass total raw package through Combat Service mitigation
+                    float finalDamage = CombatService.ResolveMitigatedDamage(attacker, target);
+
+                    // Re-apply negative orientation to target vital delta
+                    finalPayloadDelta = -finalDamage;
+                }
+
+                // Mutate the final asset pool accurately
+                characteristicService.ModifyVitalValue(
+                    target,
+                    effectDef.AttributeType,
+                    finalPayloadDelta
+                );
+            }
+        }
+
+        private bool CanDamage(
+            CreatureInstance attacker,
+            CreatureInstance target)
+        {
+            bool attackerPlayer = attacker is PlayerInstance;
+            bool targetPlayer = target is PlayerInstance;
+
+            return attackerPlayer != targetPlayer;
         }
         #endregion
     }

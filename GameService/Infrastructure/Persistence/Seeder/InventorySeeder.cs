@@ -8,6 +8,9 @@ namespace Infrastructure.Persistence.Seeder
     {
         public static async Task SeedAsync(RelationalDB db)
         {
+            var inventoriesToSeed = new List<Inventory>();
+
+            #region 👤 Player Inventories
             // Define the 3 playable hero inventory keys from EntitySeeder
             var classInventoryIds = new List<string>
             {
@@ -16,12 +19,9 @@ namespace Infrastructure.Persistence.Seeder
                 EntitySeeder.WarriorInventoryId  // "inv_player_warrior"
             };
 
-            var inventoriesToSeed = new List<Inventory>();
-
-            // 1. Generate the 3 structural configurations for player characters
             foreach (var invId in classInventoryIds)
             {
-                // Converts "inv_player_archer" -> "player.archer" to format localization keys cleanly
+                // Converts "inv_player_archer" -> "player.archer"
                 string localizationBaseKey = invId.Replace("inv_", "").Replace("_", ".");
 
                 var playerLocale = new LocalizedText
@@ -37,20 +37,39 @@ namespace Infrastructure.Persistence.Seeder
                     slotCount: 24
                 ));
             }
+            #endregion
 
-            // 2. Satisfy the structural dependency expected by WORLD_CHEST ("inv_chest_01")
-            var chestLocale = new LocalizedText
+            #region 🍄 Creature Inventories (Loot Bags)
+            // Define the 5 elemental Shroom inventory keys from EntitySeeder
+            var shroomInventoryIds = new List<string>
             {
-                NameKey = "world.chest.name",
-                DescriptionKey = "world.chest.desc"
+                EntitySeeder.FireShroomInventoryId,   // "inv_creature_shroom_fire"
+                EntitySeeder.IceShroomInventoryId,    // "inv_creature_shroom_ice"
+                EntitySeeder.EarthShroomInventoryId,  // "inv_creature_shroom_earth"
+                EntitySeeder.DarkShroomInventoryId,   // "inv_creature_shroom_dark"
+                EntitySeeder.LightShroomInventoryId   // "inv_creature_shroom_light"
             };
 
-            inventoriesToSeed.Add(new Inventory(
-                id: "inv_chest_01",
-                type: InventoryType.Container,
-                localizedText: chestLocale,
-                slotCount: 12
-            ));
+            foreach (var invId in shroomInventoryIds)
+            {
+                // Converts "inv_creature_shroom_fire" -> "creature.shroom.fire"
+                string localizationBaseKey = invId.Replace("inv_", "").Replace("_", ".");
+
+                var shroomLocale = new LocalizedText
+                {
+                    NameKey = $"{localizationBaseKey}.name",
+                    DescriptionKey = $"{localizationBaseKey}.desc"
+                };
+
+                // Using CreatureBag with 6 slots, ideal for basic monster drops and materials
+                inventoriesToSeed.Add(new Inventory(
+                    id: invId,
+                    type: InventoryType.CreatureBag,
+                    localizedText: shroomLocale,
+                    slotCount: 6
+                ));
+            }
+            #endregion
 
             // Track into tracking graph and commit transaction securely
             await db.Set<Inventory>().AddRangeAsync(inventoriesToSeed);

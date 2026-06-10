@@ -13,6 +13,6 @@ namespace Application.Interfaces.Factory
             Vector2 position,
             Vector2 movementVector,
             string entityInstanceOwnerId,
-            string sourceDefinitionId);
+            string? sourceDefinitionId);
     }
 }

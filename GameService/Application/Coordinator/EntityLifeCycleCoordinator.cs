@@ -110,7 +110,7 @@ namespace Application.Coordinator
             int layerZ,
             Vector2 position,
             string ownerId,
-            string sourceDefinitionId)
+            string? sourceDefinitionId)
         {
             var instanceId = $"AREA_EFFECT_{Guid.NewGuid():N}";
 

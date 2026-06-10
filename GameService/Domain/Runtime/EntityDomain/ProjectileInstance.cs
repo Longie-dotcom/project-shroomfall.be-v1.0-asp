@@ -13,7 +13,7 @@ namespace Domain.Runtime.EntityDomain
 
         #region Properties
         public string EntityInstanceOwnerID { get; }
-        public string SourceDefinitionID { get; }
+        public string? SourceDefinitionID { get; }
         public float Duration { get; }
         public float Velocity { get; }
         public IReadOnlyDictionary<EntityRelationshipType, List<string>> Relationships { get; }
@@ -29,7 +29,7 @@ namespace Domain.Runtime.EntityDomain
             Vector2 movementVector,
             AppearanceInstance appearance,
             string entityInstanceOwnerId,
-            string sourceDefinitionId,
+            string? sourceDefinitionId,
             float duration,
             float velocity,
             IReadOnlyDictionary<EntityRelationshipType, List<string>> relationships) : base(

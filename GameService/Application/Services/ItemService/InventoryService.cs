@@ -30,6 +30,33 @@ namespace Application.Services.ItemService
         }
 
         #region Methods
+        public List<ItemInstance> TransferAllItems(
+            CreatureInstance source,
+            CreatureInstance destination)
+        {
+            var leftOvers = new List<ItemInstance>();
+
+            // Snapshot the collection to avoid modification errors during enumeration
+            var itemsToTransfer = source.Inventory.Items.ToList();
+
+            foreach (var item in itemsToTransfer)
+            {
+                // Remove from the dying creature/container right away
+                source.Inventory.Items.Remove(item);
+
+                // Attempt to inject into the killer/looter
+                var remainder = AddItem(destination, item);
+
+                // If the receiver's bag filled up, track the leftover to drop on the floor
+                if (remainder != null)
+                {
+                    leftOvers.Add(remainder);
+                }
+            }
+
+            return leftOvers;
+        }
+
         public ItemInstance? AddItem(
             CreatureInstance creature, 
             ItemInstance item)

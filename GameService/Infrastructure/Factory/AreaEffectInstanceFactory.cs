@@ -32,7 +32,7 @@ namespace Infrastructure.Factory
             Vector2 position,
             Vector2 movementVector,
             string entityInstanceOwnerId,
-            string sourceDefinitionId)
+            string? sourceDefinitionId)
         {
             var areaEffectDef = entityCache.Get<AreaEffect>(definitionId);
             if (areaEffectDef == null)
@@ -51,7 +51,8 @@ namespace Infrastructure.Factory
                 appearance: AppearanceMapper.MapAppearance(areaEffectDef.Appearance),
                 entityInstanceOwnerId: entityInstanceOwnerId,
                 sourceDefinitionId: sourceDefinitionId,
-                duration: areaEffectDef.Duration
+                duration: areaEffectDef.Duration,
+                2f
             );
 
             return instance;

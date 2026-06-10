@@ -48,8 +48,6 @@ namespace Infrastructure.Persistence.Seeder
             // ⚔️ Combat
             c.AttributeValues.Add(new AttributeValue(AttributeType.AttackDamage, 16f, 1, 0f, 999f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.AttackSpeed, 1.0f, 1, 0.1f, 5.0f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.AttackStability, 0.95f, 1, 0f, 1.0f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.AttackArea, 0.8f, 1, 0f, 10.0f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.AttackRange, 1.8f, 1, 0.5f, 50.0f, c.ID));
 
             c.AttributeValues.Add(new AttributeValue(AttributeType.FirePower, 1.0f, 1, 0f, 10.0f, c.ID));
@@ -59,12 +57,7 @@ namespace Infrastructure.Persistence.Seeder
             c.AttributeValues.Add(new AttributeValue(AttributeType.LightPower, 1.0f, 1, 0f, 10.0f, c.ID));
 
             // 🛡️ Resistance
-            c.AttributeValues.Add(new AttributeValue(AttributeType.MeleeResistance, 0.25f, 1, 0f, 0.90f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.RangedResistance, 0.05f, 1, 0f, 0.90f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.MagicResistance, 0.10f, 1, 0f, 0.90f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.HeavyResistance, 0.20f, 1, 0f, 0.90f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.ThrowableResistance, 0.0f, 1, 0f, 0.90f, c.ID));
-
+            c.AttributeValues.Add(new AttributeValue(AttributeType.DamageResistance, 0.25f, 1, 0f, 0.90f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.FireResistance, 0f, 1, 0f, 100f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.IceResistance, 0f, 1, 0f, 100f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.EarthResistance, 10f, 1, 0f, 100f, c.ID));
@@ -74,8 +67,6 @@ namespace Infrastructure.Persistence.Seeder
             // 🪓 Extraction
             c.AttributeValues.Add(new AttributeValue(AttributeType.ExtractDamage, 12f, 1, 0f, 500f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.ExtractSpeed, 0.9f, 1, 0.1f, 5.0f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.ExtractStability, 0.9f, 1, 0f, 1.0f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.ExtractArea, 0.5f, 1, 0f, 10.0f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.ExtractRange, 1.5f, 1, 0.5f, 10.0f, c.ID));
 
             // 🌾 Farming
@@ -103,8 +94,6 @@ namespace Infrastructure.Persistence.Seeder
             // ⚔️ Combat
             c.AttributeValues.Add(new AttributeValue(AttributeType.AttackDamage, 11f, 1, 0f, 999f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.AttackSpeed, 1.35f, 1, 0.1f, 5.0f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.AttackStability, 0.85f, 1, 0f, 1.0f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.AttackArea, 0.2f, 1, 0f, 10.0f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.AttackRange, 8.5f, 1, 0.5f, 50.0f, c.ID));
 
             c.AttributeValues.Add(new AttributeValue(AttributeType.FirePower, 1.0f, 1, 0f, 10.0f, c.ID));
@@ -114,12 +103,7 @@ namespace Infrastructure.Persistence.Seeder
             c.AttributeValues.Add(new AttributeValue(AttributeType.LightPower, 1.25f, 1, 0f, 10.0f, c.ID));
 
             // 🛡️ Resistance
-            c.AttributeValues.Add(new AttributeValue(AttributeType.MeleeResistance, 0.05f, 1, 0f, 0.90f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.RangedResistance, 0.20f, 1, 0f, 0.90f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.MagicResistance, 0.10f, 1, 0f, 0.90f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.HeavyResistance, 0.0f, 1, 0f, 0.90f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.ThrowableResistance, 0.05f, 1, 0f, 0.90f, c.ID));
-
+            c.AttributeValues.Add(new AttributeValue(AttributeType.DamageResistance, 0.25f, 1, 0f, 0.90f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.FireResistance, 0f, 1, 0f, 100f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.IceResistance, 0f, 1, 0f, 100f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.EarthResistance, 0f, 1, 0f, 100f, c.ID));
@@ -129,8 +113,6 @@ namespace Infrastructure.Persistence.Seeder
             // 🪓 Extraction
             c.AttributeValues.Add(new AttributeValue(AttributeType.ExtractDamage, 9f, 1, 0f, 500f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.ExtractSpeed, 1.1f, 1, 0.1f, 5.0f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.ExtractStability, 1.0f, 1, 0f, 1.0f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.ExtractArea, 0.5f, 1, 0f, 10.0f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.ExtractRange, 1.5f, 1, 0.5f, 10.0f, c.ID));
 
             // 🌾 Farming
@@ -158,8 +140,6 @@ namespace Infrastructure.Persistence.Seeder
             // ⚔️ Combat
             c.AttributeValues.Add(new AttributeValue(AttributeType.AttackDamage, 8f, 1, 0f, 999f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.AttackSpeed, 1.15f, 1, 0.1f, 5.0f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.AttackStability, 0.90f, 1, 0f, 1.0f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.AttackArea, 1.3f, 1, 0f, 10.0f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.AttackRange, 4.5f, 1, 0.5f, 50.0f, c.ID));
 
             c.AttributeValues.Add(new AttributeValue(AttributeType.FirePower, 1.40f, 1, 0f, 10.0f, c.ID));
@@ -169,12 +149,7 @@ namespace Infrastructure.Persistence.Seeder
             c.AttributeValues.Add(new AttributeValue(AttributeType.LightPower, 1.0f, 1, 0f, 10.0f, c.ID));
 
             // 🛡️ Resistance
-            c.AttributeValues.Add(new AttributeValue(AttributeType.MeleeResistance, 0.0f, 1, 0f, 0.90f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.RangedResistance, 0.10f, 1, 0f, 0.90f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.MagicResistance, 0.05f, 1, 0f, 0.90f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.HeavyResistance, 0.05f, 1, 0f, 0.90f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.ThrowableResistance, 0.35f, 1, 0f, 0.90f, c.ID));
-
+            c.AttributeValues.Add(new AttributeValue(AttributeType.DamageResistance, 0.25f, 1, 0f, 0.90f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.FireResistance, 20f, 1, 0f, 100f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.IceResistance, 0f, 1, 0f, 100f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.EarthResistance, 0f, 1, 0f, 100f, c.ID));
@@ -184,8 +159,6 @@ namespace Infrastructure.Persistence.Seeder
             // 🪓 Extraction
             c.AttributeValues.Add(new AttributeValue(AttributeType.ExtractDamage, 10f, 1, 0f, 500f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.ExtractSpeed, 1.0f, 1, 0.1f, 5.0f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.ExtractStability, 1.0f, 1, 0f, 1.0f, c.ID));
-            c.AttributeValues.Add(new AttributeValue(AttributeType.ExtractArea, 0.6f, 1, 0f, 10.0f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.ExtractRange, 1.5f, 1, 0.5f, 10.0f, c.ID));
 
             // 🌾 Farming

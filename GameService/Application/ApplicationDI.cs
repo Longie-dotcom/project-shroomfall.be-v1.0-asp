@@ -15,6 +15,7 @@ using Application.Helper;
 using Application.Persistence;
 using Application.Services.AttributeService;
 using Application.Services.DesignService;
+using Application.Services.EntityService;
 using Application.Services.IdentityService;
 using Application.Services.ItemService;
 using Application.Services.WorldService;
@@ -109,11 +110,15 @@ namespace Application
             // SERVICES
             // ─────────────────────────────
             // Attribute service
+            services.AddSingleton<CombatService>();
             services.AddSingleton<CharacteristicService>();
             services.AddSingleton<EffectService>();
 
             // Design service
             services.AddSingleton<BuilderService>();
+
+            // Entity service
+            services.AddSingleton<CreatureAIService>();
 
             // Identity service
             services.AddSingleton<TokenService>();
@@ -135,10 +140,12 @@ namespace Application
             // Request
             services.AddSingleton<CreatureRequest>();
             services.AddSingleton<ProjectileRequest>();
+            services.AddSingleton<AreaEffectRequest>();
 
             // Resolver
             services.AddSingleton<CreatureResolver>();
             services.AddSingleton<ProjectileResolver>();
+            services.AddSingleton<AreaEffectResolver>();
 
             // Tick
             services.AddSingleton<ResidencyTick>();
@@ -146,6 +153,7 @@ namespace Application
             // Trigger
             services.AddSingleton<CreatureTrigger>();
             services.AddSingleton<ProjectileTrigger>();
+            services.AddSingleton<AreaEffectTrigger>();
 
             return services;
         }
