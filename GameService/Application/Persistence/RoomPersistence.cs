@@ -1,4 +1,5 @@
-﻿using Application.Interfaces.Repository.NonRelational;
+﻿using Application.Interfaces.Factory;
+using Application.Interfaces.Repository.NonRelational;
 using AutoMapper;
 using Domain.Document.WorldDomain;
 using Domain.Runtime.WorldDomain;
@@ -10,6 +11,7 @@ namespace Application.Persistence
         #region Attributes
         private readonly IMapper mapper;
         private readonly INonRelationalUoW nonRelational;
+        private readonly IRoomSpatialFactory roomSpatialFactory;
         #endregion
 
         #region Properties
@@ -17,10 +19,12 @@ namespace Application.Persistence
 
         public RoomPersistence(
             IMapper mapper,
-            INonRelationalUoW nonRelational)
+            INonRelationalUoW nonRelational,
+            IRoomSpatialFactory roomSpatialFactory)
         {
             this.mapper = mapper;
             this.nonRelational = nonRelational;
+            this.roomSpatialFactory = roomSpatialFactory;
         }
 
         #region Methods
@@ -33,7 +37,7 @@ namespace Application.Persistence
             if (doc == null)
                 return null;
 
-            return mapper.Map<RoomSpatial>(doc);
+            return roomSpatialFactory.CreateFromDocument(doc);
         }
 
         public async Task SaveAsync(
