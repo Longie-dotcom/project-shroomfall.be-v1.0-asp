@@ -136,8 +136,9 @@ namespace API
                 var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
                 logger.LogInformation("Seeding initial data...");
-                await RoomJsonLoader.SeedRoomAsync(db);
                 await DataInitializer.SeedAsync(db);
+
+                await RoomJsonLoader.SeedRoomAsync(db);
                 logger.LogInformation("Data seeding completed.");
             }
 
