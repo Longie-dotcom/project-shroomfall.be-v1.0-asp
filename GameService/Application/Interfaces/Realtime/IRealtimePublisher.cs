@@ -13,6 +13,20 @@ namespace Application.Interfaces.Realtime
             EntityActedDTO payload);
 
         // ─────────────────────────────
+        // Vitals & Attributes
+        // ─────────────────────────────
+        Task SendEntityVitalChanged(
+            string roomSpatialId,
+            EntityVitalChangedDTO payload);
+
+        // ─────────────────────────────
+        // State Synchronization (heavy)
+        // ─────────────────────────────
+        Task SendPlayerCharacteristicSync(
+            string connectionId,
+            CharacteristicRuntimeDTO payload);
+
+        // ─────────────────────────────
         // Lifecycle (spawn / despawn)
         // ─────────────────────────────
         Task SendEntitySpawned(

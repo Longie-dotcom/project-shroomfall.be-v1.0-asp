@@ -28,7 +28,6 @@ namespace Infrastructure.Persistence
         public DbSet<Inventory> Inventories { get; set; }
         public DbSet<InventoryItem> InventoryItems { get; set; }
         public DbSet<Item> Items { get; set; }
-        public DbSet<ItemConfiguration> ItemConfigurations { get; set; }
         public DbSet<ItemEffect> ItemEffects { get; set; }
 
         public DbSet<Locale> Locales { get; set; }
@@ -317,6 +316,32 @@ namespace Infrastructure.Persistence
                     .HasValue<WorldObject>("WorldObject");
             });
 
+            modelBuilder.Entity<EntityRelationship>(entity =>
+            {
+                // ─────────────────────────────
+                // Table
+                // ─────────────────────────────
+                entity.ToTable("EntityRelationships");
+
+                // ─────────────────────────────
+                // Primary Key
+                // ─────────────────────────────
+                entity.HasKey(x => new { x.SourceEntityID, x.TargetEntityID, x.Type });
+
+                // ─────────────────────────────
+                // Properties
+                // ─────────────────────────────
+                entity.HasOne<Entity>()
+                    .WithMany()
+                    .HasForeignKey(x => x.SourceEntityID)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne<Entity>()
+                    .WithMany()
+                    .HasForeignKey(x => x.TargetEntityID)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
             modelBuilder.Entity<Creature>(entity =>
             {
                 // ─────────────────────────────
@@ -340,7 +365,14 @@ namespace Infrastructure.Persistence
 
             modelBuilder.Entity<Projectile>(entity =>
             {
+                // ─────────────────────────────
+                // Properties
+                // ─────────────────────────────
+                entity.Property(x => x.Velocity)
+                    .IsRequired();
 
+                entity.Property(x => x.Duration)
+                    .IsRequired();
             });
 
             modelBuilder.Entity<WorldObject>(entity =>
@@ -363,7 +395,11 @@ namespace Infrastructure.Persistence
 
             modelBuilder.Entity<AreaEffect>(entity =>
             {
-
+                // ─────────────────────────────
+                // Properties
+                // ─────────────────────────────
+                entity.Property(x => x.Duration)
+                    .IsRequired();
             });
 
             modelBuilder.Entity<Player>(entity =>
@@ -514,11 +550,11 @@ namespace Infrastructure.Persistence
                 entity.Property(x => x.Stackable)
                     .IsRequired();
 
-                entity.Property(x => x.CharacteristicID);
+                entity.Property(x => x.EntityID);
 
-                entity.HasMany(x => x.Configurations)
-                    .WithOne(x => x.Item)
-                    .HasForeignKey(x => x.ItemID);
+                entity.Property(x => x.DefaultAction)
+                    .HasConversion<string>()
+                    .IsRequired();
 
                 entity.HasMany(x => x.Effects)
                     .WithOne(x => x.Item)
@@ -531,50 +567,7 @@ namespace Infrastructure.Persistence
 
                 entity.HasIndex(x => x.Category);
 
-                entity.HasIndex(x => x.CharacteristicID);
-            });
-
-            modelBuilder.Entity<ItemConfiguration>(entity =>
-            {
-                // ─────────────────────────────
-                // Table
-                // ─────────────────────────────
-                entity.ToTable("ItemConfigurations");
-
-                // ─────────────────────────────
-                // Primary Key
-                // ─────────────────────────────
-                entity.HasKey(x => x.ID);
-
-                // ─────────────────────────────
-                // Properties
-                // ─────────────────────────────
-                entity.Property(x => x.Type)
-                    .HasConversion<string>()
-                    .IsRequired();
-
-                entity.Property(x => x.ItemID)
-                    .IsRequired();
-
-                entity.Property(x => x.EntityID)
-                    .IsRequired();
-
-                entity.HasOne(x => x.Item)
-                    .WithMany()
-                    .HasForeignKey(x => x.ItemID);
-
-                entity.HasOne(x => x.Entity)
-                    .WithMany()
-                    .HasForeignKey(x => x.EntityID);
-
-                // ─────────────────────────────
-                // Indexes
-                // ─────────────────────────────
-                entity.HasIndex(x => x.ItemID);
-
-                entity.HasIndex(x => x.EntityID);
-
-                entity.HasIndex(x => new { x.ItemID, x.Type });
+                entity.HasIndex(x => x.DefaultAction);
             });
 
             modelBuilder.Entity<ItemEffect>(entity =>

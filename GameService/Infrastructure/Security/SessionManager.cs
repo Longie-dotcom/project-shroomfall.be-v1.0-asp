@@ -7,6 +7,7 @@ namespace Infrastructure.Security
     {
         #region Attributes
         private readonly ConcurrentDictionary<string, string> userToPlayer = new();
+        private readonly ConcurrentDictionary<string, string> playerToUser = new();
         #endregion
 
         #region Properties
@@ -19,18 +20,27 @@ namespace Infrastructure.Security
 
         #region Methods
         public void Add(
-            string userId, 
+            string userId,
             string playerInstanceId)
         {
+            if (userToPlayer.TryRemove(userId, out var oldPlayerId))
+            {
+                playerToUser.TryRemove(oldPlayerId, out _);
+            }
+
             userToPlayer[userId] = playerInstanceId;
+            playerToUser[playerInstanceId] = userId;
         }
 
         public string? Remove(
             string userId)
         {
-            return userToPlayer.TryRemove(userId, out var playerInstanceId)
-                ? playerInstanceId
-                : null;
+            if (userToPlayer.TryRemove(userId, out var playerInstanceId))
+            {
+                playerToUser.TryRemove(playerInstanceId, out _);
+                return playerInstanceId;
+            }
+            return null;
         }
 
         public string? Get(
@@ -38,6 +48,14 @@ namespace Infrastructure.Security
         {
             return userToPlayer.TryGetValue(userId, out var playerInstanceId)
                 ? playerInstanceId
+                : null;
+        }
+
+        public string? GetUserIdByPlayerId(
+            string playerInstanceId)
+        {
+            return playerToUser.TryGetValue(playerInstanceId, out var userId)
+                ? userId
                 : null;
         }
         #endregion

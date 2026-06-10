@@ -4,13 +4,13 @@ using Domain.Common;
 
 namespace Application.Systems.Resolver
 {
-    public readonly struct CollisionRequest
+    public readonly struct CreatureContext
     {
         public readonly string EntityId;
         public readonly CollisionBody Body;
         public readonly Vector2 DesiredPosition;
 
-        public CollisionRequest(
+        public CreatureContext(
             string entityId,
             CollisionBody body,
             Vector2 desiredPosition)
@@ -21,13 +21,13 @@ namespace Application.Systems.Resolver
         }
     }
 
-    public readonly struct CollisionResult
+    public readonly struct CreatureResult
     {
         public Vector2 FinalPosition { get; init; }
         public int LayerZ { get; init; }
     }
 
-    public class CollisionResolver
+    public class CreatureResolver
     {
         #region Attributes
         private readonly CollisionService collisionService;
@@ -37,7 +37,7 @@ namespace Application.Systems.Resolver
         #region Properties
         #endregion
 
-        public CollisionResolver(
+        public CreatureResolver(
             CollisionService collisionService,
             WorldContext worldContext)
         {
@@ -46,10 +46,10 @@ namespace Application.Systems.Resolver
         }
 
         #region Methods
-        public Dictionary<string, CollisionResult> Resolve(
-            List<CollisionRequest> requests)
+        public Dictionary<string, CreatureResult> Resolve(
+            List<CreatureContext> requests)
         {
-            var results = new Dictionary<string, CollisionResult>(requests.Count);
+            var results = new Dictionary<string, CreatureResult>(requests.Count);
 
             foreach (var req in requests)
             {
@@ -62,7 +62,7 @@ namespace Application.Systems.Resolver
 
                     var resolved = Resolve(req.Body, req.DesiredPosition, collision);
 
-                    results[req.EntityId] = new CollisionResult
+                    results[req.EntityId] = new CreatureResult
                     {
                         FinalPosition = resolved,
                         LayerZ = collision.LayerZ

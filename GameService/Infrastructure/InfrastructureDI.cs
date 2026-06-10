@@ -68,6 +68,7 @@ namespace Infrastructure
             services.AddScoped<IAttributeValueRepository, AttributeValueRepository>();
             services.AddScoped<ICharacteristicRepository, CharacteristicRepository>();
             services.AddScoped<IEffectRepository, EffectRepository>();
+            services.AddScoped<IEntityRelationshipRepository, EntityRelationshipRepository>();
             services.AddScoped<IEntityRepository, EntityRepository>();
             services.AddScoped<IInventoryRepository, InventoryRepository>();
             services.AddScoped<IItemRepository, ItemRepository>();
@@ -97,16 +98,19 @@ namespace Infrastructure
             services.AddSingleton<ICharacteristicCache, CharacteristicCache>();
             services.AddSingleton<IEffectCache, EffectCache>();
             services.AddSingleton<IEntityCache, EntityCache>();
+            services.AddSingleton<IEntityRelationshipCache, EntityRelationshipCache>();
             services.AddSingleton<IInventoryCache, InventoryCache>();
             services.AddSingleton<IItemCache, ItemCache>();
             services.AddSingleton<ILocaleCache, LocaleCache>();
             services.AddSingleton<IRoomCache, RoomCache>();
             services.AddSingleton<IRoomConnectionCache, RoomConnectionCache>();
+            
             services.AddScoped<ICacheLoader, CacheLoader>();
 
             // ─────────────────────────────
             // FACTORIES
             // ─────────────────────────────
+            services.AddScoped<IAreaEffectInstanceFactory, AreaEffectInstanceFactory>();
             services.AddScoped<ICreatureInstanceFactory, CreatureInstanceFactory>();
             services.AddScoped<ICharacteristicInstanceFactory, CharacteristicInstanceFactory>();
             services.AddScoped<IEffectInstanceFactory, EffectInstanceFactory>();
@@ -114,6 +118,7 @@ namespace Infrastructure
             services.AddScoped<IInventoryInstanceFactory, InventoryInstanceFactory>();
             services.AddScoped<IItemInstanceFactory, ItemInstanceFactory>();
             services.AddScoped<IPlayerInstanceFactory, PlayerInstanceFactory>();
+            services.AddScoped<IProjectileInstanceFactory, ProjectileInstanceFactory>();
             services.AddScoped<IRoomConnectionInstanceFactory, RoomConnectionInstanceFactory>();
             services.AddScoped<IRoomSpatialFactory, RoomSpatialFactory>();
             services.AddScoped<IWorldObjectInstanceFactory, WorldObjectInstanceFactory>();
@@ -136,9 +141,11 @@ namespace Infrastructure
 
             // Handlers
             services.AddSingleton<IEventHandler, DefinitionUpdatedHandler>();
-            services.AddSingleton<IEventHandler, EntityLifecycleHandler>();
             services.AddSingleton<IEventHandler, EntityActedHandler>();
+            services.AddSingleton<IEventHandler, EntityLifecycleHandler>();
+            services.AddSingleton<IEventHandler, EntityVitalChangedHandler>();
             services.AddSingleton<IEventHandler, PlayerAppearanceChangedHandler>();
+            services.AddSingleton<IEventHandler, PlayerCharacteristicSyncHandler>();
             services.AddSingleton<IEventHandler, PlayerGroupedHandler>();
 
             // Events

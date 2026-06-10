@@ -1,6 +1,5 @@
 ﻿using Contract.Enum.AttributeDomain;
 using Domain.Definition.AttributeDomain;
-using Domain.Definition.LocalizationDomain;
 
 namespace Domain.Shared
 {
@@ -13,458 +12,76 @@ namespace Domain.Shared
             map = new Dictionary<AttributeType, AttributeDefinition>
             {
                 // ───────── Combat ─────────
-                [AttributeType.AttackDamage] = new AttributeDefinition
-                {
-                    Type = AttributeType.AttackDamage,
-                    Category = ValueCategory.Flat,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.attack_damage.name",
-                        DescriptionKey = "parameter.attack_damage.description"
-                    }
-                },
+                [AttributeType.AttackDamage] = CreateCore(AttributeType.AttackDamage, "attack_damage"),
+                [AttributeType.AttackSpeed] = CreateCore(AttributeType.AttackSpeed, "attack_speed"),
+                [AttributeType.AttackStability] = CreateCore(AttributeType.AttackStability, "attack_stability"),
+                [AttributeType.AttackArea] = CreateCore(AttributeType.AttackArea, "attack_area"),
+                [AttributeType.AttackRange] = CreateCore(AttributeType.AttackRange, "attack_range"),
 
-                [AttributeType.AttackSpeed] = new AttributeDefinition
-                {
-                    Type = AttributeType.AttackSpeed,
-                    Category = ValueCategory.Multiplier,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.attack_speed.name",
-                        DescriptionKey = "parameter.attack_speed.description"
-                    }
-                },
-
-                [AttributeType.AttackStability] = new AttributeDefinition
-                {
-                    Type = AttributeType.AttackStability,
-                    Category = ValueCategory.Percentage,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.attack_stability.name",
-                        DescriptionKey = "parameter.attack_stability.description"
-                    }
-                },
-
-                [AttributeType.AttackArea] = new AttributeDefinition
-                {
-                    Type = AttributeType.AttackArea,
-                    Category = ValueCategory.Flat,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.attack_area.name",
-                        DescriptionKey = "parameter.attack_area.description"
-                    }
-                },
-
-                [AttributeType.AttackRange] = new AttributeDefinition
-                {
-                    Type = AttributeType.AttackRange,
-                    Category = ValueCategory.Flat,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.attack_range.name",
-                        DescriptionKey = "parameter.attack_range.description"
-                    }
-                },
-
-                [AttributeType.FirePower] = new AttributeDefinition
-                {
-                    Type = AttributeType.FirePower,
-                    Category = ValueCategory.Multiplier,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.fire_power.name",
-                        DescriptionKey = "parameter.fire_power.description"
-                    }
-                },
-
-                [AttributeType.IcePower] = new AttributeDefinition
-                {
-                    Type = AttributeType.IcePower,
-                    Category = ValueCategory.Multiplier,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.ice_power.name",
-                        DescriptionKey = "parameter.ice_power.description"
-                    }
-                },
-
-                [AttributeType.EarthPower] = new AttributeDefinition
-                {
-                    Type = AttributeType.EarthPower,
-                    Category = ValueCategory.Multiplier,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.earth_power.name",
-                        DescriptionKey = "parameter.earth_power.description"
-                    }
-                },
-
-                [AttributeType.DarkPower] = new AttributeDefinition
-                {
-                    Type = AttributeType.DarkPower,
-                    Category = ValueCategory.Multiplier,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.dark_power.name",
-                        DescriptionKey = "parameter.dark_power.description"
-                    }
-                },
-
-                [AttributeType.LightPower] = new AttributeDefinition
-                {
-                    Type = AttributeType.LightPower,
-                    Category = ValueCategory.Multiplier,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.light_power.name",
-                        DescriptionKey = "parameter.light_power.description"
-                    }
-                },
+                [AttributeType.FirePower] = CreateCore(AttributeType.FirePower, "fire_power"),
+                [AttributeType.IcePower] = CreateCore(AttributeType.IcePower, "ice_power"),
+                [AttributeType.EarthPower] = CreateCore(AttributeType.EarthPower, "earth_power"),
+                [AttributeType.DarkPower] = CreateCore(AttributeType.DarkPower, "dark_power"),
+                [AttributeType.LightPower] = CreateCore(AttributeType.LightPower, "light_power"),
 
                 // ───────── Resistance ─────────
-                [AttributeType.MeleeResistance] = new AttributeDefinition
-                {
-                    Type = AttributeType.MeleeResistance,
-                    Category = ValueCategory.Percentage,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.melee_resistance.name",
-                        DescriptionKey = "parameter.melee_resistance.description"
-                    }
-                },
-
-                [AttributeType.RangedResistance] = new AttributeDefinition
-                {
-                    Type = AttributeType.RangedResistance,
-                    Category = ValueCategory.Percentage,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.ranged_resistance.name",
-                        DescriptionKey = "parameter.ranged_resistance.description"
-                    }
-                },
-
-                [AttributeType.MagicResistance] = new AttributeDefinition
-                {
-                    Type = AttributeType.MagicResistance,
-                    Category = ValueCategory.Percentage,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.magic_resistance.name",
-                        DescriptionKey = "parameter.magic_resistance.description"
-                    }
-                },
-
-                [AttributeType.HeavyResistance] = new AttributeDefinition
-                {
-                    Type = AttributeType.HeavyResistance,
-                    Category = ValueCategory.Percentage,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.heavy_resistance.name",
-                        DescriptionKey = "parameter.heavy_resistance.description"
-                    }
-                },
-
-                [AttributeType.ThrowableResistance] = new AttributeDefinition
-                {
-                    Type = AttributeType.ThrowableResistance,
-                    Category = ValueCategory.Percentage,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.throwable_resistance.name",
-                        DescriptionKey = "parameter.throwable_resistance.description"
-                    }
-                },
-
-                [AttributeType.FireResistance] = new AttributeDefinition
-                {
-                    Type = AttributeType.FireResistance,
-                    Category = ValueCategory.Percentage,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.fire_resistance.name",
-                        DescriptionKey = "parameter.fire_resistance.description"
-                    }
-                },
-
-                [AttributeType.IceResistance] = new AttributeDefinition
-                {
-                    Type = AttributeType.IceResistance,
-                    Category = ValueCategory.Percentage,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.ice_resistance.name",
-                        DescriptionKey = "parameter.ice_resistance.description"
-                    }
-                },
-
-                [AttributeType.EarthResistance] = new AttributeDefinition
-                {
-                    Type = AttributeType.EarthResistance,
-                    Category = ValueCategory.Percentage,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.earth_resistance.name",
-                        DescriptionKey = "parameter.earth_resistance.description"
-                    }
-                },
-
-                [AttributeType.DarkResistance] = new AttributeDefinition
-                {
-                    Type = AttributeType.DarkResistance,
-                    Category = ValueCategory.Percentage,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.dark_resistance.name",
-                        DescriptionKey = "parameter.dark_resistance.description"
-                    }
-                },
-
-                [AttributeType.LightResistance] = new AttributeDefinition
-                {
-                    Type = AttributeType.LightResistance,
-                    Category = ValueCategory.Percentage,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.light_resistance.name",
-                        DescriptionKey = "parameter.light_resistance.description"
-                    }
-                },
+                [AttributeType.MeleeResistance] = CreateCore(AttributeType.MeleeResistance, "melee_resistance"),
+                [AttributeType.RangedResistance] = CreateCore(AttributeType.RangedResistance, "ranged_resistance"),
+                [AttributeType.MagicResistance] = CreateCore(AttributeType.MagicResistance, "magic_resistance"),
+                [AttributeType.HeavyResistance] = CreateCore(AttributeType.HeavyResistance, "heavy_resistance"),
+                [AttributeType.ThrowableResistance] = CreateCore(AttributeType.ThrowableResistance, "throwable_resistance"),
+                [AttributeType.FireResistance] = CreateCore(AttributeType.FireResistance, "fire_resistance"),
+                [AttributeType.IceResistance] = CreateCore(AttributeType.IceResistance, "ice_resistance"),
+                [AttributeType.EarthResistance] = CreateCore(AttributeType.EarthResistance, "earth_resistance"),
+                [AttributeType.DarkResistance] = CreateCore(AttributeType.DarkResistance, "dark_resistance"),
+                [AttributeType.LightResistance] = CreateCore(AttributeType.LightResistance, "light_resistance"),
 
                 // ───────── Extraction ─────────
-                [AttributeType.ExtractDamage] = new AttributeDefinition
-                {
-                    Type = AttributeType.ExtractDamage,
-                    Category = ValueCategory.Flat,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.extract_damage.name",
-                        DescriptionKey = "parameter.extract_damage.description"
-                    }
-                },
-
-                [AttributeType.ExtractSpeed] = new AttributeDefinition
-                {
-                    Type = AttributeType.ExtractSpeed,
-                    Category = ValueCategory.Multiplier,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.extract_speed.name",
-                        DescriptionKey = "parameter.extract_speed.description"
-                    }
-                },
-
-                [AttributeType.ExtractStability] = new AttributeDefinition
-                {
-                    Type = AttributeType.ExtractStability,
-                    Category = ValueCategory.Percentage,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.extract_stability.name",
-                        DescriptionKey = "parameter.extract_stability.description"
-                    }
-                },
-
-                [AttributeType.ExtractArea] = new AttributeDefinition
-                {
-                    Type = AttributeType.ExtractArea,
-                    Category = ValueCategory.Flat,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.extract_area.name",
-                        DescriptionKey = "parameter.extract_area.description"
-                    }
-                },
-
-                [AttributeType.ExtractRange] = new AttributeDefinition
-                {
-                    Type = AttributeType.ExtractRange,
-                    Category = ValueCategory.Flat,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.extract_range.name",
-                        DescriptionKey = "parameter.extract_range.description"
-                    }
-                },
+                [AttributeType.ExtractDamage] = CreateCore(AttributeType.ExtractDamage, "extract_damage"),
+                [AttributeType.ExtractSpeed] = CreateCore(AttributeType.ExtractSpeed, "extract_speed"),
+                [AttributeType.ExtractStability] = CreateCore(AttributeType.ExtractStability, "extract_stability"),
+                [AttributeType.ExtractArea] = CreateCore(AttributeType.ExtractArea, "extract_area"),
+                [AttributeType.ExtractRange] = CreateCore(AttributeType.ExtractRange, "extract_range"),
 
                 // ───────── Farming ─────────
-                [AttributeType.FarmEfficiency] = new AttributeDefinition
-                {
-                    Type = AttributeType.FarmEfficiency,
-                    Category = ValueCategory.Percentage,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.farm_efficiency.name",
-                        DescriptionKey = "parameter.farm_efficiency.description"
-                    }
-                },
-
-                [AttributeType.FarmQuality] = new AttributeDefinition
-                {
-                    Type = AttributeType.FarmQuality,
-                    Category = ValueCategory.Flat,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.farm_quality.name",
-                        DescriptionKey = "parameter.farm_quality.description"
-                    }
-                },
+                [AttributeType.FarmEfficiency] = CreateCore(AttributeType.FarmEfficiency, "farm_efficiency"),
+                [AttributeType.FarmQuality] = CreateCore(AttributeType.FarmQuality, "farm_quality"),
 
                 // ───────── Taming ─────────
-                [AttributeType.TameEfficiency] = new AttributeDefinition
-                {
-                    Type = AttributeType.TameEfficiency,
-                    Category = ValueCategory.Percentage,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.tame_efficiency.name",
-                        DescriptionKey = "parameter.tame_efficiency.description"
-                    }
-                },
-
-                [AttributeType.TameQuality] = new AttributeDefinition
-                {
-                    Type = AttributeType.TameQuality,
-                    Category = ValueCategory.Flat,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.tame_quality.name",
-                        DescriptionKey = "parameter.tame_quality.description"
-                    }
-                },
+                [AttributeType.TameEfficiency] = CreateCore(AttributeType.TameEfficiency, "tame_efficiency"),
+                [AttributeType.TameQuality] = CreateCore(AttributeType.TameQuality, "tame_quality"),
 
                 // ───────── Utility ─────────
-                [AttributeType.MoveSpeed] = new AttributeDefinition
-                {
-                    Type = AttributeType.MoveSpeed,
-                    Category = ValueCategory.Multiplier,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.move_speed.name",
-                        DescriptionKey = "parameter.move_speed.description"
-                    }
-                },
-
-                [AttributeType.Lucky] = new AttributeDefinition
-                {
-                    Type = AttributeType.Lucky,
-                    Category = ValueCategory.Flat,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.luck.name",
-                        DescriptionKey = "parameter.luck.description"
-                    }
-                },
+                [AttributeType.MoveSpeed] = CreateCore(AttributeType.MoveSpeed, "move_speed"),
+                [AttributeType.Lucky] = CreateCore(AttributeType.Lucky, "luck"),
 
                 // ───────── Vital ─────────
-                [AttributeType.Health] = new AttributeDefinition
-                {
-                    Type = AttributeType.Health,
-                    Category = ValueCategory.Flat,
-                    DomainType = DomainType.Vital,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.health.name",
-                        DescriptionKey = "parameter.health.description"
-                    }
-                },
-
-                [AttributeType.Stamina] = new AttributeDefinition
-                {
-                    Type = AttributeType.Stamina,
-                    Category = ValueCategory.Flat,
-                    DomainType = DomainType.Vital,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.stamina.name",
-                        DescriptionKey = "parameter.stamina.description"
-                    }
-                },
-
-                [AttributeType.Energy] = new AttributeDefinition
-                {
-                    Type = AttributeType.Energy,
-                    Category = ValueCategory.Flat,
-                    DomainType = DomainType.Vital,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.energy.name",
-                        DescriptionKey = "parameter.energy.description"
-                    }
-                },
-
-                [AttributeType.HealthRegen] = new AttributeDefinition
-                {
-                    Type = AttributeType.HealthRegen,
-                    Category = ValueCategory.Flat,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.health_regen.name",
-                        DescriptionKey = "parameter.health_regen.description"
-                    }
-                },
-
-                [AttributeType.StaminaRegen] = new AttributeDefinition
-                {
-                    Type = AttributeType.StaminaRegen,
-                    Category = ValueCategory.Flat,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.stamina_regen.name",
-                        DescriptionKey = "parameter.stamina_regen.description"
-                    }
-                },
-
-                [AttributeType.EnergyRegen] = new AttributeDefinition
-                {
-                    Type = AttributeType.EnergyRegen,
-                    Category = ValueCategory.Flat,
-                    DomainType = DomainType.Core,
-                    LocalizedText = new LocalizedText
-                    {
-                        NameKey = "parameter.energy_regen.name",
-                        DescriptionKey = "parameter.energy_regen.description"
-                    }
-                }
+                [AttributeType.Health] = CreateVital(AttributeType.Health, "health"),
+                [AttributeType.Stamina] = CreateVital(AttributeType.Stamina, "stamina"),
+                [AttributeType.Energy] = CreateVital(AttributeType.Energy, "energy"),
             };
         }
 
+        #region Helper Factory Methods
+        // Cleaned up boilerplates using small internal factory helpers
+        private static AttributeDefinition CreateCore(AttributeType type, string keyName) =>
+            Create(type, DomainType.Core, keyName);
+
+        private static AttributeDefinition CreateVital(AttributeType type, string keyName) =>
+            Create(type, DomainType.Vital, keyName);
+
+        private static AttributeDefinition Create(AttributeType type, DomainType domainType, string keyName)
+        {
+            return new AttributeDefinition
+            {
+                Type = type,
+                DomainType = domainType,
+                LocalizedText = LocalizationFactory.ForAttribute(keyName)
+            };
+        }
+        #endregion
+
+        #region Queries
         public static AttributeDefinition Get(AttributeType parameter)
         {
             return map[parameter];
@@ -484,5 +101,6 @@ namespace Domain.Shared
         {
             return map.Values;
         }
+        #endregion
     }
 }

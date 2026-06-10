@@ -11,7 +11,9 @@ using Domain.DomainException;
 using Domain.Runtime.AttributeDomain;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
+using Domain.Runtime.ItemDomain;
 using Domain.Shared;
+using MongoDB.Driver.Core.Misc;
 
 namespace Infrastructure.Factory
 {
@@ -23,7 +25,6 @@ namespace Infrastructure.Factory
         private readonly ICharacteristicInstanceFactory characteristicInstanceFactory;
         private readonly IEffectInstanceFactory effectInstanceFactory;
         private readonly CharacteristicService characteristicService;
-        private readonly EquipmentService equipmentService;
         #endregion
 
         #region Properties
@@ -34,15 +35,13 @@ namespace Infrastructure.Factory
             IInventoryInstanceFactory inventoryInstanceFactory,
             ICharacteristicInstanceFactory characteristicInstanceFactory,
             IEffectInstanceFactory effectInstanceFactory,
-            CharacteristicService characteristicService,
-            EquipmentService equipmentService)
+            CharacteristicService characteristicService)
         {
             this.entityCache = entityCache;
             this.inventoryInstanceFactory = inventoryInstanceFactory;
             this.characteristicInstanceFactory = characteristicInstanceFactory;
             this.effectInstanceFactory = effectInstanceFactory;
             this.characteristicService = characteristicService;
-            this.equipmentService = equipmentService;
         }
 
         #region Methods
@@ -122,7 +121,20 @@ namespace Infrastructure.Factory
             );
 
             // Restore equipment from document
-            equipmentService.RehydrateEquipment(instance, doc.Equipment);
+            foreach (var kv in doc.Equipment)
+            {
+                if (kv.Value == null)
+                    continue;
+
+                var item = new ItemInstance(
+                    kv.Value.ID,
+                    kv.Value.DefinitionID,
+                    kv.Value.Count,
+                    kv.Value.CurrentDurability,
+                    kv.Value.Quality);
+
+                instance.SetEquipment(kv.Key, item);
+            }
 
             // Restore persisted vitals
             characteristicService.RehydrateVitals(instance, doc.Characteristic);

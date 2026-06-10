@@ -55,7 +55,6 @@
         // ─────────────────────────────
         // Collision Service
         // ─────────────────────────────
-        public const string CollisionService_RoomSpatialNotFoundOnQueryMovement = "collision_service.room_spatial_not_found_on_query_movement";
         public const string CollisionService_RoomSpatialNotFoundOnValidateSpawn = "collision_service.room_spatial_not_found_on_validate_spawn";
         public const string CollisionService_SpawnBlockedByEntity = "collision_service.spawn_blocked_by_entity";
         public const string CollisionService_SpawnBlockedByTile = "collision_service.spawn_blocked_by_tile";
@@ -256,7 +255,6 @@
         public const string Effect_InvalidId = "effect.invalid_id";
         public const string Effect_InvalidName = "effect.invalid_name";
         public const string Effect_InvalidDescription = "effect.invalid_description";
-        public const string Effect_InvalidValue = "effect.invalid_value";
         public const string Effect_InvalidDuration = "effect.invalid_duration";
         public const string Effect_InvalidInterval = "effect.invalid_interval";
 
@@ -272,6 +270,17 @@
         public const string Entity_InvalidSkinId = "entity.invalid_skin_Id";
 
         // ─────────────────────────────
+        // Area Effect
+        // ─────────────────────────────
+        public const string AreaEffectDefinition_InvalidDuration = "area_effect_definition.invalid_velocity";
+
+        // ─────────────────────────────
+        // Projectile
+        // ─────────────────────────────
+        public const string ProjectileDefinition_InvalidVelocity = "projectile_definition.invalid_velocity";
+        public const string ProjectileDefinition_InvalidDuration = "projectile_definition.invalid_duration";
+
+        // ─────────────────────────────
         // Creature
         // ─────────────────────────────
         public const string Creature_InvalidCharacteristicId = "creature.invalid_characteristic_id";
@@ -284,6 +293,13 @@
         public const string Portal_InvalidEntrance = "portal.invalid_entrance";
         public const string Portal_EntranceMustBeNonBlocking = "portal.entrance_must_be_non_blocking";
         public const string Portal_EntranceMustBeTrigger = "portal.entrance_must_be_trigger";
+
+        // ─────────────────────────────
+        // Entity Relationship Codes
+        // ─────────────────────────────
+        public const string Relationship_InvalidSource = "relationship.invalid_source";
+        public const string Relationship_InvalidTarget = "relationship.invalid_target";
+        public const string Relationship_SameEntity = "relationship.same_entity";
 
         // ─────────────────────────────
         // Collision
@@ -430,7 +446,17 @@
         public const string CreatureInstanceFactory_DefinitionFromDocumentNotFound = "creature_instance_factory.definition_from_document_not_found";
 
         // ─────────────────────────────
-        // Creature Instance Factory
+        // Projectile Instance Factory
+        // ─────────────────────────────
+        public const string ProjectileInstanceFactory_DefinitionNotFound = "projectile_instance_factory.definition_not_found";
+
+        // ─────────────────────────────
+        // Area Effect Instance Factory
+        // ─────────────────────────────
+        public const string AreaEffectInstanceFactory_DefinitionNotFound = "area_effect_instance_factory.definition_not_found";
+
+        // ─────────────────────────────
+        // World Object Instance Factory
         // ─────────────────────────────
         public const string WorldObjectInstanceFactory_DefinitionNotFound = "world_object_instance_factory.definition_not_found";
         public const string WorldObjectInstanceFactory_DocumentNotFound = "world_object_instance_factory.document_not_found";

@@ -11,47 +11,57 @@ namespace Infrastructure.Background
     public class WorldLoopService : BackgroundService
     {
         #region Attributes
-        private readonly MovementRequest movementRequest;
+        private readonly CreatureRequest creatureRequest;
+        private readonly CreatureResolver creatureResolver;
+        private readonly CreatureTrigger creatureTrigger;
 
-        private readonly CollisionResolver collisionResolver;
+        private readonly ProjectileRequest projectileRequest;
+        private readonly ProjectileResolver projectileResolver;
+        private readonly ProjectileTrigger projectileTrigger;
 
-        private readonly MovementTrigger movementTrigger;
-
-        private readonly EffectTick effectTickSystem;
+        private readonly ResidencyTick residencyTick;
 
         private readonly IEventBus eventBus;
         private readonly IEventDispatcher dispatcher;
 
-        private readonly List<CollisionRequest> collisionRequests;
+        private readonly List<CreatureContext> creatureContexts;
+        private readonly List<ProjectileContext> projectileContexts;
+        private readonly List<string> projectileExpirations;
         #endregion
 
         #region Properties
         #endregion
 
         public WorldLoopService(
-            MovementRequest movementRequest,
+            CreatureRequest creatureRequest,
+            CreatureResolver creatureResolver,
+            CreatureTrigger creatureTrigger,
 
-            CollisionResolver collisionResolver,
+            ProjectileRequest projectileRequest,
+            ProjectileResolver projectileResolver,
+            ProjectileTrigger projectileTrigger,
 
-            MovementTrigger movementTrigger,
-
-            EffectTick effectTickSystem,
+            ResidencyTick residencyTick,
 
             IEventBus eventBus,
             IEventDispatcher dispatcher)
         {
-            this.movementRequest = movementRequest;
+            this.creatureRequest = creatureRequest;
+            this.creatureResolver = creatureResolver;
+            this.creatureTrigger = creatureTrigger;
 
-            this.collisionResolver = collisionResolver;
+            this.projectileRequest = projectileRequest;
+            this.projectileResolver = projectileResolver;
+            this.projectileTrigger = projectileTrigger;
 
-            this.movementTrigger = movementTrigger;
-
-            this.effectTickSystem = effectTickSystem;
+            this.residencyTick = residencyTick;
 
             this.eventBus = eventBus;
             this.dispatcher = dispatcher;
 
-            collisionRequests = new List<CollisionRequest>();
+            creatureContexts = new List<CreatureContext>();
+            projectileContexts = new List<ProjectileContext>();
+            projectileExpirations = new List<string>();
         }
 
         #region Methods
@@ -63,19 +73,22 @@ namespace Infrastructure.Background
             while (await timer.WaitForNextTickAsync(stoppingToken))
             {
                 // Request systems
-                movementRequest.Update(Constraint.DELTA_TIME, collisionRequests);
+                creatureRequest.Update(Constraint.DELTA_TIME, creatureContexts);
+                projectileRequest.Update(Constraint.DELTA_TIME, projectileContexts, projectileExpirations);
 
                 // Resolver systems 
-                var collisionResults = collisionResolver.Resolve(collisionRequests);
+                var creatureResults = creatureResolver.Resolve(creatureContexts);
+                var projectileResults = projectileResolver.Resolve(projectileContexts);
 
                 // Trigger systems
-                movementTrigger.Apply(collisionResults);
+                creatureTrigger.Apply(creatureResults);
+                projectileTrigger.Apply(projectileResults, projectileExpirations);
 
-                // UNKNOWN!!!
-                effectTickSystem.Tick(Constraint.DELTA_TIME);
+                // Stats systems
+                await residencyTick.Tick(Constraint.DELTA_TIME); 
 
                 // Clear requests
-                collisionRequests.Clear();
+                creatureContexts.Clear();
                 
                 // Drain events
                 var events = eventBus.Drain();

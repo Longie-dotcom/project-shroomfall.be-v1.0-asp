@@ -1,4 +1,8 @@
-﻿using Application.Interfaces.Cache;
+﻿using Application.Events.Event;
+using Application.Interfaces.Cache;
+using Application.Interfaces.Realtime;
+using AutoMapper;
+using Contract.DTO.Runtime;
 using Contract.Enum.AttributeDomain;
 using Domain.Document.AttributeDomain;
 using Domain.DomainException;
@@ -10,6 +14,8 @@ namespace Application.Services.AttributeService
     public class CharacteristicService
     {
         #region Attributes
+        private readonly IMapper mapper;
+        private readonly IEventBus eventBus;
         private readonly IEffectCache effectCache;
         private readonly IAttributeValueCache attributeCache;
         #endregion
@@ -18,9 +24,13 @@ namespace Application.Services.AttributeService
         #endregion
 
         public CharacteristicService(
+            IMapper mapper,
+            IEventBus eventBus,
             IEffectCache effectCache,
             IAttributeValueCache attributeCache)
         {
+            this.mapper = mapper;
+            this.eventBus = eventBus;
             this.effectCache = effectCache;
             this.attributeCache = attributeCache;
         }
@@ -29,26 +39,20 @@ namespace Application.Services.AttributeService
         public void InitializeVitals(
             CreatureInstance creature)
         {
-            var characteristic = creature.DefinitionID;
+            var characteristicId = creature.DefinitionID;
             var level = creature.Level;
 
-            foreach (var type in AttributeDefinitions.All().Keys)
+            foreach (var attrDef in AttributeDefinitions.AllList())
             {
-                var attrDef = AttributeDefinitions.Get(type);
-
-                // Skip if it is not Vital value
+                // Skip if it is not a Vital value
                 if (attrDef.DomainType != DomainType.Vital)
                     continue;
 
-                var attrValue = attributeCache.Get(characteristic, type, level);
-
+                var attrValue = attributeCache.Get(characteristicId, attrDef.Type, level);
                 if (attrValue == null)
                     continue;
 
-                // Default rule
-                float initialValue = attrValue.Value;
-
-                creature.Characteristic.SetVital(type, initialValue);
+                creature.Characteristic.SetVital(attrDef.Type, attrValue.Value);
             }
         }
 
@@ -84,6 +88,14 @@ namespace Application.Services.AttributeService
 
             characteristic.SetVital(type, clamped);
 
+            eventBus.Publish(new EntityVitalChangedEvent(
+                entityInstanceId: creature.ID,
+                roomSpatialId: creature.RoomSpatialID,
+                attributeType: type,
+                newValue: clamped,
+                occurredAt: DateTime.UtcNow
+            ));
+
             return clamped;
         }
 
@@ -105,64 +117,63 @@ namespace Application.Services.AttributeService
         {
             var characteristic = creature.Characteristic;
             var level = creature.Level;
-            var effects = creature.ActiveEffects;
 
-            foreach (var type in AttributeDefinitions.All().Keys)
+            var activeEffectsByAttribute = creature.ActiveEffects
+                .Select(e => effectCache.Get(e.DefinitionID))
+                .Where(def => def != null)
+                .GroupBy(def => def.AttributeType)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            foreach (var attrDef in AttributeDefinitions.AllList())
             {
-                var attrValue = attributeCache.Get(characteristic.DefinitionID, type, level);
-
-                if (attrValue == null)
-                    continue;
-
-                var attrDef = AttributeDefinitions.Get(type);
-
                 // Skip if it is not Core value
                 if (attrDef.DomainType != DomainType.Core)
                     continue;
 
-                float baseValue = attrValue.Value;
+                var attrValue = attributeCache.Get(characteristic.DefinitionID, attrDef.Type, level);
+                if (attrValue == null)
+                    continue;
 
+                float baseValue = attrValue.Value;
                 float flat = 0f;
                 float percent = 0f;
                 float multiplier = 1f;
 
-                foreach (var effect in effects)
+                if (activeEffectsByAttribute.TryGetValue(attrDef.Type, out var matchingEffects))
                 {
-                    var effectDef = effectCache.Get(effect.DefinitionID);
-
-                    if (effectDef == null || effectDef.AttributeType != type)
-                        continue;
-
-                    float value = effectDef.Value;
-
-                    switch (attrDef.Category)
+                    foreach (var effect in matchingEffects)
                     {
-                        case ValueCategory.Flat:
-                            flat += value;
-                            break;
+                        switch (effect?.Type)
+                        {
+                            case EffectType.Flat:
+                                flat += effect.Value;
+                                break;
 
-                        case ValueCategory.Percentage:
-                            percent += value;
-                            break;
+                            case EffectType.Percentage:
+                                percent += effect.Value;
+                                break;
 
-                        case ValueCategory.Multiplier:
-                            multiplier *= value;
-                            break;
-
-                        case ValueCategory.Regen:
-                        case ValueCategory.Flag:
-                            continue;
+                            case EffectType.Multiplier:
+                                multiplier *= effect.Value;
+                                break;
+                        }
                     }
                 }
 
-                float result = baseValue;
-                result = (result + flat) * (1 + percent);
-                result *= multiplier;
-
+                // 4. Run the decoupled math processing algorithm
+                float result = (baseValue + flat) * (1f + percent) * multiplier;
                 result = Math.Clamp(result, attrValue.Min, attrValue.Max);
 
-                characteristic.SetCore(type, result);
+                characteristic.SetCore(attrDef.Type, result);
             }
+
+            var dto = mapper.Map<CharacteristicRuntimeDTO>(characteristic);
+
+            eventBus.Publish(new PlayerCharacteristicSyncEvent(
+                entityInstanceId: creature.ID,
+                characteristicRuntime: dto,
+                occurredAt: DateTime.UtcNow
+            ));
         }
         #endregion
     }

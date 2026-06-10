@@ -173,7 +173,8 @@ namespace Application.Systems.Tick
             }
         }
 
-        private async Task EvictToCold(RoomNode node)
+        private async Task EvictToCold(
+            RoomNode node)
         {
             var roomLock = GetRoomLock(node.RoomSpatialID);
             await roomLock.WaitAsync();
@@ -183,28 +184,42 @@ namespace Application.Systems.Tick
 
             try
             {
-                // Already cold
                 if (node.State == RoomResidencyState.Cold)
                     return;
 
                 shouldEvict = true;
-
-                // Only mark state change inside lock
                 node.State = RoomResidencyState.Cold;
                 node.LastAccessUtc = DateTime.UtcNow;
 
-                // IMPORTANT: unload runtime state inside lock is OK ONLY if it's fast & deterministic
+                // Instantly clear memory while on the main thread loop
                 snapshot = worldContext.Unload(node.RoomSpatialID);
             }
-            finally
+            catch
             {
                 roomLock.Release();
+                throw;
             }
 
-            // Do persistence OUTSIDE lock
+            // Fire-and-forget or offload to background thread pool.
             if (shouldEvict && snapshot != null)
             {
-                await snapshotPersistence.SaveRoomSnapshotAsync(snapshot);
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        // Background thread does the slow work while holding the lock
+                        await snapshotPersistence.SaveRoomSnapshotAsync(snapshot);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Failed to background-save room {node.RoomSpatialID}: {ex.Message}");
+                    }
+                    finally
+                    {
+                        // ONLY release the lock once the database safely has the data
+                        roomLock.Release();
+                    }
+                });
             }
         }
 

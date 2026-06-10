@@ -10,6 +10,7 @@
         public string DefinitionID { get; }
         public float? RemainingTime { get; private set; }
         public string? SourceItemInstanceID { get; }
+        public float IntervalAccumulator { get; private set; }
         #endregion
 
         public EffectInstance(
@@ -22,18 +23,30 @@
             DefinitionID = definitionId;
             RemainingTime = remainingTime;
             SourceItemInstanceID = sourceItemInstanceId;
+            IntervalAccumulator = 0f;
         }
 
         #region Methods
-        public void Tick(
-            float deltaTime)
+        public void Tick(float deltaTime)
         {
-            if (RemainingTime == null) return;
+            if (RemainingTime.HasValue)
+            {
+                RemainingTime -= deltaTime;
+                if (RemainingTime < 0)
+                    RemainingTime = 0;
+            }
 
-            RemainingTime -= deltaTime;
+            IntervalAccumulator += deltaTime;
+        }
 
-            if (RemainingTime < 0)
-                RemainingTime = 0;
+        public bool TryConsumeInterval(float intervalDuration)
+        {
+            if (IntervalAccumulator >= intervalDuration)
+            {
+                IntervalAccumulator -= intervalDuration;
+                return true;
+            }
+            return false;
         }
 
         public bool IsExpired()

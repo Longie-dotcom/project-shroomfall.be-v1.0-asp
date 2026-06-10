@@ -50,6 +50,16 @@ namespace Domain.Runtime.ItemDomain
 
             Count -= amount;
         }
+
+        public bool DegradeDurability(int amount)
+        {
+            if (!CurrentDurability.HasValue)
+                return false;
+
+            CurrentDurability = Math.Max(0, CurrentDurability.Value - amount);
+
+            return CurrentDurability.Value <= 0;
+        }
         #endregion
     }
 }

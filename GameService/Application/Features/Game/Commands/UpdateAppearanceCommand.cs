@@ -1,10 +1,8 @@
-﻿using Application.Features.Abstraction;
-using Contract.DTO.Game;
-using Contract.DTO.Runtime;
+﻿using Contract.DTO.Game;
 
 namespace Application.Features.Game.Commands
 {
-    public class UpdateAppearanceCommand : ICommand<PlayerAppearanceRuntimeDTO>
+    public class UpdateAppearanceCommand
     {
         #region Attributes
         #endregion

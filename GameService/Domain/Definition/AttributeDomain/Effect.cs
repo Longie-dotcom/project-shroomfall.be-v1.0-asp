@@ -43,9 +43,6 @@ namespace Domain.Definition.AttributeDomain
             if (string.IsNullOrWhiteSpace(localizedText.DescriptionKey))
                 throw new BadRequest(ResponseCode.Effect_InvalidDescription);
 
-            if (value < 0)
-                throw new BadRequest(ResponseCode.Effect_InvalidValue);
-
             if (duration.HasValue && duration.Value < 0)
                 throw new BadRequest(ResponseCode.Effect_InvalidDuration);
 

@@ -106,7 +106,6 @@ namespace Application.Helper
             CreateMap<InventoryItem, InventoryItemDefinitionDTO>();
             CreateMap<Item, ItemDefinitionDTO>()
                 .ForMember(d => d.LocalizedText, o => o.MapFrom(s => s.LocalizedText));
-            CreateMap<ItemConfiguration, ItemConfigurationDefinitionDTO>();
             CreateMap<ItemEffect, ItemEffectDefinitionDTO>();
 
             // World Domain

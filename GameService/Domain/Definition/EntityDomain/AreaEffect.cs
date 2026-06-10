@@ -1,6 +1,8 @@
 ﻿using Contract.Enum.EntityDomain;
 using Domain.Definition.EntityDomain.Component;
 using Domain.Definition.LocalizationDomain;
+using Domain.DomainException;
+using Domain.Shared;
 
 namespace Domain.Definition.EntityDomain
 {
@@ -10,6 +12,7 @@ namespace Domain.Definition.EntityDomain
         #endregion
 
         #region Properties
+        public float Duration { get; private set; }
         #endregion
 
         protected AreaEffect() 
@@ -22,14 +25,20 @@ namespace Domain.Definition.EntityDomain
             EntityType type,
             LocalizedText localizedText,
             Appearance appearance,
-            Collision collision) : base(
+            Collision collision,
+            float duration) : base(
                 id,
                 type,
                 localizedText,
                 appearance,
                 collision)
         {
+            if (duration <= 0f)
+                throw new InternalException(
+                    ResponseCode.AreaEffectDefinition_InvalidDuration,
+                    $"Area effect blueprint '{id}' cannot be initialized with a duration of {duration}. Lifetime duration must be greater than zero.");
 
+            Duration = duration;
         }
 
         #region Methods

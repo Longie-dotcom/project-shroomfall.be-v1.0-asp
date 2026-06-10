@@ -1,0 +1,214 @@
+﻿using Contract.Enum.EntityDomain;
+using Domain.Common;
+using Domain.Definition.EntityDomain;
+using Domain.Definition.EntityDomain.Component;
+using Domain.Shared;
+using Microsoft.EntityFrameworkCore;
+
+namespace Infrastructure.Persistence.Seeder
+{
+    public static class EntitySeeder
+    {
+        // Shared fallback color for inanimate entity appearances to satisfy the mandatory HSV constructor
+        private static readonly HSV NeutralColor = new HSV(0f, 0f, 1f);
+
+        #region 🆔 Core Domain Identifiers
+        // 🏹 Archer Identifiers
+        public const string ArcherPlayerId = "ent_player_archer";
+        public const string ArcherCharacteristicId = "char_archer";
+        public const string ArcherInventoryId = "inv_player_archer";
+
+        // 🔨 Joker Identifiers
+        public const string JokerPlayerId = "ent_player_joker";
+        public const string JokerCharacteristicId = "char_joker";
+        public const string JokerInventoryId = "inv_player_joker";
+
+        // ⚔️ Warrior Identifiers
+        public const string WarriorPlayerId = "ent_player_warrior";
+        public const string WarriorCharacteristicId = "char_warrior";
+        public const string WarriorInventoryId = "inv_player_warrior";
+        #endregion
+
+        #region 🆔 Projectile, Area & World Object IDs
+        // Projectiles
+        public const string PROJ_ARROW_WOOD = "proj_arrow_wood";
+        public const string PROJ_BOLT_IRON = "proj_bolt_iron";
+        public const string PROJ_BOMB_FIRE = "proj_bomb_fire";
+        public const string PROJ_BOMB_STUN = "proj_bomb_stun";
+
+        // Area Effects
+        public const string AREA_SWORD_SLASH = "area_sword_slash";
+        public const string AREA_CLUB_SMASH = "area_club_smash";
+        public const string AREA_BOMB_FIRE = "area_bomb_fire";
+        public const string AREA_BOMB_STUN = "area_bomb_stun";
+
+        // World Objects
+        public const string WORLD_CAMPFIRE = "world_campfire";
+        public const string WORLD_CHEST = "world_chest";
+        #endregion
+
+        #region 🎨 Centralized Frontend Appearance Asset IDs
+        public static class Skins
+        {
+            public const string Base01 = "skin_base_01";
+        }
+
+        public static class Hair
+        {
+            public const string Ranger01 = "hair_ranger_01";
+            public const string Wild01 = "hair_wild_01";
+            public const string KnightClean = "hair_knight_clean";
+            public const string BushyBeard = "hair_bushy_beard";
+        }
+
+        public static class Eyes
+        {
+            public const string Focused = "eyes_focused";
+            public const string Angry = "eyes_angry";
+            public const string Determined = "eyes_determined";
+            public const string Jolly = "eyes_jolly";
+        }
+
+        public static class Shirts
+        {
+            public const string TunicGreen = "shirt_tunic_green";
+            public const string FursDark = "shirt_furs_dark";
+            public const string SteelBreastplate = "shirt_steel_breastplate";
+            public const string FlannelRed = "shirt_flannel_red";
+        }
+
+        public static class Pants
+        {
+            public const string LeatherBrown = "pant_leather_brown";
+            public const string HideKilts = "pant_hide_kilts";
+            public const string IronGreaves = "pant_iron_greaves";
+            public const string OverallsBlue = "pant_overalls_blue";
+        }
+        #endregion
+
+        #region ⚙️ Database Seeding Logic
+        public static async Task SeedPlayerDefinitionsAsync(RelationalDB db)
+        {
+            var playerTemplates = new List<Player>
+            {
+                CreatePlayerTemplate(
+                    id: ArcherPlayerId,
+                    localizationKey: "player.archer",
+                    characteristicId: ArcherCharacteristicId,
+                    inventoryId: ArcherInventoryId,
+                    appearance: new PlayerAppearance(
+                        skinId: Skins.Base01,
+                        skinColor: new HSV(0f, 0f, 1f),
+                        hairId: Hair.Ranger01,
+                        eyesId: Eyes.Focused,
+                        shirtId: Shirts.TunicGreen,
+                        pantId: Pants.LeatherBrown,
+                        hairColor: new HSV(30f, 0.8f, 0.5f),
+                        pantColor: new HSV(20f, 0.5f, 0.3f)),
+                    collision: new Collision(CollisionShapeType.Box, width: 14f, height: 16f, radius: 0f, isBlocking: true, isTrigger: false)
+                ),
+                CreatePlayerTemplate(
+                    id: JokerPlayerId,
+                    localizationKey: "player.joker",
+                    characteristicId: JokerCharacteristicId,
+                    inventoryId: JokerInventoryId,
+                    appearance: new PlayerAppearance(
+                        skinId: Skins.Base01,
+                        skinColor: new HSV(15f, 0.1f, 0.9f),
+                        hairId: Hair.Wild01,
+                        eyesId: Eyes.Angry,
+                        shirtId: Shirts.FursDark,
+                        pantId: Pants.HideKilts,
+                        hairColor: new HSV(12f, 0.9f, 0.6f),
+                        pantColor: new HSV(0f, 0f, 0.2f)),
+                    collision: new Collision(CollisionShapeType.Box, width: 18f, height: 18f, radius: 0f, isBlocking: true, isTrigger: false)
+                ),
+                CreatePlayerTemplate(
+                    id: WarriorPlayerId,
+                    localizationKey: "player.warrior",
+                    characteristicId: WarriorCharacteristicId,
+                    inventoryId: WarriorInventoryId,
+                    appearance: new PlayerAppearance(
+                        skinId: Skins.Base01,
+                        skinColor: new HSV(0f, 0f, 1f),
+                        hairId: Hair.KnightClean,
+                        eyesId: Eyes.Determined,
+                        shirtId: Shirts.SteelBreastplate,
+                        pantId: Pants.IronGreaves,
+                        hairColor: new HSV(45f, 0.7f, 0.8f),
+                        pantColor: new HSV(220f, 0.4f, 0.5f)),
+                    collision: new Collision(CollisionShapeType.Box, width: 16f, height: 16f, radius: 0f, isBlocking: true, isTrigger: false)
+                ),
+            };
+
+            await db.Set<Player>().AddRangeAsync(playerTemplates);
+            await db.SaveChangesAsync();
+        }
+
+        public static async Task SeedEntityDefinitionsAsync(RelationalDB db)
+        {
+            await db.Set<Projectile>().ExecuteDeleteAsync();
+            await db.Set<AreaEffect>().ExecuteDeleteAsync();
+            await db.Set<WorldObject>().ExecuteDeleteAsync();
+            await db.Set<EntityRelationship>().ExecuteDeleteAsync();
+
+            var projectiles = new List<Projectile>
+            {
+                new(PROJ_ARROW_WOOD, EntityType.Projectile, LocalizationFactory.ForEntity("proj.arrow"), new Appearance(PROJ_ARROW_WOOD, NeutralColor), new Collision(CollisionShapeType.Circle, 4f, 4f, 2f, false, true), 300f, 2f),
+                new(PROJ_BOLT_IRON, EntityType.Projectile, LocalizationFactory.ForEntity("proj.bolt"), new Appearance(PROJ_BOLT_IRON, NeutralColor), new Collision(CollisionShapeType.Circle, 4f, 4f, 2f, false, true), 450f, 1.5f),
+                new(PROJ_BOMB_FIRE, EntityType.Projectile, LocalizationFactory.ForEntity("proj.firebomb"), new Appearance(PROJ_BOMB_FIRE, NeutralColor), new Collision(CollisionShapeType.Circle, 6f, 6f, 3f, false, true), 150f, 3f),
+                new(PROJ_BOMB_STUN, EntityType.Projectile, LocalizationFactory.ForEntity("proj.stunbomb"), new Appearance(PROJ_BOMB_STUN, NeutralColor), new Collision(CollisionShapeType.Circle, 6f, 6f, 3f, false, true), 150f, 3f)
+            };
+
+            var areaEffects = new List<AreaEffect>
+            {
+                new(AREA_SWORD_SLASH, EntityType.AreaEffect, LocalizationFactory.ForEntity("area.slash"), new Appearance(AREA_SWORD_SLASH, NeutralColor), new Collision(CollisionShapeType.Box, 20f, 10f, 0f, false, true), 0.5f),
+                new(AREA_CLUB_SMASH, EntityType.AreaEffect, LocalizationFactory.ForEntity("area.smash"), new Appearance(AREA_CLUB_SMASH, NeutralColor), new Collision(CollisionShapeType.Circle, 0f, 0f, 15f, false, true), 0.8f),
+                new(AREA_BOMB_FIRE, EntityType.AreaEffect, LocalizationFactory.ForEntity("area.fire"), new Appearance(AREA_BOMB_FIRE, NeutralColor), new Collision(CollisionShapeType.Circle, 0f, 0f, 30f, false, true), 5.0f),
+                new(AREA_BOMB_STUN, EntityType.AreaEffect, LocalizationFactory.ForEntity("area.stun"), new Appearance(AREA_BOMB_STUN, NeutralColor), new Collision(CollisionShapeType.Circle, 0f, 0f, 20f, false, true), 2.0f)
+            };
+
+            var worldObjects = new List<WorldObject>
+            {
+                new(WORLD_CAMPFIRE, EntityType.WorldObject, LocalizationFactory.ForEntity("world.campfire"), new Appearance(WORLD_CAMPFIRE, NeutralColor), new Collision(CollisionShapeType.Box, 20f, 20f, 0f, true, false), WorldObjectInteractionType.Decoration, true, false, null),
+                new(WORLD_CHEST, EntityType.WorldObject, LocalizationFactory.ForEntity("world.chest"), new Appearance(WORLD_CHEST, NeutralColor), new Collision(CollisionShapeType.Box, 24f, 24f, 0f, true, false), WorldObjectInteractionType.Decoration, true, true, "inv_chest_01")
+            };
+
+            // Throwable Projectile -> AreaEffect Spawning Relationship
+            var relationships = new List<EntityRelationship>
+            {
+                new(PROJ_BOMB_FIRE, AREA_BOMB_FIRE, EntityRelationshipType.Throwable),
+                new(PROJ_BOMB_STUN, AREA_BOMB_STUN, EntityRelationshipType.Throwable)
+            };
+
+            await db.Set<Projectile>().AddRangeAsync(projectiles);
+            await db.Set<AreaEffect>().AddRangeAsync(areaEffects);
+            await db.Set<WorldObject>().AddRangeAsync(worldObjects);
+            await db.Set<EntityRelationship>().AddRangeAsync(relationships);
+            await db.SaveChangesAsync();
+        }
+        #endregion
+
+        #region 🏭 Template Factory Method
+        private static Player CreatePlayerTemplate(
+            string id,
+            string localizationKey,
+            string characteristicId,
+            string inventoryId,
+            PlayerAppearance appearance,
+            Collision collision)
+        {
+            return new Player(
+                id: id,
+                type: EntityType.Player,
+                localizedText: LocalizationFactory.ForEntity(localizationKey),
+                playerAppearance: appearance,
+                collision: collision,
+                characteristicId: characteristicId,
+                inventoryId: inventoryId,
+                level: 1
+            );
+        }
+        #endregion
+    }
+}

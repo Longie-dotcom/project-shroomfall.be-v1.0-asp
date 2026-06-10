@@ -4,6 +4,7 @@ using Application.Features.Game.Commands;
 using Contract.DTO.Connection;
 using Contract.DTO.Game;
 using Contract.DTO.Runtime;
+using Contract.Enum.EntityDomain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -50,6 +51,34 @@ namespace API.Controllers
 
             await dispatcher.Send<UpdateAppearanceCommand>(
                 new UpdateAppearanceCommand(userId, dto)
+            );
+
+            return NoContent();
+        }
+
+        [Authorize]
+        [HttpPost("use-item")]
+        public async Task<IActionResult> UseItem(
+            [FromBody] UseItemDTO dto)
+        {
+            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
+
+            await dispatcher.Send<UseItemCommand>(
+                new UseItemCommand(userId, dto)
+            );
+
+            return NoContent();
+        }
+
+        [Authorize]
+        [HttpPost("unequip-item")]
+        public async Task<IActionResult> UnequipItem(
+            [FromBody] EquipmentSlot slot)
+        {
+            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
+
+            await dispatcher.Send<UnequipItemCommand>(
+                new UnequipItemCommand(userId, slot)
             );
 
             return NoContent();

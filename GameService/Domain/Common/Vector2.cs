@@ -50,6 +50,20 @@
                    MathF.Abs(Y - other.Y) < epsilon;
         }
 
+        public static Vector2 operator +(
+            float scalar,
+            Vector2 v)
+        {
+            return new Vector2(v.X + scalar, v.Y + scalar);
+        }
+
+        public static Vector2 operator +(
+            Vector2 v,
+            float scalar)
+        {
+            return new Vector2(v.X + scalar, v.Y + scalar);
+        }
+
         // ─────────────────────────────
         // Length / Magnitude
         // ─────────────────────────────

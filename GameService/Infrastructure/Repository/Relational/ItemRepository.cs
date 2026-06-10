@@ -27,8 +27,6 @@ namespace Infrastructure.Repository.Relational
             return await context.Items
                 .Include(i => i.Effects)
                     .ThenInclude(e => e.Effect)
-                .Include(i => i.Configurations)
-                    .ThenInclude(e => e.Entity)
                 .AsNoTracking()
                 .ToListAsync();
         }

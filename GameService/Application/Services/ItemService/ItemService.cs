@@ -1,4 +1,7 @@
-﻿using Application.Interfaces.Cache;
+﻿using Application.Events.Event;
+using Application.Interfaces.Cache;
+using Application.Interfaces.Realtime;
+using Contract.Enum.EntityDomain;
 using Contract.Enum.ItemDomain;
 using Domain.Common;
 using Domain.DomainException;
@@ -10,68 +13,57 @@ namespace Application.Services.ItemService
     public class ItemService
     {
         #region Attributes
+        private readonly IEventBus eventBus;
         private readonly IItemCache itemCache;
-        private readonly EquipmentService equipmentService;
-        private readonly ConsumableService consumableService;
-        private readonly PlacementService placementService;
+        private readonly ItemUsageService itemUsageService;
         #endregion
 
         #region Properties
         #endregion
 
         public ItemService(
+            IEventBus eventBus,
             IItemCache itemCache,
-            EquipmentService equipmentService,
-            ConsumableService consumableService, 
-            PlacementService placementService)
+            ItemUsageService itemUsageService)
         {
+            this.eventBus = eventBus;
             this.itemCache = itemCache;
-            this.equipmentService = equipmentService;
-            this.consumableService = consumableService;
-            this.placementService = placementService;
+            this.itemUsageService = itemUsageService;
         }
 
         #region Methods
         public void Use(
-            CreatureInstance creature, 
+            CreatureInstance creature,
             string itemInstanceId,
             Vector2 targetPosition)
         {
             var inventory = creature.Inventory;
-
-            // Find item from inventory
             var item = inventory.Items.FirstOrDefault(x => x.ID == itemInstanceId);
             if (item == null)
-                throw new BadRequest(
-                    ResponseCode.ItemService_ItemNotFoundInInventory,
-                    $"Item with instance ID: {itemInstanceId} was not found in inventory");
+                throw new BadRequest(ResponseCode.ItemService_ItemNotFoundInInventory);
 
-            // Find item definition from cache
             var itemDef = itemCache.Get(item.DefinitionID);
             if (itemDef == null)
-                throw new InternalException(
-                    ResponseCode.ItemService_ItemDefinitionNotFound,
-                    $"Item with definition ID: {item.DefinitionID} was not found");
+                throw new InternalException(ResponseCode.ItemService_ItemDefinitionNotFound);
 
-            switch (itemDef.Type)
-            {
-                case ItemType.Equippable:
-                    equipmentService.Equip(creature, item, itemDef);
-                    break;
+            // Execute the centralized usage engine
+            itemUsageService.Execute(creature, item, itemDef, targetPosition);
 
-                case ItemType.Consumable:
-                    consumableService.Consume(creature, item, itemDef);
-                    break;
+            eventBus.Publish(new EntityActedEvent(
+                creature.ID,
+                creature.RoomSpatialID,
+                creature.Position,
+                creature.FacingDirection,
+                itemDef.DefaultAction == EntityAction.NONE ? creature.CurrentAction : itemDef.DefaultAction,
+                item.DefinitionID
+            ));
+        }
 
-                case ItemType.Object:
-                    placementService.Place(creature, item, itemDef, targetPosition);
-                    break;
-
-                default:
-                    throw new BadRequest(
-                        ResponseCode.ItemService_TypeNotSupported,
-                        $"Item type can not be used, type is unsupported: {itemDef.Type}");
-            }
+        public void Unequip(
+            CreatureInstance creature,
+            EquipmentSlot slot)
+        {
+            itemUsageService.Unequip(creature, slot);
         }
         #endregion
     }

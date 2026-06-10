@@ -35,6 +35,30 @@ namespace Infrastructure.Realtime
         }
 
         // ─────────────────────────────
+        // Vitals & Attributes
+        // ─────────────────────────────
+        public Task SendEntityVitalChanged(
+                    string roomId,
+                    EntityVitalChangedDTO payload)
+        {
+            return hub.Clients
+                .Group(roomId)
+                .SendAsync(NetworkMethod.OnEntityVitalChanged, payload);
+        }
+
+        // ─────────────────────────────
+        // State Synchronization (heavy)
+        // ─────────────────────────────
+        public Task SendPlayerCharacteristicSync(
+            string connectionId,
+            CharacteristicRuntimeDTO payload)
+        {
+            return hub.Clients
+                .Client(connectionId)
+                .SendAsync(NetworkMethod.OnPlayerCharacteristicSync, payload);
+        }
+
+        // ─────────────────────────────
         // Spawn (broadcast to room)
         // ─────────────────────────────
         public Task SendEntitySpawned(

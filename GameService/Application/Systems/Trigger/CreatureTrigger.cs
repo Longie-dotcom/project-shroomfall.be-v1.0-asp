@@ -6,7 +6,7 @@ using Domain.Runtime.EntityDomain;
 
 namespace Application.Systems.Trigger
 {
-    public class MovementTrigger
+    public class CreatureTrigger
     {
         #region Attributes
         private readonly WorldContext worldContext;
@@ -16,7 +16,7 @@ namespace Application.Systems.Trigger
         #region Properties
         #endregion
 
-        public MovementTrigger(
+        public CreatureTrigger(
             WorldContext worldContext,
             IEventBus eventBus)
         {
@@ -26,14 +26,14 @@ namespace Application.Systems.Trigger
 
         #region Methods
         public void Apply(
-            Dictionary<string, CollisionResult> results)
+            Dictionary<string, CreatureResult> results)
         {
             foreach (var (entityId, result) in results)
             {
                 // Retrieve entity instance from runtime
                 var entity = worldContext.GetEntity<EntityInstance>(entityId);
                 if (entity == null)
-                    return;
+                    continue;
 
                 // Cache state before updating position index
                 bool wasMoving = entity.WantsToMove || entity.PositionChangedThisFrame;
@@ -52,7 +52,8 @@ namespace Application.Systems.Trigger
                         entity.RoomSpatialID,
                         entity.Position,
                         entity.FacingDirection,
-                        entity.CurrentAction
+                        entity.CurrentAction,
+                        null
                     ));
                 }
             }

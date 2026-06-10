@@ -11,7 +11,6 @@ namespace Domain.Definition.AttributeDomain
         #region Properties
         public AttributeType Type { get; set; }
         public LocalizedText LocalizedText { get; set; } = new LocalizedText();
-        public ValueCategory Category { get; set; }
         public DomainType DomainType { get; set; }
         #endregion
 

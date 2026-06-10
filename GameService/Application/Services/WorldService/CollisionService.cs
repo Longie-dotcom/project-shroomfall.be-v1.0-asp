@@ -97,6 +97,49 @@ namespace Application.Services.WorldService
         }
 
         #region Methods
+        public bool QueryInteractions(
+                CollisionBody self,
+                RoomSpatial roomSpatial,
+                Vector2 position,
+                CollisionContext context,
+                Span<(int x, int y)> buffer)
+        {
+            bool isBlocked = false;
+            visitedChunks.Clear();
+            int count = self.CollisionShape.ComputeCells(position, buffer);
+
+            for (int i = 0; i < count; i++)
+            {
+                var (cellX, cellY) = buffer[i];
+                var (cx, cy) = ChunkMath.ToChunkOnly(cellX, cellY, Constraint.CHUNK_SIZE);
+                var key = new ChunkKey(cx, cy);
+
+                if (visitedChunks.Add(key))
+                {
+                    var (_, entityIds) = worldContext.QuerySpatial(self.RoomSpatialID, cellX, cellY, self.LayerZ);
+
+                    foreach (var entityId in entityIds)
+                    {
+                        var entity = worldContext.GetEntity<EntityInstance>(entityId);
+                        if (entity == null || entity.ID == self.EntityInstanceID) continue;
+
+                        if (self.CollisionShape.Intersects(position, entity.CollisionShape, entity.Position))
+                        {
+                            if (!context.Entities.Contains(entity))
+                                context.Entities.Add(entity);
+
+                            if (entity.CollisionShape.IsBlocking) isBlocked = true;
+                            if (entity.CollisionShape.IsTrigger) context.Triggers.Add(entity.ID);
+                        }
+                    }
+                }
+
+                var cell = roomCache.GetTopCell(roomSpatial.DefinitionID, cellX, cellY);
+                if (cell != null && cell.Type != CellType.Walkable) isBlocked = true;
+            }
+            return isBlocked;
+        }
+
         public CollisionContext QueryMovement(
             CollisionBody self,
             Vector2 desiredPosition)
@@ -104,49 +147,53 @@ namespace Application.Services.WorldService
             var result = new CollisionContext();
 
             var roomSpatial = worldContext.GetRoom(self.RoomSpatialID);
-            if (roomSpatial == null)
-                throw new InternalException(
-                    ResponseCode.CollisionService_RoomSpatialNotFoundOnQueryMovement,
-                    $"Room spatial with room spatial ID: {self.RoomSpatialID} not found on query movement" +
-                    $", referenced from entity instance: {self.EntityInstanceID}");
-
-            var currentPos = self.Position;
-
-            // axis separated movement
-            var testPosX = new Vector2(
-                desiredPosition.X,
-                currentPos.Y);
-
-            var testPosY = new Vector2(
-                currentPos.X,
-                desiredPosition.Y);
+            if (roomSpatial == null) return result;
 
             Span<(int x, int y)> buffer =
                 stackalloc (int, int)[256];
 
-            bool blockX = ProcessAxis(
+            result.BlockX = QueryInteractions(
                 self,
                 roomSpatial,
-                testPosX,
+                new Vector2(
+                    desiredPosition.X,
+                    self.Position.Y),
                 result,
                 buffer);
 
-            bool blockY = ProcessAxis(
+            result.BlockY = QueryInteractions(
                 self,
                 roomSpatial,
-                testPosY,
+                new Vector2(
+                    self.Position.X,
+                    desiredPosition.Y),
                 result,
                 buffer);
 
-            result.BlockX = blockX;
-            result.BlockY = blockY;
-            result.IsBlocked = blockX || blockY;
+            result.IsBlocked = result.BlockX || result.BlockY;
 
             result.LayerZ = ResolveLayer(
                 self,
                 roomSpatial,
                 desiredPosition);
 
+            return result;
+        }
+
+        public CollisionContext QueryOverlap(
+            CollisionBody self,
+            Vector2 position)
+        {
+            var result = new CollisionContext();
+            var roomSpatial = worldContext.GetRoom(self.RoomSpatialID);
+            if (roomSpatial == null) return result;
+
+            Span<(int x, int y)> buffer = stackalloc (int, int)[256];
+
+            // Single pass check
+            var isBlocked = QueryInteractions(self, roomSpatial, position, result, buffer);
+
+            result.IsBlocked = isBlocked;
             return result;
         }
 
@@ -206,94 +253,6 @@ namespace Application.Services.WorldService
                         ResponseCode.CollisionService_SpawnBlockedByTile,
                         $"Spawn blocked by tile at ({cellX}, {cellY})");
             }
-        }
-
-        private bool ProcessAxis(
-            CollisionBody self,
-            RoomSpatial roomSpatial,
-            Vector2 testPosition,
-            CollisionContext result,
-            Span<(int x, int y)> buffer)
-        {
-            bool blocked = false;
-
-            visitedChunks.Clear();
-
-            int count = self.CollisionShape.ComputeCells(
-                testPosition,
-                buffer);
-
-            for (int i = 0; i < count; i++)
-            {
-                var (cellX, cellY) = buffer[i];
-
-                var (cx, cy) = ChunkMath.ToChunkOnly(
-                    cellX,
-                    cellY,
-                    Constraint.CHUNK_SIZE);
-
-                var key = new ChunkKey(cx, cy);
-
-                // already checked this chunk
-                bool queriedChunk = visitedChunks.Add(key);
-
-                if (queriedChunk)
-                {
-                    // =====================================================
-                    // DYNAMIC ENTITIES
-                    // =====================================================
-
-                    var (_, entityIds) = worldContext.QuerySpatial(
-                        self.RoomSpatialID,
-                        cellX,
-                        cellY,
-                        self.LayerZ);
-
-                    foreach (var entityId in entityIds)
-                    {
-                        var entity = worldContext.GetEntity<EntityInstance>(entityId);
-                        if (entity == null)
-                            continue;
-
-                        if (entity.ID == self.EntityInstanceID)
-                            continue;
-
-                        bool intersects =
-                            self.CollisionShape.Intersects(
-                                testPosition,
-                                entity.CollisionShape,
-                                entity.Position);
-
-                        if (!intersects)
-                            continue;
-
-                        if (!result.Entities.Contains(entity))
-                            result.Entities.Add(entity);
-
-                        if (entity.CollisionShape.IsBlocking)
-                            blocked = true;
-
-                        if (entity.CollisionShape.IsTrigger)
-                            result.Triggers.Add(entity.ID);
-                    }
-                }
-
-                // =====================================================
-                // STATIC CELL
-                // =====================================================
-                var cell = roomCache.GetTopCell(
-                    roomSpatial.DefinitionID,
-                    cellX,
-                    cellY);
-
-                if (cell == null)
-                    continue;
-
-                if (cell.Type != CellType.Walkable)
-                    blocked = true;
-            }
-
-            return blocked;
         }
 
         private int ResolveLayer(

@@ -9,5 +9,7 @@
             string userId);
         string? Get(
             string userId);
+        string? GetUserIdByPlayerId(
+            string playerInstanceId);
     }
 }

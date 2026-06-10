@@ -108,32 +108,28 @@ namespace Application.Services.ItemService
             return null;
         }
 
-        public ItemInstance RemoveForEquip(
+        public ItemInstance RemoveItem(
             CreatureInstance creature,
-            string itemInstanceId)
+            ItemInstance item)
         {
             var inventory = creature.Inventory;
 
-            var item = GetItemOrThrow(creature, itemInstanceId);
-
-            // Equipment must always be single-instance items
-            if (item.Count != 1)
-                throw new BadRequest(
-                    ResponseCode.InventoryService_InvalidEquipItem,
-                    $"Item with instance ID: {item.ID} cannot be equipped because stack count is greater than 1");
-
-            inventory.Items.Remove(item);
+            bool removed = inventory.Items.Remove(item);
+            if (!removed)
+            {
+                throw new InternalException(
+                    ResponseCode.InventoryService_ItemNotFound,
+                    $"Critical State Desync: Failed to remove Item Instance {item.ID} from Creature {creature.ID}'s inventory collection.");
+            }
 
             return item;
         }
 
-        public ItemInstance RemoveForConsume(
+        public ItemInstance DeductItem(
             CreatureInstance creature,
-            string itemInstanceId)
+            ItemInstance item)
         {
             var inventory = creature.Inventory;
-
-            var item = GetItemOrThrow(creature, itemInstanceId);
 
             if (item.Count > 1)
             {
@@ -150,6 +146,20 @@ namespace Application.Services.ItemService
             inventory.Items.Remove(item);
 
             return item;
+        }
+
+        public void DegradeItem(
+            CreatureInstance creature,
+            ItemInstance item)
+        {
+            if (item.CurrentDurability.HasValue)
+            {
+                bool isShattered = item.DegradeDurability(1);
+                if (isShattered)
+                {
+                    RemoveItem(creature, item);
+                }
+            }
         }
 
         public bool CanAddItem(
@@ -200,28 +210,12 @@ namespace Application.Services.ItemService
             // ─────────────────────────────
             int freeSlots =
                 inventoryDef.SlotCount - inventory.Items.Count;
-
+            
             int neededSlots =
                 (int)Math.Ceiling(
                     remaining / (float)Constraint.MAX_ITEM_AMOUNT_PER_SLOT);
 
             return neededSlots <= freeSlots;
-        }
-
-        private ItemInstance GetItemOrThrow(
-            CreatureInstance creature, 
-            string itemInstanceId)
-        {
-            var inventory = creature.Inventory;
-
-            var item = inventory.Items.FirstOrDefault(x => x.ID == itemInstanceId);
-            if (item == null)
-                throw new BadRequest(
-                    ResponseCode.InventoryService_ItemNotFound,
-                    $"Item with instance ID: {itemInstanceId} was not found in creature: {creature.ID}" +
-                    $" (Def ID: {creature.DefinitionID}) inventory");
-
-            return item;
         }
         #endregion
     }

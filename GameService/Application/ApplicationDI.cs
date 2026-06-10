@@ -82,7 +82,9 @@ namespace Application
             // Game
             services.AddScoped<IHandler<MoveCommand>, MoveHandler>();
             services.AddScoped<IHandler<TouchEntityCommand, RoomSnapshotDTO>, TouchEntityHandler>();
+            services.AddScoped<IHandler<UnequipItemCommand>, UnequipItemHandler>();
             services.AddScoped<IHandler<UpdateAppearanceCommand>, UpdateAppearanceHandler>();
+            services.AddScoped<IHandler<UseItemCommand>, UseItemHandler>();
 
             // Design
             services.AddScoped<IHandler<FetchLocaleCommand, ExistLocalesDTO>, FetchLocaleHandler>();
@@ -118,11 +120,9 @@ namespace Application
             services.AddSingleton<TokenService>();
 
             // Item service
-            services.AddSingleton<ConsumableService>();
-            services.AddSingleton<EquipmentService>();
             services.AddSingleton<InventoryService>();
             services.AddSingleton<ItemService>();
-            services.AddSingleton<PlacementService>();
+            services.AddSingleton<ItemUsageService>();
 
             // World service
             services.AddSingleton<CollisionService>();
@@ -134,17 +134,19 @@ namespace Application
             // SYSTEMS
             // ─────────────────────────────
             // Request
-            services.AddSingleton<MovementRequest>();
+            services.AddSingleton<CreatureRequest>();
+            services.AddSingleton<ProjectileRequest>();
 
             // Resolver
-            services.AddSingleton<CollisionResolver>();
+            services.AddSingleton<CreatureResolver>();
+            services.AddSingleton<ProjectileResolver>();
 
             // Tick
-            services.AddSingleton<EffectTick>();
             services.AddSingleton<ResidencyTick>();
 
             // Trigger
-            services.AddSingleton<MovementTrigger>();
+            services.AddSingleton<CreatureTrigger>();
+            services.AddSingleton<ProjectileTrigger>();
 
             return services;
         }

@@ -104,11 +104,6 @@ namespace Application.Services.DesignService
                     .Select(x => mapper.Map<ItemDefinitionDTO>(x))
                     .ToList(),
 
-                ItemConfigurations = items
-                    .SelectMany(i => i.Configurations)
-                    .Select(e => mapper.Map<ItemConfigurationDefinitionDTO>(e))
-                    .ToList(),
-
                 ItemEffects = items
                     .SelectMany(i => i.Effects)
                     .Select(e => mapper.Map<ItemEffectDefinitionDTO>(e))
