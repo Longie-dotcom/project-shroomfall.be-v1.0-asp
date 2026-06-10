@@ -285,10 +285,30 @@ namespace Infrastructure.Persistence
 
                 entity.OwnsOne(x => x.Appearance, a =>
                 {
-                    a.Property(p => p.SkinID)
-                        .IsRequired();
+                    a.Property(p => p.SkinID).IsRequired();
+                    a.OwnsOne(p => p.SkinColor, s =>
+                    {
+                        s.Property(h => h.H);
+                        s.Property(h => h.S);
+                        s.Property(h => h.V);
+                    });
 
-                    a.OwnsOne(p => p.SkinColor);
+                    a.Property(p => p.HairID);
+                    a.Property(p => p.EyesID);
+                    a.Property(p => p.ShirtID);
+                    a.Property(p => p.PantID);
+                    a.OwnsOne(p => p.HairColor, s =>
+                    {
+                        s.Property(h => h.H);
+                        s.Property(h => h.S);
+                        s.Property(h => h.V);
+                    });
+                    a.OwnsOne(p => p.PantColor, s =>
+                    {
+                        s.Property(h => h.H);
+                        s.Property(h => h.S);
+                        s.Property(h => h.V);
+                    });
                 });
 
                 entity.OwnsOne(x => x.Collision, c =>
@@ -404,32 +424,7 @@ namespace Infrastructure.Persistence
 
             modelBuilder.Entity<Player>(entity =>
             {
-                // ─────────────────────────────
-                // Properties
-                // ─────────────────────────────
-                entity.OwnsOne(x => x.PlayerAppearance, a =>
-                {
-                    a.Property(p => p.SkinID)
-                        .IsRequired();
 
-                    a.OwnsOne(p => p.SkinColor);
-
-                    a.Property(p => p.HairID)
-                        .IsRequired();
-
-                    a.Property(p => p.EyesID)
-                        .IsRequired();
-
-                    a.Property(p => p.ShirtID)
-                        .IsRequired();
-
-                    a.Property(p => p.PantID)
-                        .IsRequired();
-
-                    a.OwnsOne(p => p.HairColor);
-
-                    a.OwnsOne(p => p.PantColor);
-                });
             });
 
             modelBuilder.Entity<Portal>(entity =>

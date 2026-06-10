@@ -3,7 +3,7 @@ using Contract.DTO.Runtime;
 
 namespace Application.Events.Event
 {
-    public class PlayerAppearanceChangedEvent : IEvent
+    public class EntityAppearanceChangedEvent : IEvent
     {
         #region Attributes
         #endregion
@@ -11,14 +11,14 @@ namespace Application.Events.Event
         #region Properties
         public string EntityInstanceID { get; }
         public string RoomSpatialID { get; }
-        public PlayerAppearanceRuntimeDTO Appearance { get; }
+        public AppearanceRuntimeDTO Appearance { get; }
         public DateTime OccurredAt { get; }
         #endregion
 
-        public PlayerAppearanceChangedEvent(
+        public EntityAppearanceChangedEvent(
             string entityInstanceId,
             string roomSpatialId,
-            PlayerAppearanceRuntimeDTO appearance)
+            AppearanceRuntimeDTO appearance)
         {
             EntityInstanceID = entityInstanceId;
             RoomSpatialID = roomSpatialId;

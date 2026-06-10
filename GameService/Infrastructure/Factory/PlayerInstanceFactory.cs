@@ -3,13 +3,10 @@ using Application.Interfaces.Factory;
 using Application.Services.AttributeService;
 using Domain.Common;
 using Domain.Definition.EntityDomain;
-using Domain.Definition.EntityDomain.Component;
 using Domain.Document.EntityDomain;
-using Domain.Document.EntityDomain.Component;
 using Domain.DomainException;
 using Domain.Runtime.AttributeDomain;
 using Domain.Runtime.EntityDomain;
-using Domain.Runtime.EntityDomain.Component;
 using Domain.Runtime.ItemDomain;
 using Domain.Shared;
 
@@ -73,7 +70,7 @@ namespace Infrastructure.Factory
                 activeEffects: new List<EffectInstance>(),
 
                 userId: userId,
-                playerAppearance: MapAppearance(playerDef.PlayerAppearance)
+                appearance: AppearanceMapper.MapAppearance(playerDef.Appearance)
             );
 
             // Initialize persisted vitals
@@ -116,7 +113,7 @@ namespace Infrastructure.Factory
                     .ToList(),
 
                 userId: doc.UserID,
-                playerAppearance: MapAppearance(doc.PlayerAppearance)
+                appearance: AppearanceMapper.MapAppearance(doc.Appearance)
             );
 
             // Restore equipment from document
@@ -142,48 +139,6 @@ namespace Infrastructure.Factory
             characteristicService.RecalculateCoreValues(instance);
 
             return instance;
-        }
-
-        private PlayerAppearanceInstance MapAppearance(
-            PlayerAppearance def)
-        {
-            return new PlayerAppearanceInstance(
-                skinId: def.SkinID,
-                skinColor: HSV.Clone(def.SkinColor),
-                hairId: def.HairID,
-                eyesId: def.EyesID,
-                shirtId: def.ShirtID,
-                pantId: def.PantID,
-                hairColor: HSV.Clone(def.HairColor),
-                pantColor: HSV.Clone(def.PantColor)
-            );
-        }
-
-        private PlayerAppearanceInstance MapAppearance(
-            PlayerAppearanceDocument doc)
-        {
-            return new PlayerAppearanceInstance(
-                skinId: doc.SkinID,
-                skinColor: new HSV(
-                    doc.SkinColor.H,
-                    doc.SkinColor.S,
-                    doc.SkinColor.V),
-
-                hairId: doc.HairID,
-                eyesId: doc.EyesID,
-                shirtId: doc.ShirtID,
-                pantId: doc.PantID,
-
-                hairColor: new HSV(
-                    doc.HairColor.H,
-                    doc.HairColor.S,
-                    doc.HairColor.V),
-
-                pantColor: new HSV(
-                    doc.PantColor.H,
-                    doc.PantColor.S,
-                    doc.PantColor.V)
-            );
         }
         #endregion
     }

@@ -10,7 +10,6 @@ namespace Domain.Definition.EntityDomain
         #endregion
 
         #region Properties
-        public PlayerAppearance PlayerAppearance { get; private set; }
         #endregion
 
         protected Player()
@@ -22,7 +21,7 @@ namespace Domain.Definition.EntityDomain
             string id,
             EntityType type,
             LocalizedText localizedText,
-            PlayerAppearance playerAppearance,
+            Appearance appearance,
             Collision collision,
             string characteristicId,
             string inventoryId,
@@ -30,13 +29,13 @@ namespace Domain.Definition.EntityDomain
                 id,
                 type,
                 localizedText,
-                playerAppearance,
+                appearance,
                 collision,
                 characteristicId,
                 inventoryId,
                 level)
         {
-            PlayerAppearance = playerAppearance;
+
         }
 
         #region Methods

@@ -41,7 +41,7 @@ namespace Application.Features.Connection.Handlers
             return new ExistedSessionEntryDTO()
             {
                 PlayerInstanceID = playerInstance.ID,
-                PlayerAppearance = mapper.Map<PlayerAppearanceRuntimeDTO>(playerInstance.PlayerAppearance)
+                PlayerAppearance = mapper.Map<AppearanceRuntimeDTO>(playerInstance.Appearance)
             };
         }
         #endregion

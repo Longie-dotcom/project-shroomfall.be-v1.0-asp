@@ -68,10 +68,7 @@ namespace Application.Helper
 
             // Entity Domain
             CreateMap<Appearance, AppearanceDefinitionDTO>()
-                .ForMember(d => d.SkinColor, o => o.MapFrom(s => s.SkinColor));
-            CreateMap<Collision, CollisionDefinitionDTO>();
-            CreateMap<PlayerAppearance, PlayerAppearanceDefinitionDTO>()
-                .IncludeBase<Appearance, AppearanceDefinitionDTO>()
+                .ForMember(d => d.SkinColor, o => o.MapFrom(s => s.SkinColor))
                 .ForMember(d => d.HairColor, o => o.MapFrom(s => s.HairColor))
                 .ForMember(d => d.PantColor, o => o.MapFrom(s => s.PantColor));
 
@@ -97,8 +94,7 @@ namespace Application.Helper
                 .ForMember(d => d.EntrancePosition, o => o.MapFrom(s => s.EntrancePosition));
 
             CreateMap<Player, PlayerDefinitionDTO>()
-                .IncludeBase<Creature, CreatureDefinitionDTO>()
-                .ForMember(d => d.PlayerAppearance, o => o.MapFrom(s => s.PlayerAppearance));
+                .IncludeBase<Creature, CreatureDefinitionDTO>();
 
             // Item Domain
             CreateMap<Inventory, InventoryDefinitionDTO>()
@@ -144,9 +140,7 @@ namespace Application.Helper
 
             // Entity Domain
             CreateMap<AppearanceInstance, AppearanceRuntimeDTO>()
-                .ForMember(d => d.SkinColor, o => o.MapFrom(s => s.SkinColor));
-            CreateMap<PlayerAppearanceInstance, PlayerAppearanceRuntimeDTO>()
-                .IncludeBase<AppearanceInstance, AppearanceRuntimeDTO>()
+                .ForMember(d => d.SkinColor, o => o.MapFrom(s => s.SkinColor))
                 .ForMember(d => d.HairColor, o => o.MapFrom(s => s.HairColor))
                 .ForMember(d => d.PantColor, o => o.MapFrom(s => s.PantColor));
 
@@ -178,8 +172,7 @@ namespace Application.Helper
                 .ForMember(d => d.Inventory, o => o.MapFrom(s => s.Inventory));
 
             CreateMap<PlayerInstance, PlayerRuntimeDTO>()
-                .IncludeBase<CreatureInstance, CreatureRuntimeDTO>()
-                .ForMember(d => d.PlayerAppearance, o => o.MapFrom(s => s.PlayerAppearance));
+                .IncludeBase<CreatureInstance, CreatureRuntimeDTO>();
 
             // World Domain
             CreateMap<RoomSpatial, RoomRuntimeDTO>();
@@ -200,9 +193,7 @@ namespace Application.Helper
 
             // Entity Domain
             CreateMap<AppearanceInstance, AppearanceDocument>()
-                .ForMember(d => d.SkinColor, o => o.MapFrom(s => s.SkinColor));
-            CreateMap<PlayerAppearanceInstance, PlayerAppearanceDocument>()
-                .IncludeBase<AppearanceInstance, AppearanceDocument>()
+                .ForMember(d => d.SkinColor, o => o.MapFrom(s => s.SkinColor))
                 .ForMember(d => d.HairColor, o => o.MapFrom(s => s.HairColor))
                 .ForMember(d => d.PantColor, o => o.MapFrom(s => s.PantColor));
 
@@ -225,8 +216,7 @@ namespace Application.Helper
                 .ForMember(d => d.Inventory, o => o.MapFrom(s => s.Inventory));
 
             CreateMap<PlayerInstance, PlayerDocument>()
-                .IncludeBase<CreatureInstance, CreatureDocument>()
-                .ForMember(d => d.PlayerAppearance, o => o.MapFrom(s => s.PlayerAppearance));
+                .IncludeBase<CreatureInstance, CreatureDocument>();
 
             // World Domain
             CreateMap<RoomSpatial, RoomDocument>();

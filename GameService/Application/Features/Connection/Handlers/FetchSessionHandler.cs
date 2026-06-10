@@ -4,6 +4,9 @@ using Application.Interfaces.Repository.NonRelational;
 using Contract.DTO.Common;
 using Contract.DTO.Connection;
 using Contract.DTO.Runtime;
+using Domain.Common;
+using Domain.Definition.EntityDomain.Component;
+using Domain.Document.EntityDomain.Component;
 
 namespace Application.Features.Connection.Handlers
 {
@@ -41,42 +44,49 @@ namespace Application.Features.Connection.Handlers
                     .Select(x => new ExistedSessionEntryDTO
                     {
                         PlayerInstanceID = x.ID,
-
-                        PlayerAppearance = new PlayerAppearanceRuntimeDTO
-                        {
-                            SkinID = x.PlayerAppearance.SkinID,
-
-                            HairID = x.PlayerAppearance.HairID,
-                            EyesID = x.PlayerAppearance.EyesID,
-                            ShirtID = x.PlayerAppearance.ShirtID,
-                            PantID = x.PlayerAppearance.PantID,
-
-                            SkinColor = new HSVDTO
-                            {
-                                H = x.PlayerAppearance.SkinColor.H,
-                                S = x.PlayerAppearance.SkinColor.S,
-                                V = x.PlayerAppearance.SkinColor.V
-                            },
-
-                            HairColor = new HSVDTO
-                            {
-                                H = x.PlayerAppearance.HairColor.H,
-                                S = x.PlayerAppearance.HairColor.S,
-                                V = x.PlayerAppearance.HairColor.V
-                            },
-
-                            PantColor = new HSVDTO
-                            {
-                                H = x.PlayerAppearance.PantColor.H,
-                                S = x.PlayerAppearance.PantColor.S,
-                                V = x.PlayerAppearance.PantColor.V
-                            }
-                        }
+                        PlayerAppearance = MapAppearanceDTO(x.Appearance)
                     })
                     .ToList()
             };
 
             return result;
+        }
+
+        private AppearanceRuntimeDTO MapAppearanceDTO(AppearanceDocument appearance)
+        {
+            return new AppearanceRuntimeDTO
+            {
+                SkinID = appearance.SkinID,
+                HairID = appearance.HairID ?? string.Empty,
+                EyesID = appearance.EyesID ?? string.Empty,
+                ShirtID = appearance.ShirtID ?? string.Empty,
+                PantID = appearance.PantID ?? string.Empty,
+
+                // SkinColor is mandatory: Direct mapping (no null check needed)
+                SkinColor = new HSVDTO
+                {
+                    H = appearance.SkinColor.H,
+                    S = appearance.SkinColor.S,
+                    V = appearance.SkinColor.V
+                },
+
+                // Hair/Pant are nullable: Use the helper
+                HairColor = MapHSVDTO(appearance.HairColor),
+                PantColor = MapHSVDTO(appearance.PantColor)
+            };
+        }
+
+        private HSVDTO? MapHSVDTO(HSVDocument? hsv)
+        {
+            // Return null if the source is null
+            if (hsv == null) return null;
+
+            return new HSVDTO
+            {
+                H = hsv.H,
+                S = hsv.S,
+                V = hsv.V
+            };
         }
         #endregion
     }

@@ -41,7 +41,7 @@ namespace Application.Interfaces.Realtime
         // ─────────────────────────────
         Task SendPlayerAppearanceChanged(
             string roomSpatialId,
-            PlayerAppearanceChangedDTO appearanceChanged);
+            EntityAppearanceChangedDTO appearanceChanged);
 
         // ─────────────────────────────
         // Definition Update Notification

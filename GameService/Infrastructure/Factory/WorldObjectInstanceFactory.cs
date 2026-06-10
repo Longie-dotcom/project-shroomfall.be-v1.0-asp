@@ -53,7 +53,7 @@ namespace Infrastructure.Factory
                 layerZ: layerZ,
                 position: position,
                 movementVector: movementVector,
-                appearance: MapAppearance(worldObjectDef.Appearance),
+                appearance: AppearanceMapper.MapAppearance(worldObjectDef.Appearance),
 
                 inventory: !string.IsNullOrWhiteSpace(worldObjectDef.InventoryID) 
                     ? inventoryInstanceFactory.Create(worldObjectDef.InventoryID) 
@@ -85,7 +85,7 @@ namespace Infrastructure.Factory
                 layerZ: doc.LayerZ,
                 position: new Vector2(doc.Position.X, doc.Position.Y),
                 movementVector: new Vector2(doc.MovementVector.X, doc.MovementVector.Y),
-                appearance: MapAppearance(doc.Appearance),
+                appearance: AppearanceMapper.MapAppearance(doc.Appearance),
 
                 inventory: doc.Inventory != null
                     ? inventoryInstanceFactory.CreateFromDocument(doc.Inventory)
@@ -93,27 +93,6 @@ namespace Infrastructure.Factory
             );
 
             return instance;
-        }
-
-        private AppearanceInstance MapAppearance(
-            Appearance def)
-        {
-            return new AppearanceInstance(
-                skinId: def.SkinID,
-                skinColor: HSV.Clone(def.SkinColor)
-            );
-        }
-
-        private AppearanceInstance MapAppearance(
-            AppearanceDocument doc)
-        {
-            return new AppearanceInstance(
-                skinId: doc.SkinID,
-                skinColor: new HSV(
-                    doc.SkinColor.H,
-                    doc.SkinColor.S,
-                    doc.SkinColor.V)
-            );
         }
         #endregion
     }

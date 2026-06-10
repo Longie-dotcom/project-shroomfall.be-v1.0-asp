@@ -696,6 +696,18 @@ namespace Infrastructure.Migrations
                             b1.Property<string>("EntityID")
                                 .HasColumnType("nvarchar(450)");
 
+                            b1.Property<string>("EyesID")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<string>("HairID")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<string>("PantID")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<string>("ShirtID")
+                                .HasColumnType("nvarchar(max)");
+
                             b1.Property<string>("SkinID")
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
@@ -706,6 +718,50 @@ namespace Infrastructure.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("EntityID");
+
+                            b1.OwnsOne("Domain.Common.HSV", "HairColor", b2 =>
+                                {
+                                    b2.Property<string>("AppearanceEntityID")
+                                        .HasColumnType("nvarchar(450)");
+
+                                    b2.Property<float>("H")
+                                        .HasColumnType("real");
+
+                                    b2.Property<float>("S")
+                                        .HasColumnType("real");
+
+                                    b2.Property<float>("V")
+                                        .HasColumnType("real");
+
+                                    b2.HasKey("AppearanceEntityID");
+
+                                    b2.ToTable("Entities");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("AppearanceEntityID");
+                                });
+
+                            b1.OwnsOne("Domain.Common.HSV", "PantColor", b2 =>
+                                {
+                                    b2.Property<string>("AppearanceEntityID")
+                                        .HasColumnType("nvarchar(450)");
+
+                                    b2.Property<float>("H")
+                                        .HasColumnType("real");
+
+                                    b2.Property<float>("S")
+                                        .HasColumnType("real");
+
+                                    b2.Property<float>("V")
+                                        .HasColumnType("real");
+
+                                    b2.HasKey("AppearanceEntityID");
+
+                                    b2.ToTable("Entities");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("AppearanceEntityID");
+                                });
 
                             b1.OwnsOne("Domain.Common.HSV", "SkinColor", b2 =>
                                 {
@@ -728,6 +784,10 @@ namespace Infrastructure.Migrations
                                     b2.WithOwner()
                                         .HasForeignKey("AppearanceEntityID");
                                 });
+
+                            b1.Navigation("HairColor");
+
+                            b1.Navigation("PantColor");
 
                             b1.Navigation("SkinColor")
                                 .IsRequired();
@@ -1058,120 +1118,6 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("EntrancePosition")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Domain.Definition.EntityDomain.Player", b =>
-                {
-                    b.OwnsOne("Domain.Definition.EntityDomain.Component.PlayerAppearance", "PlayerAppearance", b1 =>
-                        {
-                            b1.Property<string>("PlayerID")
-                                .HasColumnType("nvarchar(450)");
-
-                            b1.Property<string>("EyesID")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("HairID")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("PantID")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("ShirtID")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("SkinID")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.HasKey("PlayerID");
-
-                            b1.ToTable("Entities");
-
-                            b1.WithOwner()
-                                .HasForeignKey("PlayerID");
-
-                            b1.OwnsOne("Domain.Common.HSV", "HairColor", b2 =>
-                                {
-                                    b2.Property<string>("PlayerAppearancePlayerID")
-                                        .HasColumnType("nvarchar(450)");
-
-                                    b2.Property<float>("H")
-                                        .HasColumnType("real");
-
-                                    b2.Property<float>("S")
-                                        .HasColumnType("real");
-
-                                    b2.Property<float>("V")
-                                        .HasColumnType("real");
-
-                                    b2.HasKey("PlayerAppearancePlayerID");
-
-                                    b2.ToTable("Entities");
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("PlayerAppearancePlayerID");
-                                });
-
-                            b1.OwnsOne("Domain.Common.HSV", "PantColor", b2 =>
-                                {
-                                    b2.Property<string>("PlayerAppearancePlayerID")
-                                        .HasColumnType("nvarchar(450)");
-
-                                    b2.Property<float>("H")
-                                        .HasColumnType("real");
-
-                                    b2.Property<float>("S")
-                                        .HasColumnType("real");
-
-                                    b2.Property<float>("V")
-                                        .HasColumnType("real");
-
-                                    b2.HasKey("PlayerAppearancePlayerID");
-
-                                    b2.ToTable("Entities");
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("PlayerAppearancePlayerID");
-                                });
-
-                            b1.OwnsOne("Domain.Common.HSV", "SkinColor", b2 =>
-                                {
-                                    b2.Property<string>("PlayerAppearancePlayerID")
-                                        .HasColumnType("nvarchar(450)");
-
-                                    b2.Property<float>("H")
-                                        .HasColumnType("real");
-
-                                    b2.Property<float>("S")
-                                        .HasColumnType("real");
-
-                                    b2.Property<float>("V")
-                                        .HasColumnType("real");
-
-                                    b2.HasKey("PlayerAppearancePlayerID");
-
-                                    b2.ToTable("Entities");
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("PlayerAppearancePlayerID");
-                                });
-
-                            b1.Navigation("HairColor")
-                                .IsRequired();
-
-                            b1.Navigation("PantColor")
-                                .IsRequired();
-
-                            b1.Navigation("SkinColor")
-                                .IsRequired();
-                        });
-
-                    b.Navigation("PlayerAppearance")
                         .IsRequired();
                 });
 

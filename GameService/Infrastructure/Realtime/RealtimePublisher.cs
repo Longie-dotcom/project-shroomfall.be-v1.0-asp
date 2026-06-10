@@ -87,7 +87,7 @@ namespace Infrastructure.Realtime
         // ─────────────────────────────
         public Task SendPlayerAppearanceChanged(
             string roomId,
-            PlayerAppearanceChangedDTO appearanceChanged)
+            EntityAppearanceChangedDTO appearanceChanged)
         {
             return hub.Clients
                 .Group(roomId)

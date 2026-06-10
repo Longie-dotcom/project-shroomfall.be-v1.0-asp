@@ -96,7 +96,7 @@ namespace Infrastructure.Persistence.Seeder
                     localizationKey: "player.archer",
                     characteristicId: ArcherCharacteristicId,
                     inventoryId: ArcherInventoryId,
-                    appearance: new PlayerAppearance(
+                    appearance: new Appearance(
                         skinId: Skins.Base01,
                         skinColor: new HSV(0f, 0f, 1f),
                         hairId: Hair.Ranger01,
@@ -112,7 +112,7 @@ namespace Infrastructure.Persistence.Seeder
                     localizationKey: "player.joker",
                     characteristicId: JokerCharacteristicId,
                     inventoryId: JokerInventoryId,
-                    appearance: new PlayerAppearance(
+                    appearance: new Appearance(
                         skinId: Skins.Base01,
                         skinColor: new HSV(15f, 0.1f, 0.9f),
                         hairId: Hair.Wild01,
@@ -128,7 +128,7 @@ namespace Infrastructure.Persistence.Seeder
                     localizationKey: "player.warrior",
                     characteristicId: WarriorCharacteristicId,
                     inventoryId: WarriorInventoryId,
-                    appearance: new PlayerAppearance(
+                    appearance: new Appearance(
                         skinId: Skins.Base01,
                         skinColor: new HSV(0f, 0f, 1f),
                         hairId: Hair.KnightClean,
@@ -195,14 +195,14 @@ namespace Infrastructure.Persistence.Seeder
             string localizationKey,
             string characteristicId,
             string inventoryId,
-            PlayerAppearance appearance,
+            Appearance appearance,
             Collision collision)
         {
             return new Player(
                 id: id,
                 type: EntityType.Player,
                 localizedText: LocalizationFactory.ForEntity(localizationKey),
-                playerAppearance: appearance,
+                appearance: appearance,
                 collision: collision,
                 characteristicId: characteristicId,
                 inventoryId: inventoryId,

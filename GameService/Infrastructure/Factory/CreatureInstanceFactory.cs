@@ -67,7 +67,7 @@ namespace Infrastructure.Factory
                 layerZ: layerZ,
                 position: position,
                 movementVector: movementVector,
-                appearance: MapAppearance(creatureDef.Appearance),
+                appearance: AppearanceMapper.MapAppearance(creatureDef.Appearance),
 
                 characteristic: characteristicInstanceFactory.Create(
                     creatureDef.CharacteristicID),
@@ -109,7 +109,7 @@ namespace Infrastructure.Factory
                 position: new Vector2(doc.Position.X, doc.Position.Y),
                 movementVector: new Vector2(doc.MovementVector.X, doc.MovementVector.Y),
 
-                appearance: MapAppearance(doc.Appearance),
+                appearance: AppearanceMapper.MapAppearance(doc.Appearance),
                 characteristic: characteristicInstanceFactory.CreateFromDocument(
                     doc.Characteristic),
                 inventory: inventoryInstanceFactory.CreateFromDocument(
@@ -143,27 +143,6 @@ namespace Infrastructure.Factory
             characteristicService.RecalculateCoreValues(instance);
 
             return instance;
-        }
-
-        private AppearanceInstance MapAppearance(
-            Appearance def)
-        {
-            return new AppearanceInstance(
-                skinId: def.SkinID,
-                skinColor: HSV.Clone(def.SkinColor)
-            );
-        }
-
-        private AppearanceInstance MapAppearance(
-            AppearanceDocument doc)
-        {
-            return new AppearanceInstance(
-                skinId: doc.SkinID,
-                skinColor: new HSV(
-                    doc.SkinColor.H,
-                    doc.SkinColor.S,
-                    doc.SkinColor.V)
-            );
         }
         #endregion
     }

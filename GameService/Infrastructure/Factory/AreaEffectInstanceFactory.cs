@@ -2,10 +2,8 @@
 using Application.Interfaces.Factory;
 using Domain.Common;
 using Domain.Definition.EntityDomain;
-using Domain.Definition.EntityDomain.Component;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
-using Domain.Runtime.EntityDomain.Component;
 using Domain.Shared;
 
 namespace Infrastructure.Factory
@@ -50,22 +48,13 @@ namespace Infrastructure.Factory
                 layerZ: layerZ,
                 position: position,
                 movementVector: movementVector,
-                appearance: MapAppearance(areaEffectDef.Appearance),
+                appearance: AppearanceMapper.MapAppearance(areaEffectDef.Appearance),
                 entityInstanceOwnerId: entityInstanceOwnerId,
                 sourceDefinitionId: sourceDefinitionId,
                 duration: areaEffectDef.Duration
             );
 
             return instance;
-        }
-
-        private AppearanceInstance MapAppearance(
-            Appearance def)
-        {
-            return new AppearanceInstance(
-                skinId: def.SkinID,
-                skinColor: HSV.Clone(def.SkinColor)
-            );
         }
         #endregion
     }

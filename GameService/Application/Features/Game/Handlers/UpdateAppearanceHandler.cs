@@ -70,10 +70,10 @@ namespace Application.Features.Game.Handlers
             );
 
             // Publish changes
-            eventBus.Publish(new PlayerAppearanceChangedEvent(
+            eventBus.Publish(new EntityAppearanceChangedEvent(
                 playerInstanceId,
                 player.RoomSpatialID,
-                mapper.Map<PlayerAppearanceRuntimeDTO>(player.Appearance)));
+                mapper.Map<AppearanceRuntimeDTO>(player.Appearance)));
 
             await Task.CompletedTask;
         }

@@ -13,7 +13,6 @@ namespace Domain.Runtime.EntityDomain
 
         #region Properties
         public string UserID { get; }
-        public PlayerAppearanceInstance PlayerAppearance { get; private set; }
         #endregion
 
         public PlayerInstance(
@@ -24,12 +23,12 @@ namespace Domain.Runtime.EntityDomain
             int layerZ,
             Vector2 position,
             Vector2 movementVector,
+            AppearanceInstance appearance,
             CharacteristicInstance characteristic,
             InventoryInstance inventory,
             int level,
             List<EffectInstance> activeEffects,
-            string userId,
-            PlayerAppearanceInstance playerAppearance) : base(
+            string userId) : base(
                 id,
                 definitionId,
                 collisionShape,
@@ -37,14 +36,13 @@ namespace Domain.Runtime.EntityDomain
                 layerZ,
                 position,
                 movementVector,
-                playerAppearance,
+                appearance,
                 characteristic,
                 inventory,
                 level,
                 activeEffects)
         {
             UserID = userId;
-            PlayerAppearance = playerAppearance;
         }
 
         #region Methods
@@ -58,7 +56,7 @@ namespace Domain.Runtime.EntityDomain
             HSV hairColor,
             HSV pantColor)
         {
-            PlayerAppearance = new PlayerAppearanceInstance(
+            Appearance = new AppearanceInstance(
                 skinId,
                 skinColor,
                 hairId,

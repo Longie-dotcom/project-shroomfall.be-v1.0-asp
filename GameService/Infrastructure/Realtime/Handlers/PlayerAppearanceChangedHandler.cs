@@ -24,12 +24,12 @@ namespace Infrastructure.Realtime.Handlers
         public async Task Handle(
             IEvent @event)
         {
-            if (@event is not PlayerAppearanceChangedEvent changed)
+            if (@event is not EntityAppearanceChangedEvent changed)
                 return;
 
             await publisher.SendPlayerAppearanceChanged(
                 changed.RoomSpatialID,
-                new PlayerAppearanceChangedDTO()
+                new EntityAppearanceChangedDTO()
                 {
                     EntityInstanceID = changed.EntityInstanceID,
                     Appearance = changed.Appearance,
