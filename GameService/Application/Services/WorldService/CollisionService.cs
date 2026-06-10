@@ -255,6 +255,32 @@ namespace Application.Services.WorldService
             }
         }
 
+        public void ValidateSpawnOnNotExistedRoom(
+            ICollisionShape shape,
+            string roomDefinitionId,
+            Vector2 position,
+            int layerZ)
+        {
+            Span<(int x, int y)> buffer = stackalloc (int, int)[256];
+
+            int count = shape.ComputeCells(position, buffer);
+
+            for (int i = 0; i < count; i++)
+            {
+                var (cellX, cellY) = buffer[i];
+
+                var cell = roomCache.GetTopCell(
+                    roomDefinitionId,
+                    cellX,
+                    cellY);
+
+                if (cell != null && cell.Type != CellType.Walkable)
+                    throw new InternalException(
+                        ResponseCode.CollisionService_SpawnBlockedByTile,
+                        $"Spawn blocked by tile at ({cellX}, {cellY})");
+            }
+        }
+
         private int ResolveLayer(
             CollisionBody self,
             RoomSpatial roomSpatial,

@@ -239,9 +239,9 @@ namespace Application.Coordinator
                 position: position,
                 direction: new Vector2(0, 1));
 
-            collisionService.ValidateSpawn(
+            collisionService.ValidateSpawnOnNotExistedRoom(
                 shape: player.CollisionShape,
-                roomSpatialId: roomSnapshot.Room.ID,
+                roomDefinitionId: roomSnapshot.Room.DefinitionID,
                 position: position,
                 layerZ: layerZ);
 
