@@ -67,6 +67,7 @@ namespace Application.Helper
                 .ForMember(d => d.LocalizedText, o => o.MapFrom(s => s.LocalizedText));
 
             // Entity Domain
+            CreateMap<Collision, CollisionDefinitionDTO>();
             CreateMap<Appearance, AppearanceDefinitionDTO>()
                 .ForMember(d => d.SkinColor, o => o.MapFrom(s => s.SkinColor))
                 .ForMember(d => d.HairColor, o => o.MapFrom(s => s.HairColor))
