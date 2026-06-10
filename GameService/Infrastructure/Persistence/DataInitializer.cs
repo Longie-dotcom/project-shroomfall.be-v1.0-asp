@@ -44,7 +44,7 @@ namespace Infrastructure.Persistence
             var newVersion = new DefinitionVersionLog(
                 id: Guid.NewGuid().ToString(),
                 key: Constraint.GLOBAL_DEFINITION_VERSION,
-                version: DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), // Or a simple counter
+                version: DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                 description: "Updated item and entity definitions"
             );
 

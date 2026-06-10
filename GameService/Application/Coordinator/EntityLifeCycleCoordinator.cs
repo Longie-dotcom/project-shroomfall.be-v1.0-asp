@@ -4,7 +4,6 @@ using Application.Interfaces.Factory;
 using Application.Interfaces.Realtime;
 using Application.Services.WorldService;
 using Domain.Common;
-using Domain.Runtime.AttributeDomain;
 using Domain.Runtime.EntityDomain;
 
 namespace Application.Coordinator
