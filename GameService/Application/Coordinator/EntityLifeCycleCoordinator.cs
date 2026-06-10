@@ -62,7 +62,8 @@ namespace Application.Coordinator
                 shape: worldObject.CollisionShape,
                 roomSpatialId: roomSpatialId,
                 position: worldObject.Position,
-                layerZ: worldObject.LayerZ);
+                layerZ: worldObject.LayerZ,
+                ignoreEntityId: worldObject.ID);
 
             // Load spawned world object on runtime
             worldContext.AddEntity(worldObject);
@@ -95,7 +96,7 @@ namespace Application.Coordinator
                 entityInstanceOwnerId: ownerId,
                 sourceDefinitionId: sourceDefinitionId);
 
-            collisionService.ValidateSpawn(projectile.CollisionShape, roomSpatialId, projectile.Position, layerZ);
+            collisionService.ValidateSpawn(projectile.CollisionShape, roomSpatialId, projectile.Position, layerZ, projectile.ID);
             worldContext.AddEntity(projectile);
 
             eventBus.Publish(new EntityLifecycleEvent(

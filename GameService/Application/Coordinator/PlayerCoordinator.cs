@@ -111,7 +111,8 @@ namespace Application.Coordinator
                 shape: player.CollisionShape,
                 roomSpatialId: player.RoomSpatialID,
                 position: player.Position,
-                layerZ: player.LayerZ);
+                layerZ: player.LayerZ,
+                ignoreEntityId: player.ID);
 
             // Mutate runtime
             LoadPlayerRuntime(player);
@@ -296,7 +297,8 @@ namespace Application.Coordinator
                 shape: player.CollisionShape,
                 roomSpatialId: snapshot.Room.ID,
                 position: position,
-                layerZ: layerZ);
+                layerZ: layerZ,
+                ignoreEntityId: player.ID);
 
             return (position, layerZ);
         }

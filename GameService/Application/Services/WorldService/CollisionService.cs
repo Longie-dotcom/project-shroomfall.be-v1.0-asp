@@ -201,7 +201,8 @@ namespace Application.Services.WorldService
             ICollisionShape shape,
             string roomSpatialId,
             Vector2 position,
-            int layerZ)
+            int layerZ,
+            string? ignoreEntityId = null)
         {
             var roomSpatial = worldContext.GetRoom(roomSpatialId);
             if (roomSpatial == null)
@@ -225,6 +226,9 @@ namespace Application.Services.WorldService
 
                 foreach (var entityId in entityIds)
                 {
+                    if (entityId == ignoreEntityId)
+                        continue;
+
                     var entity = worldContext.GetEntity<EntityInstance>(entityId);
                     if (entity == null)
                         continue;
