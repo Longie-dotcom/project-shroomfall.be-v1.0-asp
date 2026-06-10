@@ -2,11 +2,15 @@
 using Domain.Abstraction;
 using Domain.Common;
 using Domain.Document.EntityDomain.Component;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Domain.Document.EntityDomain
 {
     public class EntityDocument : IDocumentObject
     {
+        [BsonId]
+        [BsonRepresentation(BsonType.String)]
         public string ID { get; set; } = string.Empty;
         public string DefinitionID { get; set; } = string.Empty;
         public string RoomSpatialID { get; set; } = string.Empty;
