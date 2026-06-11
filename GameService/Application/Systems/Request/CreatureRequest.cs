@@ -35,18 +35,49 @@ namespace Application.Systems.Request
         }
 
         #region Methods
-        public void Update(
-            float dt,
-            List<CreatureContext> contexts)
+        public List<CreatureContext> Update(float dt)
         {
-            foreach (var creature in worldContext.GetEntities<CreatureInstance>())
+            // 1. Create a fresh list for the current frame
+            var results = new List<CreatureContext>();
+
+            // 2. Take a snapshot to prevent "Collection was modified" exceptions
+            var creatures = worldContext.GetEntities<CreatureInstance>().ToList();
+
+            foreach (var creature in creatures)
             {
                 creatureAIService.TickAI(dt, creature);
-
                 TickEffect(dt, creature);
 
-                TickMovement(dt, creature, contexts);
+                // 1. Assign to a local variable
+                var context = CreateMovementContext(dt, creature);
+
+                // 2. Check the local variable
+                if (context != null)
+                {
+                    results.Add((CreatureContext)context);
+                }
             }
+
+            return results;
+        }
+
+        private CreatureContext? CreateMovementContext(float dt, CreatureInstance creature)
+        {
+            if (!creature.WantsToMove)
+                return null;
+
+            float speed = creature.Characteristic.GetCore(AttributeType.MoveSpeed);
+            var desired = creature.Position + creature.MovementVector * speed * dt;
+
+            var body = new CollisionBody(
+                creature.ID,
+                creature.RoomSpatialID,
+                creature.Position,
+                creature.CollisionOffset,
+                creature.LayerZ,
+                creature.CollisionShape);
+
+            return new CreatureContext(creature.ID, body, desired);
         }
 
         private void TickEffect(

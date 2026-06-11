@@ -21,26 +21,40 @@ namespace Application.Systems.Request
         }
 
         #region Methods
-        public void Update(
-            float dt,
-            List<ProjectileContext> contexts,
-            List<string> immediateExpirations)
+        public (List<ProjectileContext> Contexts, List<string> Expirations) Update(float dt)
         {
-            foreach (var proj in worldContext.GetEntities<ProjectileInstance>())
+            // Create fresh lists for the current frame
+            var contexts = new List<ProjectileContext>();
+            var expirations = new List<string>();
+
+            // Take a snapshot to prevent "Collection was modified" exceptions
+            var projectiles = worldContext.GetEntities<ProjectileInstance>().ToList();
+
+            foreach (var proj in projectiles)
             {
-                // Single-pass internal ticking
                 proj.TickLifetime(dt);
+
                 if (proj.IsExpired())
                 {
-                    immediateExpirations.Add(proj.ID);
+                    expirations.Add(proj.ID);
                     continue;
                 }
 
+                // Logic for movement/collision
                 var desired = proj.Position + proj.MovementVector * proj.Velocity * dt;
-                var body = new CollisionBody(proj.ID, proj.RoomSpatialID, proj.Position, proj.CollisionOffset, proj.LayerZ, proj.CollisionShape);
+                var body = new CollisionBody(
+                    proj.ID,
+                    proj.RoomSpatialID,
+                    proj.Position,
+                    proj.CollisionOffset,
+                    proj.LayerZ,
+                    proj.CollisionShape);
 
                 contexts.Add(new ProjectileContext(proj.ID, body, desired));
             }
+
+            // Return both lists as a tuple
+            return (contexts, expirations);
         }
         #endregion
     }

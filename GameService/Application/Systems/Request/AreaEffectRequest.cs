@@ -20,24 +20,40 @@ namespace Application.Systems.Request
         }
 
         #region Methods
-        public void Update(
-            float dt,
-            List<AreaEffectContext> contexts,
-            List<string> immediateExpirations)
+        public (List<AreaEffectContext> Contexts, List<string> Expirations) Update(
+            float dt)
         {
-            foreach (var aoe in worldContext.GetEntities<AreaEffectInstance>())
+            // 1. Create fresh local lists
+            var contexts = new List<AreaEffectContext>();
+            var expirations = new List<string>();
+
+            // 2. Take a snapshot to prevent "Collection was modified" exceptions
+            var areaEffects = worldContext.GetEntities<AreaEffectInstance>().ToList();
+
+            foreach (var aoe in areaEffects)
             {
                 aoe.TickLifetime(dt);
+
                 if (aoe.IsExpired())
                 {
-                    immediateExpirations.Add(aoe.ID);
+                    expirations.Add(aoe.ID);
                     continue;
                 }
 
-                // Area effects query their current static location, not a future swept location
-                var body = new CollisionBody(aoe.ID, aoe.RoomSpatialID, aoe.Position, aoe.CollisionOffset, aoe.LayerZ, aoe.CollisionShape);
+                // Logic for collision body
+                var body = new CollisionBody(
+                    aoe.ID,
+                    aoe.RoomSpatialID,
+                    aoe.Position,
+                    aoe.CollisionOffset,
+                    aoe.LayerZ,
+                    aoe.CollisionShape);
+
                 contexts.Add(new AreaEffectContext(aoe.ID, body));
             }
+
+            // 3. Return as a Tuple
+            return (contexts, expirations);
         }
         #endregion
     }

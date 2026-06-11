@@ -27,14 +27,6 @@ namespace Infrastructure.Background
 
         private readonly IEventBus eventBus;
         private readonly IEventDispatcher dispatcher;
-
-        private readonly List<CreatureContext> creatureContexts;
-
-        private readonly List<ProjectileContext> projectileContexts;
-        private readonly List<string> projectileExpirations;
-
-        private readonly List<AreaEffectContext> areaEffectContexts;
-        private readonly List<string> areaEffectExpirations;
         #endregion
 
         #region Properties
@@ -74,14 +66,6 @@ namespace Infrastructure.Background
 
             this.eventBus = eventBus;
             this.dispatcher = dispatcher;
-
-            creatureContexts = new List<CreatureContext>();
-
-            projectileContexts = new List<ProjectileContext>();
-            projectileExpirations = new List<string>();
-
-            areaEffectContexts = new List<AreaEffectContext>();
-            areaEffectExpirations = new List<string>();
         }
 
         #region Methods
@@ -93,9 +77,9 @@ namespace Infrastructure.Background
             while (await timer.WaitForNextTickAsync(stoppingToken))
             {
                 // Request systems
-                creatureRequest.Update(Constraint.DELTA_TIME, creatureContexts);
-                projectileRequest.Update(Constraint.DELTA_TIME, projectileContexts, projectileExpirations);
-                areaEffectRequest.Update(Constraint.DELTA_TIME, areaEffectContexts, areaEffectExpirations);
+                var creatureContexts = creatureRequest.Update(Constraint.DELTA_TIME);
+                var (projectileContexts, projectileExpirations) = projectileRequest.Update(Constraint.DELTA_TIME);
+                var (areaEffectContexts, areaEffectExpirations) = areaEffectRequest.Update(Constraint.DELTA_TIME);
 
                 // Resolver systems 
                 var creatureResults = creatureResolver.Resolve(creatureContexts);
@@ -109,9 +93,6 @@ namespace Infrastructure.Background
 
                 // Stats systems
                 await residencyTick.Tick(Constraint.DELTA_TIME); 
-
-                // Clear requests
-                creatureContexts.Clear();
                 
                 // Drain events
                 var events = eventBus.Drain();
