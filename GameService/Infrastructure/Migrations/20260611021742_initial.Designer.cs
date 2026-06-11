@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(RelationalDB))]
-    [Migration("20260610192713_initial")]
+    [Migration("20260611021742_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -828,6 +828,16 @@ namespace Infrastructure.Migrations
                             b1.Property<bool>("IsTrigger")
                                 .HasColumnType("bit");
 
+                            b1.Property<float>("OffsetX")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("real")
+                                .HasDefaultValue(0f);
+
+                            b1.Property<float>("OffsetY")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("real")
+                                .HasDefaultValue(0f);
+
                             b1.Property<float>("Radius")
                                 .HasColumnType("real");
 
@@ -1116,6 +1126,12 @@ namespace Infrastructure.Migrations
 
                             b1.Property<bool>("IsTrigger")
                                 .HasColumnType("bit");
+
+                            b1.Property<float>("OffsetX")
+                                .HasColumnType("real");
+
+                            b1.Property<float>("OffsetY")
+                                .HasColumnType("real");
 
                             b1.Property<float>("Radius")
                                 .HasColumnType("real");

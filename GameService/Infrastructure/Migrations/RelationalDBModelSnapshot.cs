@@ -825,6 +825,16 @@ namespace Infrastructure.Migrations
                             b1.Property<bool>("IsTrigger")
                                 .HasColumnType("bit");
 
+                            b1.Property<float>("OffsetX")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("real")
+                                .HasDefaultValue(0f);
+
+                            b1.Property<float>("OffsetY")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("real")
+                                .HasDefaultValue(0f);
+
                             b1.Property<float>("Radius")
                                 .HasColumnType("real");
 
@@ -1113,6 +1123,12 @@ namespace Infrastructure.Migrations
 
                             b1.Property<bool>("IsTrigger")
                                 .HasColumnType("bit");
+
+                            b1.Property<float>("OffsetX")
+                                .HasColumnType("real");
+
+                            b1.Property<float>("OffsetY")
+                                .HasColumnType("real");
 
                             b1.Property<float>("Radius")
                                 .HasColumnType("real");

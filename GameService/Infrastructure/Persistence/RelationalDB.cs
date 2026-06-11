@@ -322,6 +322,12 @@ namespace Infrastructure.Persistence
 
                     c.Property(p => p.IsTrigger)
                         .IsRequired();
+
+                    c.Property(p => p.OffsetX)
+                        .IsRequired().HasDefaultValue(0.0f);
+
+                    c.Property(p => p.OffsetY)
+                        .IsRequired().HasDefaultValue(0.0f);
                 });
 
                 // ─────────────────────────────
