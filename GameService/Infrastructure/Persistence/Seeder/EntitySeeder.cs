@@ -100,7 +100,6 @@ namespace Infrastructure.Persistence.Seeder
             public const string Ranger01 = "hair_ranger_01";
             public const string Wild01 = "hair_wild_01";
             public const string KnightClean = "hair_knight_clean";
-            public const string BushyBeard = "hair_bushy_beard";
         }
 
         public static class Eyes
@@ -108,7 +107,6 @@ namespace Infrastructure.Persistence.Seeder
             public const string Focused = "eyes_focused";
             public const string Angry = "eyes_angry";
             public const string Determined = "eyes_determined";
-            public const string Jolly = "eyes_jolly";
         }
 
         public static class Shirts
@@ -116,7 +114,6 @@ namespace Infrastructure.Persistence.Seeder
             public const string TunicGreen = "shirt_tunic_green";
             public const string FursDark = "shirt_furs_dark";
             public const string SteelBreastplate = "shirt_steel_breastplate";
-            public const string FlannelRed = "shirt_flannel_red";
         }
 
         public static class Pants
@@ -124,7 +121,6 @@ namespace Infrastructure.Persistence.Seeder
             public const string LeatherBrown = "pant_leather_brown";
             public const string HideKilts = "pant_hide_kilts";
             public const string IronGreaves = "pant_iron_greaves";
-            public const string OverallsBlue = "pant_overalls_blue";
         }
         #endregion
 

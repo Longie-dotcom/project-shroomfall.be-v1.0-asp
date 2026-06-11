@@ -40,6 +40,8 @@ namespace Application.Services.EntityService
             float dt,
             CreatureInstance creature)
         {
+            if (!creature.IsAIControlled) return;
+
             creature.ThinkCooldownRemaining -= dt;
 
             if (creature.ThinkCooldownRemaining > 0)

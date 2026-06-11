@@ -65,11 +65,11 @@ namespace Domain.Runtime.EntityDomain
             ActiveEffects = activeEffects;
             
             AttackTimer = 0f;
-            IsAIControlled = true;
             AIState = AIState.Idle;
             HomePosition = position;
             ThinkCooldownRemaining = 0f;
             TargetEntityId = null;
+            IsAIControlled = true;
         }
 
         #region Methods
