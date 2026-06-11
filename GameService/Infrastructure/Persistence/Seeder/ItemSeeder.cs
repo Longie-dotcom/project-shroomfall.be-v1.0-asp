@@ -16,7 +16,7 @@ namespace Infrastructure.Persistence.Seeder
         public const string CROSSBOW_ID = "item_range_crossbow_iron";
         public const string FIRE_BOMB_ID = "item_throw_bomb_fire";
         public const string STUN_GRENADE_ID = "item_throw_stun_grenade";
-        public const string CAMPFIRE_ID = "item_place_campfire";
+        public const string CAMPFIRE_ID = "item_place_campfire"; //
         public const string CHEST_ID = "item_place_chest";
         public const string IRON_ORE_ID = "item_mat_iron_ore";
         public const string WOOD_LOG_ID = "item_mat_wood_log";

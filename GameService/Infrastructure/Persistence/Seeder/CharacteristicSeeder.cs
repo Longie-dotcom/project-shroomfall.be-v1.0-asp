@@ -118,7 +118,7 @@ namespace Infrastructure.Persistence.Seeder
             c.AttributeValues.Add(new AttributeValue(AttributeType.TameQuality, 0f, 1, 0f, 1.0f, c.ID));
 
             // 🏃 Utility
-            c.AttributeValues.Add(new AttributeValue(AttributeType.MoveSpeed, 1.0f, 1, 0.2f, 5.0f, c.ID));
+            c.AttributeValues.Add(new AttributeValue(AttributeType.MoveSpeed, 15.0f, 1, 0.2f, 25.0f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.Lucky, 0f, 1, 0f, 100f, c.ID));
 
             // ❤️ Vitals
@@ -164,7 +164,7 @@ namespace Infrastructure.Persistence.Seeder
             c.AttributeValues.Add(new AttributeValue(AttributeType.TameQuality, 0f, 1, 0f, 1.0f, c.ID));
 
             // 🏃 Utility
-            c.AttributeValues.Add(new AttributeValue(AttributeType.MoveSpeed, 1.18f, 1, 0.2f, 5.0f, c.ID));
+            c.AttributeValues.Add(new AttributeValue(AttributeType.MoveSpeed, 15.0f, 1, 0.2f, 25.0f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.Lucky, 5f, 1, 0f, 100f, c.ID));
 
             // ❤️ Vitals
@@ -210,7 +210,7 @@ namespace Infrastructure.Persistence.Seeder
             c.AttributeValues.Add(new AttributeValue(AttributeType.TameQuality, 0f, 1, 0f, 1.0f, c.ID));
 
             // 🏃 Utility
-            c.AttributeValues.Add(new AttributeValue(AttributeType.MoveSpeed, 1.10f, 1, 0.2f, 5.0f, c.ID));
+            c.AttributeValues.Add(new AttributeValue(AttributeType.MoveSpeed, 15.0f, 1, 0.2f, 25.0f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.Lucky, 12f, 1, 0f, 100f, c.ID));
 
             // ❤️ Vitals
