@@ -138,33 +138,6 @@ namespace Application.Systems.Request
                 characteristicService.RecalculateCoreValues(creature);
             }
         }
-
-        private void TickMovement(
-            float dt,
-            CreatureInstance creature,
-            List<CreatureContext> contexts)
-        {
-            if (!creature.WantsToMove)
-                return;
-
-            // Resolve creature desired position
-            float speed = creature.Characteristic.GetCore(AttributeType.MoveSpeed);
-            var desired = creature.Position + creature.MovementVector * speed * dt;
-
-            // Request for collision resolving
-            var body = new CollisionBody(
-                creature.ID,
-                creature.RoomSpatialID,
-                creature.Position,
-                creature.CollisionOffset,
-                creature.LayerZ,
-                creature.CollisionShape);
-
-            contexts.Add(new CreatureContext(
-                creature.ID,
-                body,
-                desired));
-        }
         #endregion
     }
 }

@@ -141,8 +141,8 @@ namespace Infrastructure.Persistence.Seeder
                         eyesId: Eyes.Focused,
                         shirtId: Shirts.TunicGreen,
                         pantId: Pants.LeatherBrown,
-                        hairColor: new HSV(30f, 0.8f, 0.5f),
-                        pantColor: new HSV(20f, 0.5f, 0.3f))
+                        hairColor: new HSV(0f, 0f, 1f),
+                        pantColor: new HSV(0f, 0f, 1f))
                 ),
                 CreatePlayerTemplate(
                     id: JokerPlayerId,
@@ -151,13 +151,13 @@ namespace Infrastructure.Persistence.Seeder
                     inventoryId: JokerInventoryId,
                     appearance: new Appearance(
                         skinId: Skins.Base01,
-                        skinColor: new HSV(15f, 0.1f, 0.9f),
+                        skinColor: new HSV(0f, 0f, 1f),
                         hairId: Hair.Wild01,
                         eyesId: Eyes.Angry,
                         shirtId: Shirts.FursDark,
                         pantId: Pants.HideKilts,
-                        hairColor: new HSV(12f, 0.9f, 0.6f),
-                        pantColor: new HSV(0f, 0f, 0.2f))
+                        hairColor: new HSV(0f, 0f, 1f),
+                        pantColor: new HSV(0f, 0f, 1f))
                 ),
                 CreatePlayerTemplate(
                     id: WarriorPlayerId,
@@ -171,8 +171,8 @@ namespace Infrastructure.Persistence.Seeder
                         eyesId: Eyes.Determined,
                         shirtId: Shirts.SteelBreastplate,
                         pantId: Pants.IronGreaves,
-                        hairColor: new HSV(45f, 0.7f, 0.8f),
-                        pantColor: new HSV(220f, 0.4f, 0.5f))
+                        hairColor: new HSV(0f, 0f, 1f),
+                        pantColor: new HSV(0f, 0f, 1f))
                 ),
             };
 

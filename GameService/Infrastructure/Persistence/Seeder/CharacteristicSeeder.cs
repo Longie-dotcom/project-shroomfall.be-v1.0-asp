@@ -240,7 +240,7 @@ namespace Infrastructure.Persistence.Seeder
             c.AttributeValues.Add(new AttributeValue(AttributeType.DarkResistance, 0f, 1, 0f, 100f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.LightResistance, 0f, 1, 0f, 100f, c.ID));
 
-            c.AttributeValues.Add(new AttributeValue(AttributeType.MoveSpeed, 9.0f, 1, 0.2f, 25.0f, c.ID));
+            c.AttributeValues.Add(new AttributeValue(AttributeType.MoveSpeed, 6.0f, 1, 0.2f, 25.0f, c.ID));
 
             // ❤️ Vitals
             c.AttributeValues.Add(new AttributeValue(AttributeType.Health, 100f, 1, 10f, 5000f, c.ID));
@@ -269,7 +269,7 @@ namespace Infrastructure.Persistence.Seeder
             c.AttributeValues.Add(new AttributeValue(AttributeType.DarkResistance, 0f, 1, 0f, 100f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.LightResistance, 0f, 1, 0f, 100f, c.ID));
 
-            c.AttributeValues.Add(new AttributeValue(AttributeType.MoveSpeed, 9.0f, 1, 0.2f, 25.0f, c.ID));
+            c.AttributeValues.Add(new AttributeValue(AttributeType.MoveSpeed, 3.0f, 1, 0.2f, 25.0f, c.ID));
 
             // ❤️ Vitals
             c.AttributeValues.Add(new AttributeValue(AttributeType.Health, 100f, 1, 10f, 5000f, c.ID));
@@ -298,7 +298,7 @@ namespace Infrastructure.Persistence.Seeder
             c.AttributeValues.Add(new AttributeValue(AttributeType.DarkResistance, 0f, 1, 0f, 100f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.LightResistance, 0f, 1, 0f, 100f, c.ID));
 
-            c.AttributeValues.Add(new AttributeValue(AttributeType.MoveSpeed, 9.0f, 1, 0.2f, 25.0f, c.ID));
+            c.AttributeValues.Add(new AttributeValue(AttributeType.MoveSpeed, 5.0f, 1, 0.2f, 25.0f, c.ID));
 
             // ❤️ Vitals
             c.AttributeValues.Add(new AttributeValue(AttributeType.Health, 100f, 1, 10f, 5000f, c.ID));
@@ -327,7 +327,7 @@ namespace Infrastructure.Persistence.Seeder
             c.AttributeValues.Add(new AttributeValue(AttributeType.DarkResistance, 25f, 1, 0f, 100f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.LightResistance, 0f, 1, 0f, 100f, c.ID));
 
-            c.AttributeValues.Add(new AttributeValue(AttributeType.MoveSpeed, 9.0f, 1, 0.2f, 25.0f, c.ID));
+            c.AttributeValues.Add(new AttributeValue(AttributeType.MoveSpeed, 6.0f, 1, 0.2f, 25.0f, c.ID));
 
             // ❤️ Vitals
             c.AttributeValues.Add(new AttributeValue(AttributeType.Health, 100f, 1, 10f, 5000f, c.ID));
@@ -356,7 +356,7 @@ namespace Infrastructure.Persistence.Seeder
             c.AttributeValues.Add(new AttributeValue(AttributeType.DarkResistance, 0f, 1, 0f, 100f, c.ID));
             c.AttributeValues.Add(new AttributeValue(AttributeType.LightResistance, 25f, 1, 0f, 100f, c.ID));
 
-            c.AttributeValues.Add(new AttributeValue(AttributeType.MoveSpeed, 9.0f, 1, 0.2f, 25.0f, c.ID));
+            c.AttributeValues.Add(new AttributeValue(AttributeType.MoveSpeed, 4.0f, 1, 0.2f, 25.0f, c.ID));
 
             // ❤️ Vitals
             c.AttributeValues.Add(new AttributeValue(AttributeType.Health, 100f, 1, 10f, 5000f, c.ID));
