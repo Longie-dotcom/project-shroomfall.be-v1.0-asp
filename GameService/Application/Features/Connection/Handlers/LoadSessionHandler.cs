@@ -37,6 +37,12 @@ namespace Application.Features.Connection.Handlers
         {
             var dto = command.DTO;
 
+            // Prevent duplicate session
+            if (sessionManager.Get(command.UserID) != null)
+                throw new BadRequest(
+                    ResponseCode.LoadSession_SessionAlreadyExisted,
+                    $"Session of user with user ID: {command.UserID} already existed with player instance ID: {dto.PlayerInstanceID}");
+
             // Reload player instance (old save)
             var (player, snapshot) = await playerCoordinator.LoadPlayer(dto.PlayerInstanceID, command.UserID);
 
