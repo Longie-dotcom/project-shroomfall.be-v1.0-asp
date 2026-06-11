@@ -35,7 +35,7 @@ namespace Application.Systems.Request
                 }
 
                 // Area effects query their current static location, not a future swept location
-                var body = new CollisionBody(aoe.ID, aoe.RoomSpatialID, aoe.Position, aoe.LayerZ, aoe.CollisionShape);
+                var body = new CollisionBody(aoe.ID, aoe.RoomSpatialID, aoe.Position, aoe.CollisionOffset, aoe.LayerZ, aoe.CollisionShape);
                 contexts.Add(new AreaEffectContext(aoe.ID, body));
             }
         }

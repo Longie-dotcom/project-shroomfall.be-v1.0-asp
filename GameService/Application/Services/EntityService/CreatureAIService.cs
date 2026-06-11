@@ -74,6 +74,7 @@ namespace Application.Services.EntityService
                 creature.ID,
                 creature.RoomSpatialID,
                 creature.Position,
+                creature.CollisionOffset,
                 creature.LayerZ,
                 new CircleShape(5f, false, false)); // aggro radius
 

@@ -111,6 +111,7 @@ namespace Application.Coordinator
                 shape: player.CollisionShape,
                 roomSpatialId: player.RoomSpatialID,
                 position: player.Position,
+                offset: player.CollisionOffset,
                 layerZ: player.LayerZ,
                 ignoreEntityId: player.ID);
 
@@ -244,6 +245,7 @@ namespace Application.Coordinator
                 shape: player.CollisionShape,
                 roomDefinitionId: roomSnapshot.Room.DefinitionID,
                 position: position,
+                offset: player.CollisionOffset,
                 layerZ: layerZ);
 
             return player;
@@ -297,6 +299,7 @@ namespace Application.Coordinator
                 shape: player.CollisionShape,
                 roomSpatialId: snapshot.Room.ID,
                 position: position,
+                offset: player.CollisionOffset,
                 layerZ: layerZ,
                 ignoreEntityId: player.ID);
 

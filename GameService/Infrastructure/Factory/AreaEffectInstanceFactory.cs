@@ -44,6 +44,7 @@ namespace Infrastructure.Factory
                 id: instanceId,
                 definitionId: areaEffectDef.ID,
                 collisionShape: CollisionShapeMapper.FromDefinition(areaEffectDef.Collision),
+                collisionOffset: new Vector2(areaEffectDef.Collision.OffsetX, areaEffectDef.Collision.OffsetY),
                 roomSpatialId: roomSpatialId,
                 layerZ: layerZ,
                 position: position,

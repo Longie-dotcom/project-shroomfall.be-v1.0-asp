@@ -16,6 +16,7 @@ namespace Domain.Runtime.EntityDomain
         public string ID { get; }
         public string DefinitionID { get; }
         public ICollisionShape CollisionShape { get; }
+        public Vector2 CollisionOffset { get; }
         public string RoomSpatialID { get; protected set; }
         public int LayerZ { get; protected set; }
         public Vector2 Position { get; protected set; }
@@ -32,6 +33,7 @@ namespace Domain.Runtime.EntityDomain
             string id,
             string definitionId,
             ICollisionShape collisionShape,
+            Vector2 collisionOffset,
             string roomSpatialId,
             int layerZ,
             Vector2 position,
@@ -41,6 +43,7 @@ namespace Domain.Runtime.EntityDomain
             ID = id;
             DefinitionID = definitionId;
             CollisionShape = collisionShape;
+            CollisionOffset = collisionOffset;
             RoomSpatialID = roomSpatialId;
             LayerZ = layerZ;
             Position = position;

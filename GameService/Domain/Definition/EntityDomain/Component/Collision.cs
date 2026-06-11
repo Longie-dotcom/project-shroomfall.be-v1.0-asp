@@ -16,6 +16,8 @@ namespace Domain.Definition.EntityDomain.Component
         public float Radius { get; private set; }
         public bool IsBlocking { get; private set; }
         public bool IsTrigger { get; private set; }
+        public float OffsetX { get; private set; }
+        public float OffsetY { get; private set; }
         #endregion
 
         protected Collision() 
@@ -29,7 +31,9 @@ namespace Domain.Definition.EntityDomain.Component
             float height,
             float radius,
             bool isBlocking,
-            bool isTrigger)
+            bool isTrigger,
+            float offsetX = 0f,
+            float offsetY = 0f)
         {
             if (width < 0)
                 throw new BadRequest(ResponseCode.Collision_InvalidWidth);
@@ -43,7 +47,6 @@ namespace Domain.Definition.EntityDomain.Component
             switch (shapeType)
             {
                 case CollisionShapeType.Point:
-                    // nothing required
                     break;
 
                 case CollisionShapeType.Box:
@@ -67,6 +70,10 @@ namespace Domain.Definition.EntityDomain.Component
             Width = width;
             Height = height;
             Radius = radius;
+
+            OffsetX = offsetX;
+            OffsetY = offsetY;
+
             IsBlocking = isBlocking;
             IsTrigger = isTrigger;
         }

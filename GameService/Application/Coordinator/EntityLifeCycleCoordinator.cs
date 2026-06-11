@@ -4,6 +4,7 @@ using Application.Interfaces.Factory;
 using Application.Interfaces.Realtime;
 using Application.Services.WorldService;
 using Domain.Common;
+using Domain.Definition.EntityDomain;
 using Domain.Runtime.EntityDomain;
 
 namespace Application.Coordinator
@@ -62,6 +63,7 @@ namespace Application.Coordinator
                 shape: worldObject.CollisionShape,
                 roomSpatialId: roomSpatialId,
                 position: worldObject.Position,
+                offset: worldObject.CollisionOffset,
                 layerZ: worldObject.LayerZ,
                 ignoreEntityId: worldObject.ID);
 
@@ -96,7 +98,13 @@ namespace Application.Coordinator
                 entityInstanceOwnerId: ownerId,
                 sourceDefinitionId: sourceDefinitionId);
 
-            collisionService.ValidateSpawn(projectile.CollisionShape, roomSpatialId, projectile.Position, layerZ, projectile.ID);
+            collisionService.ValidateSpawn(
+                projectile.CollisionShape,
+                roomSpatialId, 
+                projectile.Position,
+                projectile.CollisionOffset,
+                layerZ,
+                projectile.ID);
             worldContext.AddEntity(projectile);
 
             eventBus.Publish(new EntityLifecycleEvent(

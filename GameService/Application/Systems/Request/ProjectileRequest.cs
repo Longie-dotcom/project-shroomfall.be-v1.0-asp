@@ -37,7 +37,7 @@ namespace Application.Systems.Request
                 }
 
                 var desired = proj.Position + proj.MovementVector * proj.Velocity * dt;
-                var body = new CollisionBody(proj.ID, proj.RoomSpatialID, proj.Position, proj.LayerZ, proj.CollisionShape);
+                var body = new CollisionBody(proj.ID, proj.RoomSpatialID, proj.Position, proj.CollisionOffset, proj.LayerZ, proj.CollisionShape);
 
                 contexts.Add(new ProjectileContext(proj.ID, body, desired));
             }

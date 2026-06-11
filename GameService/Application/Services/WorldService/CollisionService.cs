@@ -16,6 +16,7 @@ namespace Application.Services.WorldService
         public string EntityInstanceID { get; }
         public string RoomSpatialID { get; }
         public Vector2 Position { get; }
+        public Vector2 Offset { get; }
         public int LayerZ { get; }
         public ICollisionShape CollisionShape { get; }
 
@@ -23,6 +24,7 @@ namespace Application.Services.WorldService
             string entityInstanceID,
             string roomSpatialID,
             Vector2 position,
+            Vector2 offset,
             int layerZ,
             ICollisionShape collisionShape)
         {
@@ -30,6 +32,7 @@ namespace Application.Services.WorldService
             RoomSpatialID = roomSpatialID;
 
             Position = position;
+            Offset = offset; // Assign Offset
             LayerZ = layerZ;
 
             CollisionShape = collisionShape;
@@ -98,15 +101,22 @@ namespace Application.Services.WorldService
 
         #region Methods
         public bool QueryInteractions(
-                CollisionBody self,
-                RoomSpatial roomSpatial,
-                Vector2 position,
-                CollisionContext context,
-                Span<(int x, int y)> buffer)
+            CollisionBody self,
+            RoomSpatial roomSpatial,
+            Vector2 position,
+            CollisionContext context,
+            Span<(int x, int y)> buffer)
         {
             bool isBlocked = false;
             visitedChunks.Clear();
-            int count = self.CollisionShape.ComputeCells(position, buffer);
+
+            // 1. Calculate the effective position of the moving body
+            Vector2 effectiveSelfPosition = new Vector2(
+                position.X + self.Offset.X,
+                position.Y + self.Offset.Y);
+
+            // Compute cells using the offset position
+            int count = self.CollisionShape.ComputeCells(effectiveSelfPosition, buffer);
 
             for (int i = 0; i < count; i++)
             {
@@ -123,7 +133,14 @@ namespace Application.Services.WorldService
                         var entity = worldContext.GetEntity<EntityInstance>(entityId);
                         if (entity == null || entity.ID == self.EntityInstanceID) continue;
 
-                        if (self.CollisionShape.Intersects(position, entity.CollisionShape, entity.Position))
+                        // 2. Calculate the effective position of the target entity
+                        // (Requires EntityInstance to expose its CollisionOffset)
+                        Vector2 effectiveEntityPosition = new Vector2(
+                            entity.Position.X + entity.CollisionOffset.X,
+                            entity.Position.Y + entity.CollisionOffset.Y);
+
+                        // 3. Check intersection using both effective positions
+                        if (self.CollisionShape.Intersects(effectiveSelfPosition, entity.CollisionShape, effectiveEntityPosition))
                         {
                             if (!context.Entities.Contains(entity))
                                 context.Entities.Add(entity);
@@ -201,6 +218,7 @@ namespace Application.Services.WorldService
             ICollisionShape shape,
             string roomSpatialId,
             Vector2 position,
+            Vector2 offset, // 1. Add offset parameter
             int layerZ,
             string? ignoreEntityId = null)
         {
@@ -212,7 +230,13 @@ namespace Application.Services.WorldService
 
             Span<(int x, int y)> buffer = stackalloc (int, int)[256];
 
-            int count = shape.ComputeCells(position, buffer);
+            // 2. Calculate the effective spawn position
+            Vector2 effectiveSpawnPosition = new Vector2(
+                position.X + offset.X,
+                position.Y + offset.Y);
+
+            // 3. Compute cells using the effective position
+            int count = shape.ComputeCells(effectiveSpawnPosition, buffer);
 
             for (int i = 0; i < count; i++)
             {
@@ -224,8 +248,6 @@ namespace Application.Services.WorldService
                     cellY,
                     layerZ);
 
-
-                ///////////// debugg
                 foreach (var entityId in entityIds)
                 {
                     if (entityId == ignoreEntityId)
@@ -235,52 +257,16 @@ namespace Application.Services.WorldService
                     if (entity == null)
                         continue;
 
-                    Console.WriteLine(
-                        $"[SPAWN CHECK] " +
-                        $"SpawnPos=({position.X:F2},{position.Y:F2}) " +
-                        $"SpawnShape={shape.GetType().Name} " +
-                        $"vs " +
-                        $"Entity={entity.ID} " +
-                        $"EntityPos=({entity.Position.X:F2},{entity.Position.Y:F2}) " +
-                        $"EntityShape={entity.CollisionShape.GetType().Name}"
-                    );
+                    // 4. Calculate the effective position of the existing entity
+                    Vector2 effectiveEntityPosition = new Vector2(
+                        entity.Position.X + entity.CollisionOffset.X,
+                        entity.Position.Y + entity.CollisionOffset.Y);
 
+                    // 5. Intersect using the effective positions
                     bool intersects = shape.Intersects(
-                        position,
+                        effectiveSpawnPosition,
                         entity.CollisionShape,
-                        entity.Position);
-
-                    Console.WriteLine(
-                        $"[SPAWN CHECK RESULT] " +
-                        $"Entity={entity.ID} " +
-                        $"Intersects={intersects} " +
-                        $"Blocking={entity.CollisionShape.IsBlocking}"
-                    );
-
-                    if (!intersects)
-                        continue;
-
-                    if (entity.CollisionShape.IsBlocking)
-                        throw new InternalException(
-                            ResponseCode.CollisionService_SpawnBlockedByEntity,
-                            $"Spawn blocked by entity instance ID: {entity.ID}");
-                }
-                ///////////////
-                
-
-                foreach (var entityId in entityIds)
-                {
-                    if (entityId == ignoreEntityId)
-                        continue;
-
-                    var entity = worldContext.GetEntity<EntityInstance>(entityId);
-                    if (entity == null)
-                        continue;
-
-                    bool intersects = shape.Intersects(
-                        position,
-                        entity.CollisionShape,
-                        entity.Position);
+                        effectiveEntityPosition);
 
                     if (!intersects)
                         continue;
@@ -307,11 +293,18 @@ namespace Application.Services.WorldService
             ICollisionShape shape,
             string roomDefinitionId,
             Vector2 position,
+            Vector2 offset, // 1. Add offset parameter
             int layerZ)
         {
             Span<(int x, int y)> buffer = stackalloc (int, int)[256];
 
-            int count = shape.ComputeCells(position, buffer);
+            // 2. Calculate the effective spawn position
+            Vector2 effectiveSpawnPosition = new Vector2(
+                position.X + offset.X,
+                position.Y + offset.Y);
+
+            // 3. Compute cells using the effective position
+            int count = shape.ComputeCells(effectiveSpawnPosition, buffer);
 
             for (int i = 0; i < count; i++)
             {

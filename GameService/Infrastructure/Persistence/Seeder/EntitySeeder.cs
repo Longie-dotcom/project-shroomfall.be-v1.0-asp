@@ -146,8 +146,7 @@ namespace Infrastructure.Persistence.Seeder
                         shirtId: Shirts.TunicGreen,
                         pantId: Pants.LeatherBrown,
                         hairColor: new HSV(30f, 0.8f, 0.5f),
-                        pantColor: new HSV(20f, 0.5f, 0.3f)),
-                    collision: new Collision(CollisionShapeType.Box, width: 14f, height: 16f, radius: 0f, isBlocking: true, isTrigger: false)
+                        pantColor: new HSV(20f, 0.5f, 0.3f))
                 ),
                 CreatePlayerTemplate(
                     id: JokerPlayerId,
@@ -162,8 +161,7 @@ namespace Infrastructure.Persistence.Seeder
                         shirtId: Shirts.FursDark,
                         pantId: Pants.HideKilts,
                         hairColor: new HSV(12f, 0.9f, 0.6f),
-                        pantColor: new HSV(0f, 0f, 0.2f)),
-                    collision: new Collision(CollisionShapeType.Box, width: 18f, height: 18f, radius: 0f, isBlocking: true, isTrigger: false)
+                        pantColor: new HSV(0f, 0f, 0.2f))
                 ),
                 CreatePlayerTemplate(
                     id: WarriorPlayerId,
@@ -178,8 +176,7 @@ namespace Infrastructure.Persistence.Seeder
                         shirtId: Shirts.SteelBreastplate,
                         pantId: Pants.IronGreaves,
                         hairColor: new HSV(45f, 0.7f, 0.8f),
-                        pantColor: new HSV(220f, 0.4f, 0.5f)),
-                    collision: new Collision(CollisionShapeType.Box, width: 16f, height: 16f, radius: 0f, isBlocking: true, isTrigger: false)
+                        pantColor: new HSV(220f, 0.4f, 0.5f))
                 ),
             };
 
@@ -200,8 +197,7 @@ namespace Infrastructure.Persistence.Seeder
                     appearance: new Appearance(
                         skinId: Skins.Shroom,
                         skinColor: new HSV(12f, 0.9f, 0.95f), // Intense Fire Red/Orange
-                        hairId: null, eyesId: null, shirtId: null, pantId: null, hairColor: null, pantColor: null),
-                    collision: new Collision(CollisionShapeType.Box, width: 12f, height: 12f, radius: 0f, isBlocking: true, isTrigger: false)
+                        hairId: null, eyesId: null, shirtId: null, pantId: null, hairColor: null, pantColor: null)
                 ),
 
                 // 2. ❄️ IcePower Shroom
@@ -213,8 +209,7 @@ namespace Infrastructure.Persistence.Seeder
                     appearance: new Appearance(
                         skinId: Skins.Shroom,
                         skinColor: new HSV(195f, 0.65f, 0.95f), // Frost Cyan/Ice Blue
-                        hairId: null, eyesId: null, shirtId: null, pantId: null, hairColor: null, pantColor: null),
-                    collision: new Collision(CollisionShapeType.Box, width: 12f, height: 12f, radius: 0f, isBlocking: true, isTrigger: false)
+                        hairId: null, eyesId: null, shirtId: null, pantId: null, hairColor: null, pantColor: null)
                 ),
 
                 // 3. ⛰️ EarthPower Shroom
@@ -226,8 +221,7 @@ namespace Infrastructure.Persistence.Seeder
                     appearance: new Appearance(
                         skinId: Skins.Shroom,
                         skinColor: new HSV(32f, 0.7f, 0.5f), // Deep Terracotta / Muddy Earth Brown
-                        hairId: null, eyesId: null, shirtId: null, pantId: null, hairColor: null, pantColor: null),
-                    collision: new Collision(CollisionShapeType.Box, width: 12f, height: 12f, radius: 0f, isBlocking: true, isTrigger: false)
+                        hairId: null, eyesId: null, shirtId: null, pantId: null, hairColor: null, pantColor: null)
                 ),
 
                 // 4. 🌌 DarkPower Shroom
@@ -239,8 +233,7 @@ namespace Infrastructure.Persistence.Seeder
                     appearance: new Appearance(
                         skinId: Skins.Shroom,
                         skinColor: new HSV(275f, 0.85f, 0.35f), // Dark Abyssal Violet
-                        hairId: null, eyesId: null, shirtId: null, pantId: null, hairColor: null, pantColor: null),
-                    collision: new Collision(CollisionShapeType.Box, width: 12f, height: 12f, radius: 0f, isBlocking: true, isTrigger: false)
+                        hairId: null, eyesId: null, shirtId: null, pantId: null, hairColor: null, pantColor: null)
                 ),
 
                 // 5. ☀️ LightPower Shroom
@@ -252,8 +245,7 @@ namespace Infrastructure.Persistence.Seeder
                     appearance: new Appearance(
                         skinId: Skins.Shroom,
                         skinColor: new HSV(50f, 0.25f, 1.0f), // Glowing Radiant Off-White/Gold
-                        hairId: null, eyesId: null, shirtId: null, pantId: null, hairColor: null, pantColor: null),
-                    collision: new Collision(CollisionShapeType.Box, width: 12f, height: 12f, radius: 0f, isBlocking: true, isTrigger: false)
+                        hairId: null, eyesId: null, shirtId: null, pantId: null, hairColor: null, pantColor: null)
                 )
             };
 
@@ -340,15 +332,14 @@ namespace Infrastructure.Persistence.Seeder
             string localizationKey,
             string characteristicId,
             string inventoryId,
-            Appearance appearance,
-            Collision collision)
+            Appearance appearance)
         {
             return new Player(
                 id: id,
                 type: EntityType.Player,
                 localizedText: LocalizationFactory.ForEntity(localizationKey),
                 appearance: appearance,
-                collision: collision,
+                collision: new Collision(CollisionShapeType.Box, width: 0.8f, height: 0.8f, radius: 0f, isBlocking: true, isTrigger: false, offsetX: 0f, offsetY: -0.6f),                
                 characteristicId: characteristicId,
                 inventoryId: inventoryId,
                 level: 1
@@ -363,15 +354,14 @@ namespace Infrastructure.Persistence.Seeder
             string localizationKey,
             string characteristicId,
             string inventoryId,
-            Appearance appearance,
-            Collision collision)
+            Appearance appearance)
         {
             return new Creature(
                 id: id,
                 type: EntityType.Creature, // Core AI Creature domain enum assignment
                 localizedText: LocalizationFactory.ForEntity(localizationKey),
                 appearance: appearance,
-                collision: collision,
+                collision: new Collision(CollisionShapeType.Box, width: 0.8f, height: 0.8f, radius: 0f, isBlocking: true, isTrigger: false, offsetX: 0f, offsetY: -0.1f),
                 characteristicId: characteristicId,
                 inventoryId: inventoryId,
                 level: 1

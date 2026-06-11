@@ -125,6 +125,7 @@ namespace Application.Systems.Request
                 creature.ID,
                 creature.RoomSpatialID,
                 creature.Position,
+                creature.CollisionOffset,
                 creature.LayerZ,
                 creature.CollisionShape);
 

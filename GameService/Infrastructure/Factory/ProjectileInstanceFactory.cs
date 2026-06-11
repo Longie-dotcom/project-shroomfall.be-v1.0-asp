@@ -58,6 +58,7 @@ namespace Infrastructure.Factory
                 id: instanceId,
                 definitionId: projectileDef.ID,
                 collisionShape: CollisionShapeMapper.FromDefinition(projectileDef.Collision),
+                collisionOffset: new Vector2(projectileDef.Collision.OffsetX, projectileDef.Collision.OffsetY),
                 roomSpatialId: roomSpatialId,
                 layerZ: layerZ,
                 position: position,
