@@ -224,6 +224,50 @@ namespace Application.Services.WorldService
                     cellY,
                     layerZ);
 
+
+                ///////////// debugg
+                foreach (var entityId in entityIds)
+                {
+                    if (entityId == ignoreEntityId)
+                        continue;
+
+                    var entity = worldContext.GetEntity<EntityInstance>(entityId);
+                    if (entity == null)
+                        continue;
+
+                    Console.WriteLine(
+                        $"[SPAWN CHECK] " +
+                        $"SpawnPos=({position.X:F2},{position.Y:F2}) " +
+                        $"SpawnShape={shape.GetType().Name} " +
+                        $"vs " +
+                        $"Entity={entity.ID} " +
+                        $"EntityPos=({entity.Position.X:F2},{entity.Position.Y:F2}) " +
+                        $"EntityShape={entity.CollisionShape.GetType().Name}"
+                    );
+
+                    bool intersects = shape.Intersects(
+                        position,
+                        entity.CollisionShape,
+                        entity.Position);
+
+                    Console.WriteLine(
+                        $"[SPAWN CHECK RESULT] " +
+                        $"Entity={entity.ID} " +
+                        $"Intersects={intersects} " +
+                        $"Blocking={entity.CollisionShape.IsBlocking}"
+                    );
+
+                    if (!intersects)
+                        continue;
+
+                    if (entity.CollisionShape.IsBlocking)
+                        throw new InternalException(
+                            ResponseCode.CollisionService_SpawnBlockedByEntity,
+                            $"Spawn blocked by entity instance ID: {entity.ID}");
+                }
+                ///////////////
+                
+
                 foreach (var entityId in entityIds)
                 {
                     if (entityId == ignoreEntityId)
