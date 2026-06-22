@@ -137,21 +137,6 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "EntityRelationshipDefinitions",
-                columns: table => new
-                {
-                    ID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    SourceEntityDefinitionID = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    TargetEntityDefinitionID = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Type = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    EntityDefinitionID = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_EntityRelationshipDefinitions", x => x.ID);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "InteractableDefinitions",
                 columns: table => new
                 {
@@ -231,6 +216,22 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PortalDefinitions",
+                columns: table => new
+                {
+                    ID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    LocalTriggerOffsetX = table.Column<float>(type: "real", nullable: false),
+                    LocalTriggerOffsetY = table.Column<float>(type: "real", nullable: false),
+                    TriggerWidth = table.Column<float>(type: "real", nullable: false),
+                    TriggerHeight = table.Column<float>(type: "real", nullable: false),
+                    EntityDefinitionID = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PortalDefinitions", x => x.ID);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ProjectileDefinitions",
                 columns: table => new
                 {
@@ -257,18 +258,6 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_RoomDefinitions", x => x.ID);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "SpawnDefinitions",
-                columns: table => new
-                {
-                    ID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    EntityDefinitionID = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_SpawnDefinitions", x => x.ID);
                 });
 
             migrationBuilder.CreateTable(
@@ -411,7 +400,7 @@ namespace Infrastructure.Migrations
                     MinCount = table.Column<int>(type: "int", nullable: false),
                     MaxCount = table.Column<int>(type: "int", nullable: false),
                     RoomDefinitionID = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    EntityDefinitionID = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    EntityDefinitionID = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     RoomDefinitionID1 = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
@@ -473,28 +462,6 @@ namespace Infrastructure.Migrations
                         principalTable: "RoomDefinitions",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "SpawnEntries",
-                columns: table => new
-                {
-                    ID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    SpawnedEntityDefinitionID = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Offset_X = table.Column<float>(type: "real", nullable: false),
-                    Offset_Y = table.Column<float>(type: "real", nullable: false),
-                    Count = table.Column<int>(type: "int", nullable: false),
-                    SpawnDefinitionID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_SpawnEntries", x => x.ID);
-                    table.ForeignKey(
-                        name: "FK_SpawnEntries_SpawnDefinitions_SpawnDefinitionID",
-                        column: x => x.SpawnDefinitionID,
-                        principalTable: "SpawnDefinitions",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -630,27 +597,6 @@ namespace Infrastructure.Migrations
                 column: "AttributeType");
 
             migrationBuilder.CreateIndex(
-                name: "IX_EntityRelationshipDefinitions_EntityDefinitionID",
-                table: "EntityRelationshipDefinitions",
-                column: "EntityDefinitionID",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_EntityRelationshipDefinitions_SourceEntityDefinitionID",
-                table: "EntityRelationshipDefinitions",
-                column: "SourceEntityDefinitionID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_EntityRelationshipDefinitions_TargetEntityDefinitionID",
-                table: "EntityRelationshipDefinitions",
-                column: "TargetEntityDefinitionID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_EntityRelationshipDefinitions_Type",
-                table: "EntityRelationshipDefinitions",
-                column: "Type");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_EntitySpawnRules_EntityDefinitionID",
                 table: "EntitySpawnRules",
                 column: "EntityDefinitionID");
@@ -740,6 +686,12 @@ namespace Infrastructure.Migrations
                 column: "LocaleCode");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PortalDefinitions_EntityDefinitionID",
+                table: "PortalDefinitions",
+                column: "EntityDefinitionID",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ProjectileDefinitions_EntityDefinitionID",
                 table: "ProjectileDefinitions",
                 column: "EntityDefinitionID",
@@ -770,22 +722,6 @@ namespace Infrastructure.Migrations
                 table: "RoomConnections",
                 columns: new[] { "SourceRoomID", "SourceEntityID" },
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_SpawnDefinitions_EntityDefinitionID",
-                table: "SpawnDefinitions",
-                column: "EntityDefinitionID",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_SpawnEntries_SpawnDefinitionID",
-                table: "SpawnEntries",
-                column: "SpawnDefinitionID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_SpawnEntries_SpawnedEntityDefinitionID",
-                table: "SpawnEntries",
-                column: "SpawnedEntityDefinitionID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TriggeredEffectDefinitions_EntityDefinitionID",
@@ -833,9 +769,6 @@ namespace Infrastructure.Migrations
                 name: "EffectDefinitions");
 
             migrationBuilder.DropTable(
-                name: "EntityRelationshipDefinitions");
-
-            migrationBuilder.DropTable(
                 name: "EntitySpawnRules");
 
             migrationBuilder.DropTable(
@@ -854,13 +787,13 @@ namespace Infrastructure.Migrations
                 name: "LocalizationEntries");
 
             migrationBuilder.DropTable(
+                name: "PortalDefinitions");
+
+            migrationBuilder.DropTable(
                 name: "ProjectileDefinitions");
 
             migrationBuilder.DropTable(
                 name: "RoomConnections");
-
-            migrationBuilder.DropTable(
-                name: "SpawnEntries");
 
             migrationBuilder.DropTable(
                 name: "TriggeredEffectDefinitions");
@@ -882,9 +815,6 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "RoomDefinitions");
-
-            migrationBuilder.DropTable(
-                name: "SpawnDefinitions");
 
             migrationBuilder.DropTable(
                 name: "CharacteristicDefinitions");

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(RelationalDB))]
-    [Migration("20260622044436_initial")]
+    [Migration("20260622160344_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -260,42 +260,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("CollisionDefinitions", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.EntityRelationshipDefinition", b =>
-                {
-                    b.Property<Guid>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("EntityDefinitionID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("SourceEntityDefinitionID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("TargetEntityDefinitionID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("EntityDefinitionID")
-                        .IsUnique();
-
-                    b.HasIndex("SourceEntityDefinitionID");
-
-                    b.HasIndex("TargetEntityDefinitionID");
-
-                    b.HasIndex("Type");
-
-                    b.ToTable("EntityRelationshipDefinitions", (string)null);
-                });
-
             modelBuilder.Entity("Domain.Definition.EntityDomain.Component.InteractableDefinition", b =>
                 {
                     b.Property<Guid>("ID")
@@ -393,6 +357,36 @@ namespace Infrastructure.Migrations
                     b.ToTable("LifetimeDefinitions", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.PortalDefinition", b =>
+                {
+                    b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("EntityDefinitionID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<float>("LocalTriggerOffsetX")
+                        .HasColumnType("real");
+
+                    b.Property<float>("LocalTriggerOffsetY")
+                        .HasColumnType("real");
+
+                    b.Property<float>("TriggerHeight")
+                        .HasColumnType("real");
+
+                    b.Property<float>("TriggerWidth")
+                        .HasColumnType("real");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("EntityDefinitionID")
+                        .IsUnique();
+
+                    b.ToTable("PortalDefinitions", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Definition.EntityDomain.Component.ProjectileDefinition", b =>
                 {
                     b.Property<Guid>("ID")
@@ -417,49 +411,6 @@ namespace Infrastructure.Migrations
                     b.HasIndex("Velocity");
 
                     b.ToTable("ProjectileDefinitions", (string)null);
-                });
-
-            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.SpawnDefinition", b =>
-                {
-                    b.Property<Guid>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("EntityDefinitionID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("EntityDefinitionID")
-                        .IsUnique();
-
-                    b.ToTable("SpawnDefinitions", (string)null);
-                });
-
-            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.SpawnEntry", b =>
-                {
-                    b.Property<Guid>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Count")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("SpawnDefinitionID")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("SpawnedEntityDefinitionID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("SpawnDefinitionID");
-
-                    b.HasIndex("SpawnedEntityDefinitionID");
-
-                    b.ToTable("SpawnEntries", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Definition.EntityDomain.Component.TriggeredEffectDefinition", b =>
@@ -728,7 +679,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("EntityDefinitionID")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("MaxCount")
@@ -941,39 +891,6 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("InventoryDefinition");
-                });
-
-            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.SpawnEntry", b =>
-                {
-                    b.HasOne("Domain.Definition.EntityDomain.Component.SpawnDefinition", "SpawnDefinition")
-                        .WithMany("SpawnEntries")
-                        .HasForeignKey("SpawnDefinitionID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.OwnsOne("Domain.Common.Vector2", "Offset", b1 =>
-                        {
-                            b1.Property<Guid>("SpawnEntryID")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<float>("X")
-                                .HasColumnType("real");
-
-                            b1.Property<float>("Y")
-                                .HasColumnType("real");
-
-                            b1.HasKey("SpawnEntryID");
-
-                            b1.ToTable("SpawnEntries");
-
-                            b1.WithOwner()
-                                .HasForeignKey("SpawnEntryID");
-                        });
-
-                    b.Navigation("Offset")
-                        .IsRequired();
-
-                    b.Navigation("SpawnDefinition");
                 });
 
             modelBuilder.Entity("Domain.Definition.EntityDomain.EntityDefinition", b =>
@@ -1232,8 +1149,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.Definition.EntityDomain.EntityDefinition", "EntityDefinition")
                         .WithMany()
                         .HasForeignKey("EntityDefinitionID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Domain.Definition.WorldDomain.RoomDefinition", "RoomDefinition")
                         .WithMany()
@@ -1344,11 +1260,6 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Definition.EntityDomain.Component.InventoryDefinition", b =>
                 {
                     b.Navigation("DefaultItems");
-                });
-
-            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.SpawnDefinition", b =>
-                {
-                    b.Navigation("SpawnEntries");
                 });
 
             modelBuilder.Entity("Domain.Definition.LocalizationDomain.Locale", b =>
