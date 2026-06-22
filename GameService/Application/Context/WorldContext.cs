@@ -1,14 +1,19 @@
-﻿using Application.Services.WorldService;
+﻿using Application.Interfaces.Utility;
+using Application.Services.WorldService;
 using Domain.Abstraction.World;
 using Domain.Common;
 using Domain.Runtime.EntityDomain;
-using Domain.Runtime.WorldDomain;
+using Domain.Runtime.EntityDomain.Component;
+using Domain.Runtime.WorldDomain.Spatial;
+using Domain.Runtime.WorldDomain.Topology;
+using Domain.Shared.ResponseCode;
 
 namespace Application.Context
 {
     public class WorldContext
     {
         #region Attributes
+        private readonly ITelemetryQueue telemetryQueue;
         private readonly IWorldQuery worldQuery;
         private readonly IEntityCommand entityCommand;
         private readonly IRoomCommand roomCommand;
@@ -18,16 +23,59 @@ namespace Application.Context
         #endregion
 
         public WorldContext(
+            ITelemetryQueue telemetryQueue,
             IWorldQuery worldQuery,
             IEntityCommand entityCommand,
             IRoomCommand roomCommand)
         {
+            this.telemetryQueue = telemetryQueue;
             this.worldQuery = worldQuery;
             this.entityCommand = entityCommand;
             this.roomCommand = roomCommand;
         }
 
-        #region Methods
+        #region Query
+        public IEnumerable<EntityInstance> GetEntities()
+        {
+            return worldQuery.GetEntities();
+        }
+
+        public EntityInstance? GetEntity(
+            string entityInstanceId)
+        {
+            return worldQuery.GetEntity(entityInstanceId);
+        }
+
+        public RoomSpatial? GetRoom(
+            string roomSpatialId)
+        {
+            return worldQuery.GetRoom(roomSpatialId);
+        }
+
+        public (RoomSpatial?, IEnumerable<EntityInstance>) QuerySpatial(
+            string roomSpatialId,
+            int x, int y, int z)
+        {
+            return worldQuery.QuerySpatial(roomSpatialId, x, y, z);
+        }
+
+        public RoomConnectionInstance? GetConnectionByEntityInstanceID(
+            string entityInstanceId)
+        {
+            return worldQuery.GetConnectionByEntityInstanceID(entityInstanceId);
+        }
+
+        public List<EntityInstance> GetEntitiesByRoom(
+            string roomSpatialId)
+        {
+            return worldQuery
+                .GetEntities()
+                .Where(e => e.GetComponent<TransformInstance>()?.RoomSpatialID == roomSpatialId)
+                .ToList();
+        }
+        #endregion
+
+        #region Command
         public void Load(
             RoomSnapshot roomSnapshot)
         {
@@ -39,6 +87,11 @@ namespace Application.Context
             {
                 AddEntity(entityInstance);
             }
+
+            telemetryQueue.EnqueueAlert(
+                ApplicationCode.WorldContextCode.RoomLoaded,
+                $"Successfully loading room '{roomSnapshot.Room.ID}' into World...",
+                TelemetrySeverity.Info);
         }
 
         public RoomSnapshot? Unload(
@@ -47,10 +100,17 @@ namespace Application.Context
             // Fetch room need to be unloaded
             var room = worldQuery.GetRoom(roomSpatialId);
             if (room == null)
+            {
+                telemetryQueue.EnqueueAlert(
+                    ApplicationCode.WorldContextCode.UnloadTargetMissing,
+                    $"Attempted to unload room '{roomSpatialId}', but it was not found...",
+                    TelemetrySeverity.Warning);
+
                 return null;
+            }
 
             // Fetch related entities inside that unloaded room
-            var entities = GetEnvironmentEntitiesByRoom(roomSpatialId);
+            var entities = GetEntitiesByRoom(roomSpatialId);
 
             // Remove entities first
             foreach (var entityInstance in entities)
@@ -60,6 +120,11 @@ namespace Application.Context
 
             // Remove room
             roomCommand.RemoveRoom(roomSpatialId);
+
+            telemetryQueue.EnqueueAlert(
+                ApplicationCode.WorldContextCode.RoomUnloading,
+                $"Evicting room '{roomSpatialId}' from World...",
+                TelemetrySeverity.Info);
 
             // Return snapshot for persist
             return new RoomSnapshot
@@ -103,68 +168,35 @@ namespace Application.Context
                 newPosition,
                 layerZ,
                 newRoomSpatialId);
+
+            telemetryQueue.EnqueueAlert(
+                ApplicationCode.WorldContextCode.EntityRoomChanged,
+                $"Entity '{entityInstanceId}' changed room to room spatial: {newRoomSpatialId} on new position: ({newPosition.X}, {newPosition.Y}, {layerZ}",
+                TelemetrySeverity.Info);
         }
 
         public void AddConnection(
             RoomConnectionInstance connection)
         {
             roomCommand.AddConnection(connection);
+
+            telemetryQueue.EnqueueAlert(
+                ApplicationCode.WorldContextCode.ConnectionAddedSuccess,
+                $"Established spatial connection '{connection.ID}' linking rooms in topology.",
+                TelemetrySeverity.Info);
+
         }
 
         public void RemoveConnection(
             string connectionInstanceId)
         {
             roomCommand.RemoveConnection(connectionInstanceId);
-        }
 
-        public IEnumerable<T> GetEntities<T>() where T : EntityInstance
-        {
-            return worldQuery.GetEntities<T>();
-        }
+            telemetryQueue.EnqueueAlert(
+                ApplicationCode.WorldContextCode.ConnectionRemovedSuccess,
+                $"Removed spatial connection '{connectionInstanceId}' from topology.",
+                TelemetrySeverity.Info);
 
-        public T? GetEntity<T>(
-            string entityInstanceId) where T : EntityInstance
-        {
-            return worldQuery.GetEntity<T>(entityInstanceId);
-        }
-
-        public RoomSpatial? GetRoom(
-            string roomSpatialId)
-        {
-            return worldQuery.GetRoom(roomSpatialId);
-        }
-
-        public (RoomSpatial?, IEnumerable<string>) QuerySpatial(
-            string roomSpatialId,
-            int x, int y, int z)
-        {
-            return worldQuery.QuerySpatial(roomSpatialId, x, y, z);
-        }
-
-        public RoomConnectionInstance? GetConnectionByEntityInstanceID(
-            string entityInstanceId)
-        {
-            return worldQuery.GetConnectionByEntityInstanceID(entityInstanceId);
-        }
-
-        public List<EntityInstance> GetEnvironmentEntitiesByRoom(
-            string roomSpatialId)
-        {
-            return worldQuery
-                .GetEntities<EntityInstance>()
-                .Where(e =>
-                    e.RoomSpatialID == roomSpatialId &&
-                    e is not PlayerInstance)
-                .ToList();
-        }
-
-        public List<EntityInstance> GetEntitiesByRoom(
-            string roomSpatialId)
-        {
-            return worldQuery
-                .GetEntities<EntityInstance>()
-                .Where(e => e.RoomSpatialID == roomSpatialId)
-                .ToList();
         }
         #endregion
     }

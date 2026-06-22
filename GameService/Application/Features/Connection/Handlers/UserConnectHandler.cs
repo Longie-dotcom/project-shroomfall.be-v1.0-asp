@@ -1,33 +1,30 @@
 ﻿using Application.Features.Abstraction;
 using Application.Features.Connection.Commands;
-using Application.Interfaces.Realtime;
+using Application.Interfaces.Realtime.Managers;
 
 namespace Application.Features.Connection.Handlers
 {
     public class UserConnectHandler : IHandler<UserConnectCommand>
     {
         #region Attributes
-        private readonly IConnectionRegistry connectionRegistry;
+        private readonly IConnectionManager connectionManager;
         #endregion
 
         #region Properties
         #endregion
 
         public UserConnectHandler(
-            IConnectionRegistry connectionRegistry)
+            IConnectionManager connectionManager)
         {
-            this.connectionRegistry = connectionRegistry;
+            this.connectionManager = connectionManager;
         }
 
         #region Methods
         public async Task Handle(
             UserConnectCommand command)
         {
-            var userId = command.UserID;
-            var connectionId = command.ConnectionID;
-
             // Register the the connection (allow multiple connection per user)
-            connectionRegistry.Add(userId, connectionId);
+            connectionManager.Add(command.UserID, command.ConnectionID);
         }
         #endregion
     }

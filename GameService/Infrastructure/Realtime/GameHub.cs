@@ -3,11 +3,13 @@ using Application.Features.Connection.Commands;
 using Application.Features.Game.Commands;
 using Contract;
 using Contract.DTO.Game;
-using Infrastructure.Helper;
+using Contract.Enum.IdentityDomain;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Infrastructure.Realtime
 {
+    [Authorize(Roles = nameof(Role.Player) + "," + nameof(Role.Admin) + "," + nameof(Role.Designer))]
     public class GameHub : Hub
     {
         #region Attributes
@@ -26,7 +28,7 @@ namespace Infrastructure.Realtime
         #region Methods
         public override async Task OnConnectedAsync()
         {
-            var (userId, connectionId) = HubContextHelper.GetValidatedContext(this);
+            var (userId, connectionId) = HubContextValidator.GetValidatedContext(this);
 
             await dispatcher.Send<UserConnectCommand>(
                 new UserConnectCommand(userId, connectionId)
@@ -38,7 +40,7 @@ namespace Infrastructure.Realtime
         public override async Task OnDisconnectedAsync(
             Exception? exception)
         {
-            var (userId, connectionId) = HubContextHelper.GetValidatedContext(this);
+            var (userId, connectionId) = HubContextValidator.GetValidatedContext(this);
 
             await dispatcher.Send<UnloadSessionCommand>(
                 new UnloadSessionCommand(userId, connectionId)
@@ -51,7 +53,7 @@ namespace Infrastructure.Realtime
         public async Task Move(
             MoveDTO dto)
         {
-            var (userId, connectionId) = HubContextHelper.GetValidatedContext(this);
+            var (userId, connectionId) = HubContextValidator.GetValidatedContext(this);
 
             await dispatcher.Send<MoveCommand>(
                 new MoveCommand(userId, dto)

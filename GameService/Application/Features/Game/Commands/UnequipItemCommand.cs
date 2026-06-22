@@ -1,4 +1,4 @@
-﻿using Contract.Enum.EntityDomain;
+﻿using Contract.Enum.MetaDomain.Item;
 
 namespace Application.Features.Game.Commands
 {

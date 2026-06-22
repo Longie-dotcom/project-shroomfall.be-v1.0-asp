@@ -25,6 +25,7 @@ namespace API.Controllers
         }
 
         #region Methods
+        [AllowAnonymous]
         [HttpPost("steam")]
         public async Task<IActionResult> SteamAuth(
             [FromBody] SteamAuthDTO dto)
@@ -36,6 +37,7 @@ namespace API.Controllers
             return Ok(result);
         }
 
+        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> Register(
             [FromBody] RegisterDTO dto)
@@ -47,6 +49,7 @@ namespace API.Controllers
             return Ok(result);
         }
 
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login(
             [FromBody] LoginDTO dto)

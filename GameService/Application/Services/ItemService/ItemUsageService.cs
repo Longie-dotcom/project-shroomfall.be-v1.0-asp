@@ -1,220 +1,252 @@
-﻿using Application.Coordinator;
-using Application.Interfaces.Cache;
+﻿using Application.Interfaces.Cache;
 using Application.Services.AttributeService;
-using Contract.Enum.AttributeDomain;
-using Contract.Enum.EntityDomain;
-using Contract.Enum.ItemDomain;
+using Application.Services.WorldService;
+using Contract.Enum.MetaDomain.Item;
 using Domain.Common;
-using Domain.Definition.EntityDomain;
-using Domain.Definition.ItemDomain;
-using Domain.DomainException;
+using Domain.Definition.MetaDomain;
 using Domain.Runtime.EntityDomain;
-using Domain.Runtime.ItemDomain;
-using Domain.Shared;
+using Domain.Runtime.EntityDomain.Component;
+using Domain.Shared.DomainException;
+using Domain.Shared.ResponseCode;
 
 namespace Application.Services.ItemService
 {
     public class ItemUsageService
     {
         #region Attributes
-        private readonly EntityLifeCycleCoordinator entityLifeCycleCoordinator;
+        private readonly ICacheProvider cacheProvider;
+        private readonly EntitySpawnService entitySpawnService;
         private readonly EffectService effectService;
         private readonly InventoryService inventoryService;
-        private readonly IItemCache itemCache;
         #endregion
 
         public ItemUsageService(
-            EntityLifeCycleCoordinator entityLifeCycleCoordinator,
+            ICacheProvider cacheProvider,
+            EntitySpawnService entitySpawnService,
             EffectService effectService,
-            InventoryService inventoryService,
-            IItemCache itemCache)
+            InventoryService inventoryService)
         {
-            this.entityLifeCycleCoordinator = entityLifeCycleCoordinator;
+            this.cacheProvider = cacheProvider;
+            this.entitySpawnService = entitySpawnService;
             this.effectService = effectService;
             this.inventoryService = inventoryService;
-            this.itemCache = itemCache;
         }
 
         #region Core Pipeline
         /// <summary>
         /// Orchestrates the decoupled Manifestation and Cost logic.
         /// </summary>
-        public void Execute(CreatureInstance creature, ItemInstance item, Item itemDef, Vector2 targetVector)
+        public void Execute(
+            EntityInstance entity,
+            ItemInstance item,
+            ItemDefinition itemDef,
+            Vector2 targetVector)
         {
-            // Manifest the item's unique identity in the gameplay world
-            ExecuteManifestation(creature, item, itemDef, targetVector);
+            // 1. Manifest the item's unique identity in the gameplay world (Spawn, Equip, Buff)
+            ExecuteManifestation(entity, item, itemDef, targetVector);
 
-            // Charge the asset cost safely
-            DeductCost(creature, item, itemDef);
+            // 2. Charge the asset cost safely (Consume, Degrade, Transfer)
+            DeductCost(entity, item, itemDef);
         }
         #endregion
 
         #region Private Manifestation Steps (World Changes)
         private void ExecuteManifestation(
-            CreatureInstance creature, 
-            ItemInstance item, 
-            Item itemDef, 
+            EntityInstance entity,
+            ItemInstance item,
+            ItemDefinition itemDef,
             Vector2 targetVector)
         {
-            switch (itemDef.Type)
+            // ─────────────────────────────
+            // 1. Spawning Logic (Projectiles, AoE, Placeables)
+            // ─────────────────────────────
+            if (itemDef.SpawnEntityConfig != null)
             {
-                case ItemType.RangedWeapon:
-                case ItemType.ThrowableWeapon:
-                    ProjectileWeapon(targetVector, creature, itemDef, item);
-                    break;
+                var transform = entity.GetComponent<TransformInstance>();
+                if (transform == null)
+                    throw new InternalException(
+                        ApplicationCode.ItemUsageServiceCode.ExecuteEntityMissingTransform,
+                        $"Entity {entity.ID} missing TransformInstance.");
 
-                case ItemType.MeleeWeapon:
-                    MeleeWeapon(targetVector, creature, itemDef, item);
-                    break;
+                WorldEntityCreateContext spawnContext;
+                var config = itemDef.SpawnEntityConfig;
+                var instanceId = Guid.NewGuid().ToString();
 
-                case ItemType.Placeable:
-                    entityLifeCycleCoordinator.SpawnWorldObject(
-                        worldObjectDefinitionId: item.DefinitionID,
-                        roomSpatialId: creature.RoomSpatialID,
-                        layerZ: creature.LayerZ,
-                        position: targetVector,
-                        direction: Vector2.Zero
-                    );
-                    break;
+                switch (config.TargetType)
+                {
+                    case SpawnTargetType.Directional:
+                        spawnContext = new ProjectileEntityCreateContext(
+                            instanceId,
+                            config.EntityDefinitionID,
+                            transform.RoomSpatialID,
+                            transform.LayerZ,
+                            transform.Position, // Origin point
+                            targetVector        // The direction/velocity vector
+                        );
+                        break;
 
-                case ItemType.Consumable:
-                    effectService.ApplyItemEffects(creature, itemDef, item.ID);
-                    break;
+                    case SpawnTargetType.AoE:
+                        Vector2 finalSpawnPosition = targetVector;
 
-                case ItemType.Equippable:
-                    PerformEquip(creature, item, itemDef);
-                    break;
+                        // Apply Range Constraint (Clamping)
+                        if (config.MaxRange > 0)
+                        {
+                            float dist = Vector2.Distance(transform.Position, targetVector);
+                            if (dist > config.MaxRange)
+                            {
+                                // Normalize the direction and multiply by range
+                                Vector2 direction = Vector2.Normalize(targetVector - transform.Position);
+                                finalSpawnPosition = transform.Position + (direction * config.MaxRange);
+                            }
+                        }
+
+                        spawnContext = new WorldEntityCreateContext(
+                            instanceId,
+                            config.EntityDefinitionID,
+                            transform.RoomSpatialID,
+                            transform.LayerZ,
+                            finalSpawnPosition
+                        );
+                        break;
+
+                    case SpawnTargetType.WorldPosition:
+
+                    default:
+                        spawnContext = new WorldEntityCreateContext(
+                            instanceId,
+                            config.EntityDefinitionID,
+                            transform.RoomSpatialID,
+                            transform.LayerZ,
+                            targetVector        // The target destination
+                        );
+                        break;
+                }
+
+                entitySpawnService.Spawn(spawnContext);
+            }
+
+            // ─────────────────────────────
+            // 2. Effect Application (Consumables, Buffs, Healing)
+            // ─────────────────────────────
+            if (itemDef.ApplyEffectConfig != null)
+            {
+                itemDef.ApplyEffectConfig.EffectDefinitionIDs
+                    .ForEach(e => effectService.ApplyEffect(entity, e));
+            }
+
+            // ─────────────────────────────
+            // 3. Equipment Configuration (Armor, Weapons)
+            // ─────────────────────────────
+            if (itemDef.EquipConfig != null)
+            {
+                PerformEquip(entity, item, itemDef);
             }
         }
         #endregion
 
         #region Private Cost Steps (Inventory Mutations)
         private void DeductCost(
-            CreatureInstance creature,
+            EntityInstance entity,
             ItemInstance item,
-            Item itemDef)
+            ItemDefinition itemDef)
         {
-            switch (itemDef.Type)
+            if (itemDef.CostConfig == null || itemDef.CostConfig.Method == ItemConsumptionMethod.None)
             {
-                case ItemType.ThrowableWeapon:
-                case ItemType.Consumable:
-                case ItemType.Placeable:
-                    inventoryService.DeductItem(creature, item);
-                    break;
-
-                case ItemType.RangedWeapon:
-                case ItemType.MeleeWeapon:
-                    inventoryService.DegradeItem(creature, item);
-                    break;
-
-                case ItemType.Equippable:
-                    inventoryService.RemoveItem(creature, item);
-                    break;
-            }
-        }
-        #endregion
-
-        #region Weapon Operations
-        public void ProjectileWeapon(
-            Vector2 targetVector,
-            CreatureInstance creature,
-            Item itemDef,
-            ItemInstance item)
-        {
-            var direction = Vector2.Normalize(
-                targetVector - creature.Position
-            );
-
-            entityLifeCycleCoordinator.SpawnProjectile(
-                projectileDefinitionId: item.DefinitionID,
-                roomSpatialId: creature.RoomSpatialID,
-                layerZ: creature.LayerZ,
-                position: creature.Position,
-                direction: direction,
-                ownerId: creature.ID,
-                sourceDefinitionId: itemDef.ID
-            );
-        }
-
-        public void MeleeWeapon(
-            Vector2 targetVector,
-            CreatureInstance creature,
-            Item itemDef,
-            ItemInstance item)
-        {
-            Vector2 toTarget = targetVector - creature.Position;
-
-            float distance = toTarget.Length();
-            float range = creature.Characteristic.GetCore(AttributeType.AttackRange);
-
-            Vector2 castPosition;
-
-            if (distance > range)
-            {
-                Vector2 direction = Vector2.Normalize(toTarget);
-                castPosition = creature.Position + direction * range;
-            }
-            else
-            {
-                castPosition = targetVector;
+                return;
             }
 
-            entityLifeCycleCoordinator.SpawnAreaEffect(
-                areaEffectDefinitionId: item.DefinitionID,
-                roomSpatialId: creature.RoomSpatialID,
-                layerZ: creature.LayerZ,
-                position: creature.Position,
-                ownerId: creature.ID,
-                sourceDefinitionId: itemDef.ID
-            );
+            switch (itemDef.CostConfig.Method)
+            {
+                case ItemConsumptionMethod.ConsumeStack:
+                    for (int i = 0; i < itemDef.CostConfig.Value; i++)
+                    {
+                        inventoryService.DeductItem(entity, item);
+                    }
+                    break;
+
+                case ItemConsumptionMethod.DegradeDurability:
+                    for (int i = 0; i < itemDef.CostConfig.Value; i++)
+                    {
+                        inventoryService.DegradeItem(entity, item, itemDef.CostConfig.Value);
+                    }
+                    break;
+
+                case ItemConsumptionMethod.RemoveEntirely:
+                    inventoryService.RemoveItem(entity, item);
+                    break;
+            }
         }
         #endregion
 
         #region Equipment Operations
         private void PerformEquip(
-            CreatureInstance creature,
+            EntityInstance entity,
             ItemInstance item,
-            Item itemDef)
+            ItemDefinition itemDef)
         {
-            if (item.Count != 1)
-                throw new BadRequest(
-                    ResponseCode.EquipmentService_InvalidItem,
-                    $"Cannot equip item stack. Count must be exactly 1. Current count: {item.Count}");
+            if (item.Amount != 1)
+                throw new InternalException(
+                    ApplicationCode.ItemUsageServiceCode.EquipInvalidItem,
+                    $"Cannot equip item stack. Amount must be exactly 1. Current amount: {item.Amount}");
 
-            if (!EquipmentMapping.Map.TryGetValue(itemDef.Category, out var slot))
-                throw new BadRequest(ResponseCode.EquipmentService_InvalidItem);
+            var equipment = entity.GetComponent<EquipmentInstance>();
+            if (equipment == null)
+                throw new InternalException(
+                    ApplicationCode.ItemUsageServiceCode.EquipEquipmentMissing,
+                    $"Entity {entity.ID} missing EquipmentInstance.");
 
-            if (creature.GetEquipment(slot) != null)
-                throw new BadRequest(ResponseCode.EquipmentService_EquipmentSlotOccupied);
+            var slot = itemDef.EquipConfig!.Slot;
 
-            creature.SetEquipment(slot, item);
-            effectService.ApplyItemEffects(creature, itemDef, item.ID);
+            if (equipment.Slots[slot] != null)
+                throw new InternalException(
+                    ApplicationCode.ItemUsageServiceCode.EquipSlotOccupied,
+                    $"Cannot equip item. Slot {slot} is already occupied.");
+
+            equipment.Equip(slot, item);
         }
 
         public void Unequip(
-            CreatureInstance creature,
+            EntityInstance entity,
             EquipmentSlot slot)
         {
-            var equipped = creature.GetEquipment(slot);
-            if (equipped == null) return;
+            var equipment = entity.GetComponent<EquipmentInstance>();
+            if (equipment == null) return;
 
-            if (!inventoryService.CanAddItem(creature, equipped))
-                throw new BadRequest(ResponseCode.EquipmentService_InventoryFullOnUnequip);
+            var equippedItem = equipment.Slots[slot];
+            if (equippedItem == null) return;
 
-            var itemDef = itemCache.Get(equipped.DefinitionID);
+            var itemDef = cacheProvider.Item.Get(equippedItem.DefinitionID);
             if (itemDef == null)
-                throw new InternalException(ResponseCode.EquipmentService_ItemDefinitionNotFound);
+                throw new InternalException(
+                    ApplicationCode.ItemUsageServiceCode.UnequipItemDefinitionNotFound,
+                    $"Item definition not found in cache: {equippedItem.DefinitionID}");
 
-            creature.RemoveEquipment(slot);
-            effectService.RemoveItemEffects(creature, equipped.ID);
+            if (!inventoryService.CanAddItem(entity, equippedItem))
+                throw new InternalException(
+                    ApplicationCode.ItemUsageServiceCode.UnequipInventoryFull,
+                    "Cannot unequip item. Not enough space in inventory.");
 
-            var remainder = inventoryService.AddItem(creature, equipped);
+            equipment.Unequip(slot);
+
+            if (itemDef.ApplyEffectConfig != null)
+            {
+                itemDef.ApplyEffectConfig.EffectDefinitionIDs
+                    .ForEach(e => effectService.RemoveEffect(entity, e));
+            }
+
+            var remainder = inventoryService.AddItem(entity, equippedItem);
+
             if (remainder != null)
             {
-                // Transactional Recovery fallback
-                creature.SetEquipment(slot, equipped);
-                effectService.ApplyItemEffects(creature, itemDef, equipped.ID);
-                throw new InternalException(ResponseCode.EquipmentService_InventoryFullOnUnequip);
+                equipment.Equip(slot, equippedItem);
+
+                if (itemDef.ApplyEffectConfig != null)
+                    itemDef.ApplyEffectConfig.EffectDefinitionIDs
+                        .ForEach(e => effectService.ApplyEffect(entity, e));
+
+                throw new InternalException(
+                    ApplicationCode.ItemUsageServiceCode.UnequipTransactionFailed,
+                    "Unequip transaction failed. Inventory capacity changed during operation.");
             }
         }
         #endregion

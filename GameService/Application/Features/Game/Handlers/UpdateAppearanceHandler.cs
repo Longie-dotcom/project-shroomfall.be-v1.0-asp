@@ -1,15 +1,15 @@
 ﻿using Application.Context;
-using Application.Events.Event;
 using Application.Features.Abstraction;
 using Application.Features.Game.Commands;
-using Application.Interfaces.Realtime;
-using Application.Interfaces.Security;
+using Application.Interfaces.Realtime.Events;
+using Application.Interfaces.Realtime.Events.Game;
+using Application.Interfaces.Realtime.Managers;
 using AutoMapper;
-using Contract.DTO.Runtime;
+using Contract.DTO.Domain.Runtime;
 using Domain.Common;
-using Domain.DomainException;
-using Domain.Runtime.EntityDomain;
-using Domain.Shared;
+using Domain.Runtime.EntityDomain.Component;
+using Domain.Shared.DomainException;
+using Domain.Shared.ResponseCode;
 
 namespace Application.Features.Game.Handlers
 {
@@ -47,18 +47,32 @@ namespace Application.Features.Game.Handlers
             var playerInstanceId = sessionManager.Get(command.UserID);
             if (string.IsNullOrWhiteSpace(playerInstanceId))
                 throw new Unauthorized(
-                    ResponseCode.Move_SessionNotFound,
+                    ApplicationCode.GameHandlerCode.UpdateAppearanceSessionNotFound,
                     $"User with user ID: {command.UserID} has no session");
 
             // Validate player instance existence
-            var player = worldContext.GetEntity<PlayerInstance>(playerInstanceId);
+            var player = worldContext.GetEntity(playerInstanceId);
             if (player == null)
-                throw new BadRequest(
-                    ResponseCode.Move_PlayerInstanceNotFound,
+                throw new InternalException(
+                    ApplicationCode.GameHandlerCode.UpdateAppearancePlayerInstanceNotFound,
                     $"User with user ID: {command.UserID} has no player instance");
 
+            // Get appearance
+            var appearance = player.GetComponent<AppearanceInstance>();
+            if (appearance == null)
+                throw new InternalException(
+                    ApplicationCode.GameHandlerCode.UpdateAppearanceComponentMissing,
+                    $"Player instance {playerInstanceId} is missing AppearanceInstance component");
+
+            // Get transform
+            var transform = player.GetComponent<TransformInstance>();
+            if (transform == null)
+                throw new InternalException(
+                    ApplicationCode.GameHandlerCode.UpdateAppearanceTransformMissing,
+                    $"Player instance {playerInstanceId} is missing TransformInstance component");
+
             // Update appearance
-            player.UpdateAppearance(
+            appearance.UpdateAppearance(
                 dto.SkinID,
                 new HSV(dto.SkinColor.H, dto.SkinColor.S, dto.SkinColor.V),
                 dto.HairID,
@@ -72,8 +86,8 @@ namespace Application.Features.Game.Handlers
             // Publish changes
             eventBus.Publish(new EntityAppearanceChangedEvent(
                 playerInstanceId,
-                player.RoomSpatialID,
-                mapper.Map<AppearanceRuntimeDTO>(player.Appearance)));
+                transform.RoomSpatialID,
+                mapper.Map<AppearanceInstanceDTO>(appearance)));
 
             await Task.CompletedTask;
         }

@@ -1,23 +1,7 @@
-﻿using Application.Interfaces.Cache;
-using Application.Interfaces.Factory;
-using Application.Interfaces.Realtime;
-using Application.Interfaces.Repository.NonRelational;
-using Application.Interfaces.Repository.Relational;
-using Application.Interfaces.Security;
-using Domain.Abstraction.World;
+﻿using Domain.Abstraction.World;
 using Domain.Runtime.WorldDomain;
-using Infrastructure.Background;
-using Infrastructure.Cache;
-using Infrastructure.Factory;
-using Infrastructure.Persistence;
-using Infrastructure.Realtime;
-using Infrastructure.Realtime.Handlers;
-using Infrastructure.Repository.NonRelational;
-using Infrastructure.Repository.Relational;
-using Infrastructure.Security;
-using Microsoft.EntityFrameworkCore;
+using Infrastructure.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Driver;
 
 namespace Infrastructure
 {
@@ -33,55 +17,14 @@ namespace Infrastructure
         public static IServiceCollection AddInfrastructure(this IServiceCollection services)
         {
             // ─────────────────────────────
-            // SQL SERVER
+            // PERSISTENCES
             // ─────────────────────────────
-            var sqlConnection = Environment.GetEnvironmentVariable("SQL_CONNECTION_STRING");
-
-            services.AddDbContext<RelationalDB>(options =>
-                options.UseSqlServer(sqlConnection));
-
-            // ─────────────────────────────
-            // MONGODB
-            // ─────────────────────────────
-            var mongoConnection = Environment.GetEnvironmentVariable("MONGO_CONNECTION_STRING");
-            var mongoDbName = Environment.GetEnvironmentVariable("MONGO_DATABASE_NAME");
-
-            services.AddSingleton<IMongoClient>(_ =>
-                new MongoClient(mongoConnection));
-
-            services.AddScoped<NonRelationalDB>(sp =>
-            {
-                var client = sp.GetRequiredService<IMongoClient>();
-                var database = client.GetDatabase(mongoDbName);
-
-                return new NonRelationalDB(database);
-            });
+            services.AddPersistenceConfiguration();
 
             // ─────────────────────────────
             // REPOSITORIES
             // ─────────────────────────────
-            // Unit of work
-            services.AddScoped<IRelationalUoW, RelationalUoW>();
-            services.AddScoped<INonRelationalUoW, NonRelationalUoW>();
-
-            // Relational
-            services.AddScoped<IAttributeValueRepository, AttributeValueRepository>();
-            services.AddScoped<ICharacteristicRepository, CharacteristicRepository>();
-            services.AddScoped<IEffectRepository, EffectRepository>();
-            services.AddScoped<IEntityRelationshipRepository, EntityRelationshipRepository>();
-            services.AddScoped<IEntityRepository, EntityRepository>();
-            services.AddScoped<IInventoryRepository, InventoryRepository>();
-            services.AddScoped<IItemRepository, ItemRepository>();
-            services.AddScoped<ILocaleRepository, LocaleRepository>();
-            services.AddScoped<IRoomConnectionRepository, RoomConnectionRepository>();
-            services.AddScoped<IRoomRepository, RoomRepository>();
-            services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IDefinitionVersionLogRepository, DefinitionVersionLogRepository>();
-
-            // Non-relational
-            services.AddScoped<IEntityDocumentRepository, EntityDocumentRepository>();
-            services.AddScoped<IRoomConnectionDocumentRepository, RoomConnectionDocumentRepository>();
-            services.AddScoped<IRoomDocumentRepository, RoomDocumentRepository>();
+            services.AddRepositoryConfiguration();
 
             // ─────────────────────────────
             // RUNTIME WORLD
@@ -94,95 +37,22 @@ namespace Infrastructure
             // ─────────────────────────────
             // CACHES
             // ─────────────────────────────
-            services.AddSingleton<IAttributeValueCache, AttributeValueCache>();
-            services.AddSingleton<ICharacteristicCache, CharacteristicCache>();
-            services.AddSingleton<IEffectCache, EffectCache>();
-            services.AddSingleton<IEntityCache, EntityCache>();
-            services.AddSingleton<IEntityRelationshipCache, EntityRelationshipCache>();
-            services.AddSingleton<IInventoryCache, InventoryCache>();
-            services.AddSingleton<IItemCache, ItemCache>();
-            services.AddSingleton<ILocaleCache, LocaleCache>();
-            services.AddSingleton<IRoomCache, RoomCache>();
-            services.AddSingleton<IRoomConnectionCache, RoomConnectionCache>();
-            
-            services.AddScoped<ICacheLoader, CacheLoader>();
-
-            // ─────────────────────────────
-            // FACTORIES
-            // ─────────────────────────────
-            services.AddScoped<IAreaEffectInstanceFactory, AreaEffectInstanceFactory>();
-            services.AddScoped<ICreatureInstanceFactory, CreatureInstanceFactory>();
-            services.AddScoped<ICharacteristicInstanceFactory, CharacteristicInstanceFactory>();
-            services.AddScoped<IEffectInstanceFactory, EffectInstanceFactory>();
-            services.AddScoped<IEntityInstanceFactory, EntityInstanceFactory>();
-            services.AddScoped<IInventoryInstanceFactory, InventoryInstanceFactory>();
-            services.AddScoped<IItemInstanceFactory, ItemInstanceFactory>();
-            services.AddScoped<IPlayerInstanceFactory, PlayerInstanceFactory>();
-            services.AddScoped<IProjectileInstanceFactory, ProjectileInstanceFactory>();
-            services.AddScoped<IRoomConnectionInstanceFactory, RoomConnectionInstanceFactory>();
-            services.AddScoped<IRoomSpatialFactory, RoomSpatialFactory>();
-            services.AddScoped<IWorldObjectInstanceFactory, WorldObjectInstanceFactory>();
+            services.AddCacheConfiguration();
 
             // ─────────────────────────────
             // BACKGROUND
             // ─────────────────────────────
-            services.AddHostedService<WorldLoopService>();
+            services.AddBackgroundConfiguration();
 
             // ─────────────────────────────
             // REALTIME
             // ─────────────────────────────
-            // Core Realtime
-            services.AddSignalR();
-            services.AddSingleton<IRealtimePublisher, RealtimePublisher>();
-
-            // Connection
-            services.AddSingleton<IConnectionRegistry, ConnectionRegistry>();
-            services.AddSingleton<IConnectionManager, ConnectionManager>();
-
-            // Handlers
-            services.AddSingleton<IEventHandler, DefinitionUpdatedHandler>();
-            services.AddSingleton<IEventHandler, EntityActedHandler>();
-            services.AddSingleton<IEventHandler, EntityLifecycleHandler>();
-            services.AddSingleton<IEventHandler, EntityVitalChangedHandler>();
-            services.AddSingleton<IEventHandler, PlayerAppearanceChangedHandler>();
-            services.AddSingleton<IEventHandler, PlayerCharacteristicSyncHandler>();
-            services.AddSingleton<IEventHandler, PlayerGroupedHandler>();
-
-            // Events
-            services.AddSingleton<IEventBus, EventBus>();
-            services.AddSingleton<IEventDispatcher, EventDispatcher>();
+            services.AddRealtimeConfiguration();
 
             // ─────────────────────────────
-            // SESSION MANAGER
+            // UTILITY
             // ─────────────────────────────
-            services.AddSingleton<ISessionManager, SessionManager>();
-
-            // ─────────────────────────────
-            // JWT TOKEN
-            // ─────────────────────────────
-            services.AddSingleton<ITokenGenerator>(sp =>
-            {
-                var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY")!;
-                var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER")!;
-                var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE")!;
-
-                return new TokenGenerator(jwtKey, issuer, audience);
-            });
-
-            // ─────────────────────────────
-            // STEAM VALIDATOR
-            // ─────────────────────────────
-            services.AddHttpClient<SteamValidator>();
-
-            services.AddScoped<ISteamValidator, SteamValidator>(sp =>
-            {
-                var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
-
-                var apiKey = Environment.GetEnvironmentVariable("STEAM_API_KEY")!;
-                var appId = Environment.GetEnvironmentVariable("STEAM_APP_ID")!;
-
-                return new SteamValidator(httpClient, apiKey, appId);
-            });
+            services.AddUtilityConfiguration();
 
             return services;
         }

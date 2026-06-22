@@ -1,32 +1,47 @@
-﻿using Application.Coordinator;
+﻿using Application.Context;
 using Application.Features.Abstraction;
 using Application.Features.Connection.Commands;
-using Application.Interfaces.Realtime;
-using Application.Interfaces.Security;
-using Domain.DomainException;
-using Domain.Shared;
+using Application.Interfaces.Realtime.Managers;
+using Application.Persistence;
+using Application.Services.WorldService;
+using Domain.Runtime.EntityDomain;
+using Domain.Runtime.EntityDomain.Component;
+using Domain.Shared.DomainException;
+using Domain.Shared.ResponseCode;
 
 namespace Application.Features.Connection.Handlers
 {
     public class UnloadSessionHandler : IHandler<UnloadSessionCommand>
     {
         #region Attributes
-        private readonly PlayerCoordinator playerCoordinator;
-        private readonly IConnectionRegistry connectionRegistry;
+        private readonly EntityPersistence entityPersistence;
+        private readonly ResidencyService residencyService;
+        private readonly PlayerContext playerContext;
         private readonly ISessionManager sessionManager;
+        private readonly EntitySpawnService entitySpawnService;
+        private readonly IConnectionManager connectionManager;
+        private readonly WorldContext worldContext;
         #endregion
 
         #region Properties
         #endregion
 
         public UnloadSessionHandler(
-            PlayerCoordinator playerCoordinator,
-            IConnectionRegistry connectionRegistry,
-            ISessionManager sessionManager)
+            EntityPersistence entityPersistence,
+            ResidencyService residencyService,
+            PlayerContext playerContext,
+            ISessionManager sessionManager,
+            EntitySpawnService entitySpawnService,
+            IConnectionManager connectionManager,
+            WorldContext worldContext)
         {
-            this.playerCoordinator = playerCoordinator;
-            this.connectionRegistry = connectionRegistry;
+            this.entityPersistence = entityPersistence;
+            this.residencyService = residencyService;
+            this.playerContext = playerContext;
             this.sessionManager = sessionManager;
+            this.entitySpawnService = entitySpawnService;
+            this.connectionManager = connectionManager;
+            this.worldContext = worldContext;
         }
 
         #region Methods
@@ -36,24 +51,58 @@ namespace Application.Features.Connection.Handlers
             var userId = command.UserID;
             var connectionId = command.ConnectionID;
 
-            // Remove this transport connection only
-            connectionRegistry.Remove(userId, connectionId);
-
-            // Keep other connection
-            if (connectionRegistry.HasConnections(userId))
-                return;
-
-            // Resolve gameplay session
+            // Resolve live gameplay session first to know which room they are occupying
             var playerInstanceId = sessionManager.Get(userId);
             if (playerInstanceId == null)
+                return; // Session was already entirely cleaned up
+
+            // Validate player instance existence
+            var player = worldContext.GetEntity(playerInstanceId);
+            if (player == null)
                 throw new InternalException(
-                    ResponseCode.UnloadSession_SessionNotFound,
-                    $"User with user ID: {userId} has no session found");
+                    ApplicationCode.ConnectionHandlerCode.UnloadSessionPlayerInstanceNotFound,
+                    $"Player instance in runtime with instance ID: {playerInstanceId} is not found");
 
-            // Persisted and unload player instance (saving)
-            await playerCoordinator.UnloadPlayer(playerInstanceId);
+            // Validate transform existence
+            var transform = player.GetComponent<TransformInstance>();
+            if (transform == null)
+                throw new InternalException(
+                    ApplicationCode.ConnectionHandlerCode.UnloadSessionTransformMissing,
+                    $"Player instance {playerInstanceId} is missing its TransformInstance component.");
 
-            // Cleanup gameplay session mapping
+            // 2. UNCONDITIONAL PIPE CLEANUP
+            // Sever this specific connection from SignalR updates and clear it from our tracking state
+            await connectionManager.Ungroup(connectionId, transform.RoomSpatialID);
+            connectionManager.Remove(userId, connectionId);
+
+            // 3. CONDITIONAL GUARD
+            // Now that the dead pipe is gone, check if they are still browsing on another window or device
+            if (connectionManager.HasConnections(userId))
+                return; 
+
+            // 4. GHOST CLEANUP (Executed only when ALL connections are completely gone)
+            // Freeze active engine loops first
+            entitySpawnService.Deactivate(player);
+
+            // Save frozen data snapshot to cold storage second
+            await entityPersistence.SaveManyAsync(new List<EntityInstance>() { player });
+
+            // Clear tracking context variables and release the room residency lease
+            FinalizeGameplaySession(player, transform, userId);
+        }
+
+        private void FinalizeGameplaySession(
+            EntityInstance player,
+            TransformInstance transform,
+            string userId)
+        {
+            playerContext.LeaveRoom(transform.RoomSpatialID, player.ID);
+
+            if (playerContext.IsRoomEmpty(transform.RoomSpatialID))
+            {
+                residencyService.MarkRoomExited(transform.RoomSpatialID);
+            }
+
             sessionManager.Remove(userId);
         }
         #endregion

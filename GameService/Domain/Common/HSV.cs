@@ -11,6 +11,13 @@
         public float V { get; set; } = 0.0f;
         #endregion
 
+        public HSV() 
+        {
+            H = 0.0f;
+            S = 0.0f; 
+            V = 0.0f;
+        }
+
         public HSV(
             float h,
             float s,

@@ -2,6 +2,7 @@
 using Application.Features.Abstraction;
 using Application.Features.Design.Commands;
 using Contract.DTO.Design;
+using Contract.Enum.IdentityDomain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,7 +27,7 @@ namespace API.Controllers
 
         #region Methods
         [AllowAnonymous]
-        [HttpGet]
+        [HttpGet("locale")]
         public async Task<ActionResult<ExistLocalesDTO>> GetLocales()
         {
             var result = await dispatcher.Send<FetchLocaleCommand, ExistLocalesDTO>(
@@ -50,7 +51,7 @@ namespace API.Controllers
             return Ok(result);
         }
 
-        [Authorize]
+        [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
         [HttpPost("update")]
         public async Task<IActionResult> UpdateDefinition(
             [FromBody] UpdateDefinitionDTO dto)

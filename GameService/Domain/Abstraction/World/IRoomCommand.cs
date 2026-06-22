@@ -1,4 +1,5 @@
-﻿using Domain.Runtime.WorldDomain;
+﻿using Domain.Runtime.WorldDomain.Spatial;
+using Domain.Runtime.WorldDomain.Topology;
 
 namespace Domain.Abstraction.World
 {
@@ -8,9 +9,9 @@ namespace Domain.Abstraction.World
             RoomSpatial roomSpatial);
         void RemoveRoom(
             string roomSpatialId);
-        public void AddConnection(
+        void AddConnection(
             RoomConnectionInstance connection);
-        public void RemoveConnection(
+        void RemoveConnection(
             string connectionId);
     }
 }

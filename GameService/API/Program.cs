@@ -1,10 +1,9 @@
 using API.Middleware;
 using Application;
-using Application.Bootstrapper;
 using Application.Interfaces.Cache;
+using Application.Services.WorldService;
 using Infrastructure;
 using Infrastructure.Persistence;
-using Infrastructure.Persistence.Seeder;
 using Infrastructure.Realtime;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -75,11 +74,10 @@ namespace API
                         OnMessageReceived = context =>
                         {
                             var accessToken = context.Request.Query["access_token"];
-
                             var path = context.HttpContext.Request.Path;
 
                             if (!string.IsNullOrEmpty(accessToken) &&
-                                path.StartsWithSegments("/hubs/game"))
+                                (path.StartsWithSegments("/hubs/game") || path.StartsWithSegments("/hubs/admin")))
                             {
                                 context.Token = accessToken;
                             }
@@ -128,26 +126,11 @@ namespace API
             }
 
             // ─────────────────────────────
-            // INITIALIZE DATA
-            // ─────────────────────────────
-            using (var scope = app.Services.CreateScope())
-            {
-                var db = scope.ServiceProvider.GetRequiredService<RelationalDB>();
-                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-
-                logger.LogInformation("Seeding initial data...");
-                await DataInitializer.SeedAsync(db);
-
-                await RoomJsonLoader.SeedRoomAsync(db);
-                logger.LogInformation("Data seeding completed.");
-            }
-
-            // ─────────────────────────────
             // LOAD CACHE
             // ─────────────────────────────
             using (var scope = app.Services.CreateScope())
             {
-                var loader = scope.ServiceProvider.GetRequiredService<ICacheLoader>();
+                var loader = scope.ServiceProvider.GetRequiredService<ICacheProvider>();
                 var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
                 logger.LogInformation("Caching definition/meta data...");
@@ -156,22 +139,23 @@ namespace API
             }
 
             // ─────────────────────────────
-            // TOPOLOGY BOOTSTRAP
+            // WORLD BOOTSTRAP
             // ─────────────────────────────
             using (var scope = app.Services.CreateScope())
             {
-                var bootstrap = scope.ServiceProvider.GetRequiredService<TopologyBootstrap>();
+                var bootstrap = scope.ServiceProvider.GetRequiredService<BootstrapService>();
                 var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
-                logger.LogInformation("Reloading topology data...");
+                logger.LogInformation("Reloading world data...");
                 await bootstrap.LoadAsync();
-                logger.LogInformation("Topology reloading completed.");
+                logger.LogInformation("World reloading completed.");
             }
 
             // ─────────────────────────────
             // SIGNALR HUB
             // ─────────────────────────────
             app.MapHub<GameHub>("/hubs/game");
+            app.MapHub<AdminHub>("/hubs/admin");
 
             // ─────────────────────────────
             // MIDDLEWARE PIPELINE

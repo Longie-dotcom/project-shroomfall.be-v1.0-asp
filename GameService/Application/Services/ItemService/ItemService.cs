@@ -1,69 +1,48 @@
-﻿using Application.Events.Event;
-using Application.Interfaces.Cache;
-using Application.Interfaces.Realtime;
-using Contract.Enum.EntityDomain;
-using Contract.Enum.ItemDomain;
-using Domain.Common;
-using Domain.DomainException;
-using Domain.Runtime.EntityDomain;
-using Domain.Shared;
+﻿using Application.Context;
+using Application.Systems.Abstraction;
+using Application.Systems.Queue;
+using Domain.Runtime.EntityDomain.Component;
 
 namespace Application.Services.ItemService
 {
-    public class ItemService
+    public class ItemService : ITickService
     {
         #region Attributes
-        private readonly IEventBus eventBus;
-        private readonly IItemCache itemCache;
-        private readonly ItemUsageService itemUsageService;
+        private readonly WorldContext worldContext;
         #endregion
 
         #region Properties
         #endregion
 
         public ItemService(
-            IEventBus eventBus,
-            IItemCache itemCache,
-            ItemUsageService itemUsageService)
+            WorldContext worldContext)
         {
-            this.eventBus = eventBus;
-            this.itemCache = itemCache;
-            this.itemUsageService = itemUsageService;
+            this.worldContext = worldContext;
         }
 
         #region Methods
-        public void Use(
-            CreatureInstance creature,
-            string itemInstanceId,
-            Vector2 targetPosition)
+        public void Tick(
+            float dt, 
+            CommandBuffer commandBuffer)
         {
-            var inventory = creature.Inventory;
-            var item = inventory.Items.FirstOrDefault(x => x.ID == itemInstanceId);
-            if (item == null)
-                throw new BadRequest(ResponseCode.ItemService_ItemNotFoundInInventory);
+            var entities = worldContext.GetEntities().ToList();
 
-            var itemDef = itemCache.Get(item.DefinitionID);
-            if (itemDef == null)
-                throw new InternalException(ResponseCode.ItemService_ItemDefinitionNotFound);
+            foreach (var entity in entities)
+            {
+                var actionState = entity.GetComponent<ActionInstance>();
 
-            // Execute the centralized usage engine
-            itemUsageService.Execute(creature, item, itemDef, targetPosition);
+                if (actionState != null && actionState.PendingItemUseID != null)
+                {
+                    // Enqueue the command for the Resolver
+                    commandBuffer.Commands.Enqueue(new ItemActionCommand(
+                        entity.ID,
+                        actionState.PendingItemUseID,
+                        actionState.PendingTargetPosition));
 
-            eventBus.Publish(new EntityActedEvent(
-                creature.ID,
-                creature.RoomSpatialID,
-                creature.Position,
-                creature.FacingDirection,
-                itemDef.DefaultAction == EntityAction.NONE ? creature.CurrentAction : itemDef.DefaultAction,
-                item.DefinitionID
-            ));
-        }
-
-        public void Unequip(
-            CreatureInstance creature,
-            EquipmentSlot slot)
-        {
-            itemUsageService.Unequip(creature, slot);
+                    // Clear the intent
+                    actionState.ClearItemUseIntent();
+                }
+            }
         }
         #endregion
     }

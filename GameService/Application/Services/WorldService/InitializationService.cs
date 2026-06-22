@@ -1,13 +1,12 @@
 ﻿using Application.Interfaces.Cache;
-using Application.Interfaces.Factory;
-using Contract.Enum.EntityDomain;
+using Application.Services.WorldService.Factory;
 using Contract.Enum.WorldDomain;
 using Domain.Common;
-using Domain.Definition.EntityDomain;
-using Domain.DomainException;
+using Domain.Definition.WorldDomain;
 using Domain.Runtime.EntityDomain;
-using Domain.Runtime.WorldDomain;
-using Domain.Shared;
+using Domain.Runtime.WorldDomain.Spatial;
+using Domain.Shared.DomainException;
+using Domain.Shared.ResponseCode;
 
 namespace Application.Services.WorldService
 {
@@ -21,163 +20,158 @@ namespace Application.Services.WorldService
     {
         #region Attributes
         private readonly Random random;
-        private readonly IRoomCache roomCache;
-        private readonly IEntityCache entityCache;
-        private readonly ICreatureInstanceFactory creatureInstanceFactory;
-        private readonly IWorldObjectInstanceFactory worldObjectInstanceFactory;
-        private readonly IRoomSpatialFactory roomSpatialFactory;
-        private readonly SpawnService spawnService;
+        private readonly ICacheProvider cacheProvider;  
+        private readonly CollisionService collisionService;
+        private readonly EntityInstanceFactory entityInstanceFactory;
+        private readonly RoomSpatialFactory roomSpatialFactory;
         #endregion
 
         #region Properties
         #endregion
 
         public InitializationService(
-            IRoomCache roomCache,
-            IEntityCache entityCache,
-            ICreatureInstanceFactory creatureInstanceFactory,
-            IWorldObjectInstanceFactory worldObjectInstanceFactory,
-            IRoomSpatialFactory roomSpatialFactory,
-            SpawnService spawnService)
+            ICacheProvider cacheProvider,
+            CollisionService collisionService,
+            EntityInstanceFactory entityInstanceFactory,
+            RoomSpatialFactory roomSpatialFactory)
         {
             random = new Random();
-            this.roomCache = roomCache;
-            this.entityCache = entityCache;
-            this.creatureInstanceFactory = creatureInstanceFactory;
-            this.worldObjectInstanceFactory = worldObjectInstanceFactory;
+            this.cacheProvider = cacheProvider;
+            this.collisionService = collisionService;
+            this.entityInstanceFactory = entityInstanceFactory;
             this.roomSpatialFactory = roomSpatialFactory;
-            this.spawnService = spawnService;
         }
 
         #region Methods
-        public RoomSnapshot InitializeRoom(
+        public (RoomSnapshot room, EntityInstance? player) InitializeRoom(
             string roomDefinitionId,
             string roomSpatialId,
-            string? ownerId)
+            string? playerDefinitionId,
+            string? playerInstanceId,
+            string? userId = null)
         {
-            var room = roomSpatialFactory.Create(
-                definitionId: roomDefinitionId,
-                instanceId: roomSpatialId,
-                ownerId: ownerId);
+            var room = roomSpatialFactory.Create(roomDefinitionId, roomSpatialId, playerInstanceId);
+            var pendingEntities = new List<EntityInstance>();
+            EntityInstance? player = null; 
 
-            var entities = new List<EntityInstance>();
-
-            // Validate room definition existence
-            var roomDef = roomCache.Get(roomDefinitionId);
-            if (roomDef == null)
-                throw new InternalException(
-                    ResponseCode.InitializationService_RoomDefinitionNotFound,
-                    $"Room with definition ID: {roomDefinitionId} was not found");
-
-            // Only initialize environment instances, does not include player instance
-            var rules = roomDef.EntitySpawnRules
-                .Where(x => x.Type == SpawnRuleType.Environment)
-                .ToList();
-            
-            // Spawn environment instances
-            foreach (var rule in rules)
+            // Spawn Context-Specific (Player) Entities
+            if (!string.IsNullOrEmpty(playerDefinitionId) &&
+                !string.IsNullOrEmpty(playerInstanceId) &&
+                !string.IsNullOrEmpty(userId))
             {
-                int totalCount = random.Next(
-                    rule.SpawnAreas.Min(x => x.MinCount),
-                    rule.SpawnAreas.Max(x => x.MaxCount) + 1);
-
-                for (int i = 0; i < totalCount; i++)
-                {
-                    var area = spawnService.PickWeightedArea(
-                        rule.SpawnAreas);
-
-                    var (position, layerZ) =
-                        spawnService.ResolveSpawnPosition(
-                            roomDefinitionId,
-                            area);
-
-                    var entityDef = entityCache.Get<Entity>(rule.EntityID);
-
-                    if (entityDef == null)
-                        continue;
-
-                    switch (entityDef.Type)
-                    {
-                        case EntityType.WorldObject:
-                            {
-                                var worldObject =
-                                    SpawnWorldObject(
-                                        worldObjectDefinitionId: rule.EntityID,
-                                        roomSpatialId: roomSpatialId,
-                                        layerZ: layerZ,
-                                        position: position,
-                                        direction: new Vector2(0, 1));
-
-                                entities.Add(worldObject);
-                                break;
-                            }
-
-                        case EntityType.Creature:
-                            {
-                                var creature =
-                                    SpawnCreature(
-                                        creatureDefinitionId: rule.EntityID,
-                                        roomSpatialId: roomSpatialId,
-                                        layerZ: layerZ,
-                                        position: position,
-                                        direction: new Vector2(0, 1));
-
-                                entities.Add(creature);
-                                break;
-                            }
-                    }
-                }
+                player = SpawnEntitiesByType(
+                    roomDefinitionId, 
+                    roomSpatialId, 
+                    SpawnRuleType.Player, 
+                    pendingEntities,
+                    entityDefId: playerDefinitionId,
+                    forcedInstanceId: playerInstanceId,
+                    userId: userId);
             }
 
-            return new RoomSnapshot()
+            // Spawn Environmental Entities
+            SpawnEntitiesByType(roomDefinitionId, roomSpatialId, SpawnRuleType.Environment, pendingEntities);
+
+            return (new RoomSnapshot { Room = room, Entities = pendingEntities }, player);
+        }
+
+        private EntityInstance? SpawnEntitiesByType(
+            string roomDefId,
+            string roomSpatialId,
+            SpawnRuleType type,
+            List<EntityInstance> buffer,
+            string? entityDefId = null,
+            string? forcedInstanceId = null,
+            string? userId = null)
+        {
+            var roomDef = cacheProvider.Room.Get(roomDefId);
+            if (roomDef == null)
+                throw new InternalException(
+                    ApplicationCode.InitializationServiceCode.RoomDefinitionNotFound,
+                    $"Room generation aborted. Master definition blueprint for ID '{roomDefId}' could not be loaded from store.");
+
+            var rules = roomDef.EntitySpawnRules.Where(r => r.Type == type);
+            if (!string.IsNullOrEmpty(entityDefId)) rules = rules.Where(r => r.EntityDefinitionID == entityDefId);
+
+            EntityInstance? lastSpawned = null;
+
+            foreach (var rule in rules)
             {
-                Room = room,
-                Entities = entities,
-            };
+                int count = random.Next(rule.MinCount, rule.MaxCount + 1);
+                for (int i = 0; i < count; i++)
+                {
+                    var (pos, layerZ) = ResolveSpawnPosition(roomDef, rule.EntityDefinitionID, type);
+
+                    string instanceId = forcedInstanceId ?? $"{Guid.NewGuid()}_{rule.EntityDefinitionID}";
+
+                    // ─────────────────────────────
+                    // Context switching logic
+                    // ─────────────────────────────
+                    WorldEntityCreateContext context;
+
+                    if (type == SpawnRuleType.Player && !string.IsNullOrEmpty(userId))
+                    {
+                        context = new PlayerEntityCreateContext(
+                            instanceId, rule.EntityDefinitionID, roomSpatialId, layerZ, pos, userId);
+                    }
+                    else
+                    {
+                        context = new WorldEntityCreateContext(
+                            instanceId, rule.EntityDefinitionID, roomSpatialId, layerZ, pos);
+                    }
+
+                    // Factory handles the specific context via polymorphism
+                    var entity = entityInstanceFactory.Create(context);
+                    
+                    collisionService.SpawnAtNearestValidPosition(entity, roomDef.ID, roomSpatialId, pos, layerZ, buffer, 5);
+                    buffer.Add(entity);
+
+                    lastSpawned = entity;
+                }
+            }
+            return lastSpawned;
         }
 
-        private WorldObjectInstance SpawnWorldObject(
-            string worldObjectDefinitionId,
-            string roomSpatialId,
-            int layerZ,
-            Vector2 position,
-            Vector2 direction)
+        private (Vector2 position, int layerZ) ResolveSpawnPosition(
+            RoomDefinition roomDef,
+            string entityDefinitionId,
+            SpawnRuleType type)
         {
-            var timestamp = Guid.NewGuid().ToString("N");
-            var worldObjectInstanceId = $"WORLD_OBJECT_{timestamp}";
+            // Resolve the specific rule
+            var rule = ResolveSpawnRule(roomDef, entityDefinitionId, type);
 
-            var worldObject =
-                worldObjectInstanceFactory.Create(
-                    definitionId: worldObjectDefinitionId,
-                    instanceId: worldObjectInstanceId,
-                    roomSpatialId: roomSpatialId,
-                    layerZ: layerZ,
-                    position: position,
-                    direction: direction);
+            // Calculate random position within the rule's bounds
+            int x = random.Next(rule.MinX, rule.MaxX + 1);
+            int y = random.Next(rule.MinY, rule.MaxY + 1);
 
-            return worldObject;
+            // Validate and get Z-level from the cache
+            var cell = cacheProvider.Room.GetTopCell(roomDef.ID, x, y);
+
+            if (cell == null)
+                throw new InternalException(
+                    ApplicationCode.InitializationServiceCode.NoSpawnCellFound,
+                    $"Coordinate resolution failed. No valid cell architecture found at grid location ({x}, {y}) inside Room Blueprint '{roomDef.ID}'.");
+
+            return (new Vector2(x, y), cell.Z);
         }
 
-        private CreatureInstance SpawnCreature(
-            string creatureDefinitionId,
-            string roomSpatialId,
-            int layerZ,
-            Vector2 position,
-            Vector2 direction)
+        private EntitySpawnRule ResolveSpawnRule(
+            RoomDefinition roomDef,
+            string entityDefinitionId,
+            SpawnRuleType type)
         {
-            var timestamp = Guid.NewGuid().ToString("N");
-            var creatureInstanceId = $"CREATURE_{timestamp}";
+            // Filter rules
+            var rules = roomDef.EntitySpawnRules
+                .Where(r => r.EntityDefinitionID == entityDefinitionId && r.Type == type)
+                .ToList();
 
-            var creature = creatureInstanceFactory.Create(
-                definitionId: creatureDefinitionId,
-                instanceId: creatureInstanceId,
-                roomSpatialId: roomSpatialId,
-                layerZ: layerZ,
-                position: position,
-                direction: direction
-            );
+            if (rules.Count == 0)
+                throw new InternalException(
+                    ApplicationCode.InitializationServiceCode.SpawnRuleMissing,
+                    $"Coordinate resolution failed. Room Blueprint '{roomDef.ID}' contains no active spawning rules matching Entity Definition Type '{entityDefinitionId}' for Category '{type}'.");
 
-            return creature;
+            // Randomly select one applicable rule
+            return rules[random.Next(rules.Count)];
         }
         #endregion
     }

@@ -5,7 +5,6 @@ namespace Domain.Abstraction
     public interface ICollisionShape
     {
         bool IsBlocking { get; }
-        bool IsTrigger { get; }
 
         int ComputeCells(
             Vector2 position, 

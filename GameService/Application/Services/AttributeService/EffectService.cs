@@ -1,169 +1,118 @@
 ﻿using Application.Context;
 using Application.Interfaces.Cache;
-using Application.Interfaces.Factory;
-using Contract.Enum.AttributeDomain;
-using Domain.Definition.AttributeDomain;
-using Domain.Definition.ItemDomain;
+using Application.Systems.Abstraction;
+using Application.Systems.Queue;
 using Domain.Runtime.EntityDomain;
+using Domain.Runtime.EntityDomain.Component;
 using Domain.Shared;
 
 namespace Application.Services.AttributeService
 {
-    public class EffectService
+    public class EffectService : ITickService
     {
         #region Attributes
-        private readonly IEffectInstanceFactory effectFactory;
-        private readonly CharacteristicService characteristicService;
-        private readonly IItemCache itemCache;
-        private readonly IEffectCache effectCache;
         private readonly WorldContext worldContext;
-        #endregion
-
-        #region Properties
+        private readonly ICacheProvider cacheProvider;
+        private readonly CharacteristicService characteristicService;
         #endregion
 
         public EffectService(
-            IEffectInstanceFactory effectFactory,
-            CharacteristicService characteristicService,
-            IItemCache itemCache,
-            IEffectCache effectCache,
-            WorldContext worldContext)
+            WorldContext worldContext,
+            ICacheProvider cacheProvider,
+            CharacteristicService characteristicService)
         {
-            this.effectFactory = effectFactory;
-            this.characteristicService = characteristicService;
-            this.itemCache = itemCache;
-            this.effectCache = effectCache;
             this.worldContext = worldContext;
+            this.cacheProvider = cacheProvider;
+            this.characteristicService = characteristicService;
         }
 
         #region Methods
-        // Active
-        public void ApplyItemEffects(
-            CreatureInstance creature,
-            Item itemDef,
-            string sourceItemInstanceId)
+        public void ApplyEffect(
+            EntityInstance target, 
+            string effectDefinitionId)
         {
-            foreach (var itemEffect in itemDef.Effects)
-            {
-                var effect = effectFactory.Create(
-                    itemEffect.EffectID,
-                    sourceItemInstanceId);
+            var container = target.GetComponent<EffectContainerInstance>();
+            if (container == null) return;
 
-                creature.ActiveEffects.Add(effect);
+            var effectDef = cacheProvider.Effect.Get(effectDefinitionId);
+            if (effectDef == null) return;
+
+            // Apply stack rule
+            var existing = container.ActiveEffects.FirstOrDefault(e => e.DefinitionID == effectDef.ID);
+            if (existing != null && effectDef.Duration.HasValue)
+            {
+                existing.ResetTimer(effectDef.Duration.Value);
+                return;
             }
 
-            characteristicService.RecalculateCoreValues(creature);
+            var effectInstance = new EffectInstance(effectDef.ID, effectDef.Duration, effectDef.Interval);
+            container.ActiveEffects.Add(effectInstance);
         }
 
-        public void RemoveItemEffects(
-            CreatureInstance creature,
-            string sourceItemInstanceId)
+        public void RemoveEffect(
+            EntityInstance target,
+            string effectDefinitionId)
         {
-            creature.ActiveEffects.RemoveAll(
-                x => x.SourceItemInstanceID == sourceItemInstanceId);
+            var container = target.GetComponent<EffectContainerInstance>();
+            if (container == null) return;
 
-            characteristicService.RecalculateCoreValues(creature);
-        }
-
-        // Passive / Combat Payload Execution Engine
-        public void ExecuteInstantPayload(
-            CreatureInstance target,
-            string? sourceDefinitionId,
-            string sourceEntityOwnerId)
-        {
-            var attacker = worldContext.GetEntity<CreatureInstance>(sourceEntityOwnerId);
-            if (attacker == null) return;
-
-            if (!CanDamage(attacker, target))
-                return;
-
-            // ─────────────────────────────────────────────────────────
-            // CASE 1: Item-Driven Effects (Weapon/Spell/Projectile)
-            // ─────────────────────────────────────────────────────────
-            if (!string.IsNullOrEmpty(sourceDefinitionId))
+            var effectInstance = container.ActiveEffects.FirstOrDefault(e => e.DefinitionID == effectDefinitionId);
+            if (effectInstance != null)
             {
-                var definition = itemCache.Get(sourceDefinitionId);
-                if (definition == null) return;
+                container.ActiveEffects.Remove(effectInstance);
+            }
+        }
 
-                foreach (var effectRef in definition.Effects)
+        public void Tick(
+            float dt,
+            CommandBuffer commandBuffer)
+        {
+            var entities = worldContext.GetEntities().ToList();
+
+            foreach (var entity in entities)
+            {
+                var container = entity.GetComponent<EffectContainerInstance>();
+                if (container == null || !container.ActiveEffects.Any()) continue;
+
+                for (int i = container.ActiveEffects.Count - 1; i >= 0; i--)
                 {
-                    var effectDef = effectCache.Get(effectRef.EffectID);
+                    var effect = container.ActiveEffects[i];
+
+                    var effectDef = cacheProvider.Effect.Get(effect.DefinitionID);
                     if (effectDef == null) continue;
 
-                    ProcessEffectPayload(target, attacker, effectDef, sourceEntityOwnerId);
+                    var attrDef = AttributeDefinitions.Get(effectDef.AttributeType);
+                    if (attrDef == null) continue;
+
+                    // 1. INITIAL TRIGGER (For new effects)
+                    if (!effect.HasProcessedInitial)
+                    {
+                        characteristicService.ApplyEffectLogic(entity, effectDef, effectDef.Value);
+
+                        effect.MarkProcessed();
+
+                        if (effect.IsInstant())
+                        {
+                            container.ActiveEffects.RemoveAt(i);
+                            continue;
+                        }
+                        continue;
+                    }
+
+                    // 2. PERIODIC TRIGGER (Existing effects only)
+                    if (effect.Tick(dt))
+                    {
+                        characteristicService.ApplyEffectLogic(entity, effectDef, effectDef.Value);
+                    }
+
+                    // 3. EXPIRATION
+                    if (effect.IsExpired())
+                    {
+                        container.ActiveEffects.RemoveAt(i);
+                        characteristicService.ApplyEffectLogic(entity, effectDef, effectDef.Value);
+                    }
                 }
             }
-            // ─────────────────────────────────────────────────────────
-            // CASE 2: Characteristic-Driven (Native Creature Attack)
-            // ─────────────────────────────────────────────────────────
-            else
-            {
-                // Run the raw monster attack through the mitigation resolver
-                float finalDamage = CombatService.ResolveMitigatedDamage(attacker, target);
-
-                // Apply health reduction
-                characteristicService.ModifyVitalValue(target, AttributeType.Health, -finalDamage);
-            }
-        }
-
-        /// <summary>
-        /// Dedicated worker method that isolates the shared core/vital execution 
-        /// pipeline for both items and creatures.
-        /// </summary>
-        private void ProcessEffectPayload(
-            CreatureInstance target,
-            CreatureInstance attacker,
-            Effect effectDef,
-            string sourceInstanceId)
-        {
-            var attrDef = AttributeDefinitions.Get(effectDef.AttributeType);
-            if (attrDef == null) return;
-
-            // Handle Duration-based status updates (Buffs, Debuffs, DoTs)
-            if (effectDef.Duration.HasValue)
-            {
-                var liveEffect = effectFactory.Create(effectDef.ID, sourceInstanceId);
-                target.ActiveEffects.Add(liveEffect);
-
-                if (attrDef.DomainType == DomainType.Core)
-                {
-                    characteristicService.RecalculateCoreValues(target);
-                }
-                return;
-            }
-
-            // Handle direct, flat instant Vital adjustments (Damage, Healing)
-            if (attrDef.DomainType == DomainType.Vital)
-            {
-                float finalPayloadDelta = effectDef.Value; // This is damage (effect on that same type) like: effect == Health meant this effect is modify health
-
-                // Only perform combat resistance scaling if this effect is harmful (negative value)
-                if (effectDef.Value < 0f)
-                {
-                    // Pass total raw package through Combat Service mitigation
-                    float finalDamage = CombatService.ResolveMitigatedDamage(attacker, target);
-
-                    // Re-apply negative orientation to target vital delta
-                    finalPayloadDelta = -finalDamage;
-                }
-
-                // Mutate the final asset pool accurately
-                characteristicService.ModifyVitalValue(
-                    target,
-                    effectDef.AttributeType,
-                    finalPayloadDelta
-                );
-            }
-        }
-
-        private bool CanDamage(
-            CreatureInstance attacker,
-            CreatureInstance target)
-        {
-            bool attackerPlayer = attacker is PlayerInstance;
-            bool targetPlayer = target is PlayerInstance;
-
-            return attackerPlayer != targetPlayer;
         }
         #endregion
     }

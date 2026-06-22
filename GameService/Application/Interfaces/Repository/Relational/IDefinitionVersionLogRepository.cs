@@ -1,4 +1,5 @@
-﻿using Domain.Other.VersionDomain;
+﻿using Application.Interfaces.Repository.Base;
+using Domain.Definition;
 
 namespace Application.Interfaces.Repository.Relational
 {

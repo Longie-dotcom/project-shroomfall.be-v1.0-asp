@@ -1,12 +1,10 @@
-﻿using Application.Events.Event;
-using Application.Interfaces.Cache;
-using Application.Interfaces.Realtime;
-using AutoMapper;
-using Contract.DTO.Runtime;
-using Contract.Enum.AttributeDomain;
-using Domain.Document.AttributeDomain;
-using Domain.DomainException;
+﻿using Application.Interfaces.Cache;
+using Application.Interfaces.Realtime.Events;
+using Application.Interfaces.Realtime.Events.Game;
+using Contract.Enum.MetaDomain.Effect;
+using Domain.Definition.MetaDomain;
 using Domain.Runtime.EntityDomain;
+using Domain.Runtime.EntityDomain.Component;
 using Domain.Shared;
 
 namespace Application.Services.AttributeService
@@ -14,127 +12,170 @@ namespace Application.Services.AttributeService
     public class CharacteristicService
     {
         #region Attributes
-        private readonly IMapper mapper;
         private readonly IEventBus eventBus;
-        private readonly IEffectCache effectCache;
-        private readonly IAttributeValueCache attributeCache;
+        private readonly ICacheProvider cacheProvider;
         #endregion
 
         #region Properties
         #endregion
 
         public CharacteristicService(
-            IMapper mapper,
             IEventBus eventBus,
-            IEffectCache effectCache,
-            IAttributeValueCache attributeCache)
+            ICacheProvider cacheProvider)
         {
-            this.mapper = mapper;
             this.eventBus = eventBus;
-            this.effectCache = effectCache;
-            this.attributeCache = attributeCache;
+            this.cacheProvider = cacheProvider;
         }
 
         #region Methods
         public void InitializeVitals(
-            CreatureInstance creature)
+            EntityInstance entity)
         {
-            var characteristicId = creature.DefinitionID;
-            var level = creature.Level;
+            var characteristic = entity.GetComponent<CharacteristicInstance>();
 
+            if (characteristic == null) return;
+            
             foreach (var attrDef in AttributeDefinitions.AllList())
             {
                 // Skip if it is not a Vital value
                 if (attrDef.DomainType != DomainType.Vital)
                     continue;
 
-                var attrValue = attributeCache.Get(characteristicId, attrDef.Type, level);
+                var attrValue = cacheProvider.Characteristic.GetAttributeValue(
+                    characteristic.DefinitionID,
+                    characteristic.CurrentLevel, 
+                    attrDef.Type);
+
                 if (attrValue == null)
                     continue;
 
-                creature.Characteristic.SetVital(attrDef.Type, attrValue.Value);
+                characteristic.SetVital(attrDef.Type, attrValue.BaseValue);
             }
         }
 
-        public float ModifyVitalValue(
-            CreatureInstance creature,
-            AttributeType type,
-            float delta)
+        public void InitializeCores(
+            EntityInstance entity)
         {
-            var characteristic = creature.Characteristic;
-            var level = creature.Level;
+            var characteristic = entity.GetComponent<CharacteristicInstance>();
+            var effectContainer = entity.GetComponent<EffectContainerInstance>();
 
-            var attrValue = attributeCache.Get(
-                characteristic.DefinitionID,
-                type, 
-                level);
+            if (characteristic == null || effectContainer == null) return;
 
-            if (attrValue == null)
-                throw new InternalException(
-                    ResponseCode.CharacteristicService_MissingAttributeValue,
-                    $"Missing vital attribute value for {type} at level {level}");
-
-            var attrDef = AttributeDefinitions.Get(type);
-
-            if (attrDef.DomainType != DomainType.Vital)
-                throw new InternalException(
-                    ResponseCode.CharacteristicService_InvalidNonVitalAttribute,
-                    $"Attribute {type} is not a Vital type.");
-
-            float current = characteristic.GetVital(type);
-            float next = current + delta;
-
-            float clamped = Math.Clamp(next, attrValue.Min, attrValue.Max);
-
-            characteristic.SetVital(type, clamped);
-
-            eventBus.Publish(new EntityVitalChangedEvent(
-                entityInstanceId: creature.ID,
-                roomSpatialId: creature.RoomSpatialID,
-                attributeType: type,
-                newValue: clamped,
-                occurredAt: DateTime.UtcNow
-            ));
-
-            return clamped;
+            // Execute raw logic with no side effects
+            CalculateCoresInternal(characteristic, effectContainer);
         }
 
-        public void RehydrateVitals(
-            CreatureInstance creature,
-            CharacteristicDocument doc)
+        public void ApplyEffectLogic(
+            EntityInstance entity,
+            EffectDefinition effectDef,
+            float rawDelta)
         {
-            if (doc?.Vitals == null)
+            var attrDef = AttributeDefinitions.Get(effectDef.AttributeType);
+
+            switch (attrDef.DomainType)
+            {
+                case DomainType.Vital:
+                    ModifyVitalValue(entity, attrDef.Type, rawDelta, effectDef.SourceType ?? AttributeType.AttackDamage);
+                    break;
+
+                case DomainType.Core:
+                    RecalculateCoreValues(entity);
+                    break;
+            }
+        }
+
+        private void ModifyVitalValue(
+            EntityInstance entity,
+            AttributeType type,
+            float rawDelta,
+            AttributeType damageFlavor)
+        {
+            var characteristic = entity.GetComponent<CharacteristicInstance>();
+            if (characteristic == null) return;
+
+            var transform = entity.GetComponent<TransformInstance>();
+            if (transform == null) return;
+
+            var attrValue = cacheProvider.Characteristic.GetAttributeValue(
+                characteristic.DefinitionID,
+                characteristic.CurrentLevel,
+                type);
+            if (attrValue == null)
                 return;
 
-            foreach (var v in doc.Vitals)
+            var attrDef = AttributeDefinitions.Get(type);
+            if (attrDef.DomainType != DomainType.Vital)
+                return;
+
+            float finalDelta = rawDelta;
+            if (rawDelta < 0 && type == AttributeType.Health)
             {
-                creature.Characteristic.SetVital(v.Key, v.Value);
+                finalDelta = CombatService.ResolveMitigatedDamage(entity, Math.Abs(rawDelta), damageFlavor);
+                finalDelta = -finalDelta; // Re-apply the negative
             }
+
+            float current = characteristic.GetVital(type);
+            float next = Math.Clamp(current + finalDelta, attrValue.Min, attrValue.Max);
+
+            characteristic.SetVital(type, next);
+
+            eventBus.Publish(new EntityVitalChangedEvent(
+                entityInstanceId: entity.ID,
+                roomSpatialId: transform.RoomSpatialID,
+                attributeType: type,
+                newValue: next
+            ));
         }
 
-        public void RecalculateCoreValues(
-            CreatureInstance creature)
+        private void RecalculateCoreValues(
+            EntityInstance entity)
         {
-            var characteristic = creature.Characteristic;
-            var level = creature.Level;
+            var characteristic = entity.GetComponent<CharacteristicInstance>();
+            var effectContainer = entity.GetComponent<EffectContainerInstance>();
 
-            var activeEffectsByAttribute = creature.ActiveEffects
-                .Select(e => effectCache.Get(e.DefinitionID))
-                .Where(def => def != null)
-                .GroupBy(def => def.AttributeType)
-                .ToDictionary(g => g.Key, g => g.ToList());
+            if (characteristic == null || effectContainer == null) return;
 
+            // Run the core mathematical calculations
+            CalculateCoresInternal(characteristic, effectContainer);
+
+            // Perform the infrastructure side-effects (Syncing / Event Bus)
+            eventBus.Publish(new PlayerCharacteristicSyncEvent(
+                entityInstanceId: entity.ID,
+                characteristicInstance: characteristic
+            ));
+        }
+
+        private void CalculateCoresInternal(
+            CharacteristicInstance characteristic,
+            EffectContainerInstance effectContainer)
+        {
+            // Group active status effects
+            var activeEffectsByAttribute = new Dictionary<AttributeType, List<EffectDefinition>>();
+            foreach (var activeEffect in effectContainer.ActiveEffects)
+            {
+                var modifier = cacheProvider.Effect.Get(activeEffect.DefinitionID);
+                if (modifier == null) continue;
+
+                if (!activeEffectsByAttribute.TryGetValue(modifier.AttributeType, out var list))
+                {
+                    list = new List<EffectDefinition>();
+                    activeEffectsByAttribute[modifier.AttributeType] = list;
+                }
+                list.Add(modifier);
+            }
+
+            // Calculate and assign each Core value
             foreach (var attrDef in AttributeDefinitions.AllList())
             {
-                // Skip if it is not Core value
-                if (attrDef.DomainType != DomainType.Core)
-                    continue;
+                if (attrDef.DomainType != DomainType.Core) continue;
 
-                var attrValue = attributeCache.Get(characteristic.DefinitionID, attrDef.Type, level);
-                if (attrValue == null)
-                    continue;
+                var attrValue = cacheProvider.Characteristic.GetAttributeValue(
+                    characteristic.DefinitionID,
+                    characteristic.CurrentLevel,
+                    attrDef.Type);
 
-                float baseValue = attrValue.Value;
+                if (attrValue == null) continue;
+
                 float flat = 0f;
                 float percent = 0f;
                 float multiplier = 1f;
@@ -145,35 +186,18 @@ namespace Application.Services.AttributeService
                     {
                         switch (effect?.Type)
                         {
-                            case EffectType.Flat:
-                                flat += effect.Value;
-                                break;
-
-                            case EffectType.Percentage:
-                                percent += effect.Value;
-                                break;
-
-                            case EffectType.Multiplier:
-                                multiplier *= effect.Value;
-                                break;
+                            case EffectType.Flat: flat += effect.Value; break;
+                            case EffectType.Percentage: percent += effect.Value; break;
+                            case EffectType.Multiplier: multiplier *= effect.Value; break;
                         }
                     }
                 }
 
-                // 4. Run the decoupled math processing algorithm
-                float result = (baseValue + flat) * (1f + percent) * multiplier;
+                float result = (attrValue.BaseValue + flat) * (1f + percent) * multiplier;
                 result = Math.Clamp(result, attrValue.Min, attrValue.Max);
 
                 characteristic.SetCore(attrDef.Type, result);
             }
-
-            var dto = mapper.Map<CharacteristicRuntimeDTO>(characteristic);
-
-            eventBus.Publish(new PlayerCharacteristicSyncEvent(
-                entityInstanceId: creature.ID,
-                characteristicRuntime: dto,
-                occurredAt: DateTime.UtcNow
-            ));
         }
         #endregion
     }

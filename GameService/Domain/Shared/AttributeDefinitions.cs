@@ -1,8 +1,23 @@
-﻿using Contract.Enum.AttributeDomain;
-using Domain.Definition.AttributeDomain;
+﻿using Contract.Enum.MetaDomain.Effect;
+using Domain.Definition.LocalizationDomain;
 
 namespace Domain.Shared
 {
+    public class AttributeDefinition
+    {
+        #region Attributes
+        #endregion
+
+        #region Properties
+        public AttributeType Type { get; set; }
+        public LocalizedText LocalizedText { get; set; } = new LocalizedText();
+        public DomainType DomainType { get; set; }
+        #endregion
+
+        #region Methods
+        #endregion
+    }
+
     public static class AttributeDefinitions
     {
         private static readonly Dictionary<AttributeType, AttributeDefinition> map;
@@ -13,9 +28,6 @@ namespace Domain.Shared
             {
                 // ───────── Combat ─────────
                 [AttributeType.AttackDamage] = CreateCore(AttributeType.AttackDamage, "attack_damage"),
-                [AttributeType.AttackSpeed] = CreateCore(AttributeType.AttackSpeed, "attack_speed"),
-                [AttributeType.AttackRange] = CreateCore(AttributeType.AttackRange, "attack_range"),
-
                 [AttributeType.FirePower] = CreateCore(AttributeType.FirePower, "fire_power"),
                 [AttributeType.IcePower] = CreateCore(AttributeType.IcePower, "ice_power"),
                 [AttributeType.EarthPower] = CreateCore(AttributeType.EarthPower, "earth_power"),
@@ -30,22 +42,11 @@ namespace Domain.Shared
                 [AttributeType.DarkResistance] = CreateCore(AttributeType.DarkResistance, "dark_resistance"),
                 [AttributeType.LightResistance] = CreateCore(AttributeType.LightResistance, "light_resistance"),
 
-                // ───────── Extraction ─────────
-                [AttributeType.ExtractDamage] = CreateCore(AttributeType.ExtractDamage, "extract_damage"),
-                [AttributeType.ExtractSpeed] = CreateCore(AttributeType.ExtractSpeed, "extract_speed"),
-                [AttributeType.ExtractRange] = CreateCore(AttributeType.ExtractRange, "extract_range"),
-
-                // ───────── Farming ─────────
-                [AttributeType.FarmEfficiency] = CreateCore(AttributeType.FarmEfficiency, "farm_efficiency"),
-                [AttributeType.FarmQuality] = CreateCore(AttributeType.FarmQuality, "farm_quality"),
-
-                // ───────── Taming ─────────
-                [AttributeType.TameEfficiency] = CreateCore(AttributeType.TameEfficiency, "tame_efficiency"),
-                [AttributeType.TameQuality] = CreateCore(AttributeType.TameQuality, "tame_quality"),
-
                 // ───────── Utility ─────────
                 [AttributeType.MoveSpeed] = CreateCore(AttributeType.MoveSpeed, "move_speed"),
                 [AttributeType.Lucky] = CreateCore(AttributeType.Lucky, "luck"),
+                [AttributeType.AttackSpeed] = CreateCore(AttributeType.AttackSpeed, "attack_speed"),
+                [AttributeType.AttackRange] = CreateCore(AttributeType.AttackRange, "attack_range"),
 
                 // ───────── Vital ─────────
                 [AttributeType.Health] = CreateVital(AttributeType.Health, "health"),
@@ -55,7 +56,6 @@ namespace Domain.Shared
         }
 
         #region Helper Factory Methods
-        // Cleaned up boilerplates using small internal factory helpers
         private static AttributeDefinition CreateCore(AttributeType type, string keyName) =>
             Create(type, DomainType.Core, keyName);
 

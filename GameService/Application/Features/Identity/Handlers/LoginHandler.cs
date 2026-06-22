@@ -1,17 +1,18 @@
 ﻿using Application.Features.Abstraction;
 using Application.Features.Identity.Commands;
+using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
 using Application.Services.IdentityService;
 using Contract.DTO.Identity;
-using Domain.DomainException;
-using Domain.Shared;
+using Domain.Shared.DomainException;
+using Domain.Shared.ResponseCode;
 
 namespace Application.Features.Identity.Handlers
 {
     public class LoginHandler : IHandler<LoginCommand, TokenDTO>
     {
         #region Attributes
-        private readonly IRelationalUoW relational;
+        private readonly IRelationalUoW relationalUoW;
         private readonly TokenService tokenService;
         #endregion
 
@@ -19,10 +20,10 @@ namespace Application.Features.Identity.Handlers
         #endregion
 
         public LoginHandler(
-            IRelationalUoW relational,
+            IRelationalUoW relationalUoW,
             TokenService tokenService)
         {
-            this.relational = relational;
+            this.relationalUoW = relationalUoW;
             this.tokenService = tokenService;
         }
 
@@ -33,17 +34,17 @@ namespace Application.Features.Identity.Handlers
             var dto = command.DTO;
 
             // Resolve repository
-            var userRepo = relational.GetRepository<IUserRepository>();
+            var userRepo = relationalUoW.GetRepository<IUserRepository>();
 
             // Validate input
             if (string.IsNullOrWhiteSpace(dto.Email))
                 throw new BadRequest(
-                    ResponseCode.Login_EmailRequired,
+                    ApplicationCode.IdentityHandlerCode.LoginEmailRequired,
                     $"Email is required in login, login process was terminated");
 
             if (string.IsNullOrWhiteSpace(dto.Password))
                 throw new BadRequest(
-                    ResponseCode.Login_PasswordRequired,
+                    ApplicationCode.IdentityHandlerCode.LoginPasswordRequired,
                     $"Password is required in login, login process was terminated");
 
             // Validate authentication
@@ -51,7 +52,7 @@ namespace Application.Features.Identity.Handlers
             var user = await userRepo.GetByEmailAsync(email);
             if (user == null)
                 throw new Unauthorized(
-                    ResponseCode.Login_InvalidCredentials, 
+                    ApplicationCode.IdentityHandlerCode.LoginInvalidCredentials,
                     $"Credential is invalid");
             user.VerifyPassword(dto.Password);
 
@@ -60,7 +61,7 @@ namespace Application.Features.Identity.Handlers
             (var accessToken, var refreshToken) = tokenService.Generate(user);
 
             // Apply persistence
-            await relational.SaveChangesAsync();
+            await relationalUoW.SaveChangesAsync();
 
             return new TokenDTO
             {

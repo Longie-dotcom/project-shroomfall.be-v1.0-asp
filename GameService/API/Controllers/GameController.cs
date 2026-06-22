@@ -3,7 +3,7 @@ using Application.Features.Abstraction;
 using Application.Features.Game.Commands;
 using Contract.DTO.Connection;
 using Contract.DTO.Game;
-using Contract.Enum.EntityDomain;
+using Contract.Enum.MetaDomain.Item;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

@@ -1,12 +1,11 @@
 ﻿using Application.Context;
 using Application.Features.Abstraction;
 using Application.Features.Game.Commands;
-using Application.Interfaces.Security;
-using Application.Services.ItemService;
+using Application.Interfaces.Realtime.Managers;
 using Domain.Common;
-using Domain.DomainException;
-using Domain.Runtime.EntityDomain;
-using Domain.Shared;
+using Domain.Runtime.EntityDomain.Component;
+using Domain.Shared.DomainException;
+using Domain.Shared.ResponseCode;
 
 namespace Application.Features.Game.Handlers
 {
@@ -15,7 +14,6 @@ namespace Application.Features.Game.Handlers
         #region Attributes
         private readonly WorldContext worldContext;
         private readonly ISessionManager sessionManager;
-        private readonly ItemService itemService;
         #endregion
 
         #region Properties
@@ -23,12 +21,10 @@ namespace Application.Features.Game.Handlers
 
         public UseItemHandler(
             WorldContext worldContext,
-            ISessionManager sessionManager,
-            ItemService itemService)
+            ISessionManager sessionManager)
         {
             this.worldContext = worldContext;
             this.sessionManager = sessionManager;
-            this.itemService = itemService;
         }
 
         #region Methods
@@ -41,18 +37,25 @@ namespace Application.Features.Game.Handlers
             var playerInstanceId = sessionManager.Get(command.UserID);
             if (string.IsNullOrWhiteSpace(playerInstanceId))
                 throw new Unauthorized(
-                    ResponseCode.Move_SessionNotFound,
+                    ApplicationCode.GameHandlerCode.UseItemSessionNotFound,
                     $"User with user ID: {command.UserID} has no session");
 
             // Validate player instance existence
-            var player = worldContext.GetEntity<PlayerInstance>(playerInstanceId);
+            var player = worldContext.GetEntity(playerInstanceId);
             if (player == null)
                 throw new BadRequest(
-                    ResponseCode.Move_PlayerInstanceNotFound,
+                    ApplicationCode.GameHandlerCode.UseItemPlayerInstanceNotFound,
                     $"User with user ID: {command.UserID} has no player instance");
 
+            // Validate action component existence
+            var actionState = player.GetComponent<ActionInstance>();
+            if (actionState == null)
+                throw new InternalException(
+                    ApplicationCode.GameHandlerCode.UseItemActionComponentMissing,
+                    $"Player instance {playerInstanceId} is missing ActionInstance component");
+
             // Fire intent
-            itemService.Use(player, dto.ItemInstanceID, new Vector2(dto.TargetPositionX, dto.TargetPositionY));
+            actionState.SetItemUseIntent(dto.ItemInstanceID, new Vector2(dto.TargetPositionX, dto.TargetPositionY));
         }
         #endregion
     }

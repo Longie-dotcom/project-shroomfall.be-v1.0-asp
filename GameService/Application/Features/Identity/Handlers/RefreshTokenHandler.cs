@@ -1,17 +1,18 @@
 ﻿using Application.Features.Abstraction;
 using Application.Features.Identity.Commands;
+using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
 using Application.Services.IdentityService;
 using Contract.DTO.Identity;
-using Domain.DomainException;
-using Domain.Shared;
+using Domain.Shared.DomainException;
+using Domain.Shared.ResponseCode;
 
 namespace Application.Features.Identity.Handlers
 {
     public class RefreshTokenHandler : IHandler<RefreshTokenCommand, TokenDTO>
     {
         #region Attributes
-        private readonly IRelationalUoW relational;
+        private readonly IRelationalUoW relationalUoW;
         private readonly TokenService tokenService;
         #endregion
 
@@ -19,10 +20,10 @@ namespace Application.Features.Identity.Handlers
         #endregion
 
         public RefreshTokenHandler(
-            IRelationalUoW relational,
+            IRelationalUoW relationalUoW,
             TokenService tokenService)
         {
-            this.relational = relational;
+            this.relationalUoW = relationalUoW;
             this.tokenService = tokenService;
         }
 
@@ -33,13 +34,13 @@ namespace Application.Features.Identity.Handlers
             var dto = command.DTO;
 
             // Resolve repository
-            var userRepo = relational.GetRepository<IUserRepository>();
+            var userRepo = relationalUoW.GetRepository<IUserRepository>();
 
             // Validate authentication
             var user = await userRepo.GetByIdAsync(command.UserID);
             if (user == null)
                 throw new NotFound(
-                    ResponseCode.RefreshToken_UserNotFound,
+                    ApplicationCode.IdentityHandlerCode.RefreshTokenUserNotFound,
                     $"User with user ID: {command.UserID} was not found");
 
             // Validate refresh token 
@@ -49,7 +50,7 @@ namespace Application.Features.Identity.Handlers
             (var accessToken, var newRefreshToken) = tokenService.Generate(user);
 
             // Apply persistence
-            await relational.SaveChangesAsync();
+            await relationalUoW.SaveChangesAsync();
 
             return new TokenDTO
             {

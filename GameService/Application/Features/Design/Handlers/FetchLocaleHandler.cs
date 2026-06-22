@@ -2,8 +2,8 @@
 using Application.Features.Design.Commands;
 using Application.Interfaces.Cache;
 using AutoMapper;
-using Contract.DTO.Definition;
 using Contract.DTO.Design;
+using Contract.DTO.Domain.Definition;
 
 namespace Application.Features.Design.Handlers
 {
@@ -11,7 +11,7 @@ namespace Application.Features.Design.Handlers
     {
         #region Attributes
         private readonly IMapper mapper;
-        private readonly ILocaleCache localeCache;
+        private readonly ICacheProvider cacheProvider;
         #endregion
 
         #region Properties
@@ -19,10 +19,10 @@ namespace Application.Features.Design.Handlers
 
         public FetchLocaleHandler(
             IMapper mapper,
-            ILocaleCache localeCache)
+            ICacheProvider cacheProvider)
         {
             this.mapper = mapper;
-            this.localeCache = localeCache;
+            this.cacheProvider = cacheProvider;
         }
 
         #region Methods
@@ -30,7 +30,7 @@ namespace Application.Features.Design.Handlers
             FetchLocaleCommand command)
         {
             // Retrieve all existed locale
-            var locales = localeCache.GetAll();
+            var locales = cacheProvider.Locale.GetAll();
 
             // Mapping and return
             var mapped = mapper.Map<List<LocaleDTO>>(locales);

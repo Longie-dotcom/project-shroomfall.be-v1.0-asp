@@ -1,8 +1,9 @@
 ﻿using Contract.Enum.EntityDomain;
 using Domain.Abstraction;
 using Domain.Definition.EntityDomain.Component;
-using Domain.DomainException;
 using Domain.Runtime.EntityDomain.Component;
+using Domain.Shared.DomainException;
+using Domain.Shared.ResponseCode;
 
 namespace Domain.Shared
 {
@@ -16,33 +17,30 @@ namespace Domain.Shared
 
         #region Methods
         public static ICollisionShape FromDefinition(
-            Collision collision)
+            CollisionDefinition collision)
         {
             switch (collision.ShapeType)
             {
                 case CollisionShapeType.Point:
                     return new PointShape(
-                        collision.IsBlocking,
-                        collision.IsTrigger);
+                        collision.IsBlocking);
 
                 case CollisionShapeType.Box:
                     return new BoxShape(
                         collision.Width,
                         collision.Height,
-                        collision.IsBlocking,
-                        collision.IsTrigger
+                        collision.IsBlocking
                     );
 
                 case CollisionShapeType.Circle:
                     return new CircleShape(
                         collision.Radius,
-                        collision.IsBlocking,
-                        collision.IsTrigger
+                        collision.IsBlocking
                     );
 
                 default:
                     throw new InternalException(
-                        ResponseCode.CollisionShapeMapper_InvalidShapeType,
+                        DomainCode.CollisionShapeMapperCode.InvalidShapeType,
                         $"Collision type is not found: {collision.ShapeType}");
             }
         }

@@ -1,5 +1,6 @@
 ﻿using Application.Features.Abstraction;
 using Application.Features.Design.Commands;
+using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
 using Application.Services.DesignService;
 using Contract;
@@ -11,7 +12,7 @@ namespace Application.Features.Design.Handlers
     {
         #region Attributes
         private readonly IRelationalUoW relational;
-        private readonly BuilderService builderService;
+        private readonly DefinitionService builderService;
         #endregion
 
         #region Properties
@@ -19,7 +20,7 @@ namespace Application.Features.Design.Handlers
 
         public UserRefreshHandler(
             IRelationalUoW relational,
-            BuilderService builderService)
+            DefinitionService builderService)
         {
             this.relational = relational;
             this.builderService = builderService;

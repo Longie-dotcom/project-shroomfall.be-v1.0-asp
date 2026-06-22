@@ -70,7 +70,6 @@ namespace Domain.Shared
         }
 
         #region Helper Extension
-        // A safe helper to prevent casing issues across your data layer inputs
         private static string ToLowerShared(
             this string input)
         {

@@ -1,11 +1,10 @@
 ﻿using Application.Context;
 using Application.Features.Abstraction;
 using Application.Features.Game.Commands;
-using Application.Interfaces.Security;
+using Application.Interfaces.Realtime.Managers;
 using Application.Services.ItemService;
-using Domain.DomainException;
-using Domain.Runtime.EntityDomain;
-using Domain.Shared;
+using Domain.Shared.DomainException;
+using Domain.Shared.ResponseCode;
 
 namespace Application.Features.Game.Handlers
 {
@@ -14,7 +13,7 @@ namespace Application.Features.Game.Handlers
         #region Attributes
         private readonly WorldContext worldContext;
         private readonly ISessionManager sessionManager;
-        private readonly ItemService itemService;
+        private readonly ItemUsageService itemUsageService;
         #endregion
 
         #region Properties
@@ -23,11 +22,11 @@ namespace Application.Features.Game.Handlers
         public UnequipItemHandler(
             WorldContext worldContext,
             ISessionManager sessionManager,
-            ItemService itemService)
+            ItemUsageService itemUsageService)
         {
             this.worldContext = worldContext;
             this.sessionManager = sessionManager;
-            this.itemService = itemService;
+            this.itemUsageService = itemUsageService;
         }
 
         #region Methods
@@ -38,18 +37,18 @@ namespace Application.Features.Game.Handlers
             var playerInstanceId = sessionManager.Get(command.UserID);
             if (string.IsNullOrWhiteSpace(playerInstanceId))
                 throw new Unauthorized(
-                    ResponseCode.Move_SessionNotFound,
+                    ApplicationCode.GameHandlerCode.UnequipItemSessionNotFound,
                     $"User with user ID: {command.UserID} has no session");
 
             // Validate player instance existence
-            var player = worldContext.GetEntity<PlayerInstance>(playerInstanceId);
+            var player = worldContext.GetEntity(playerInstanceId);
             if (player == null)
                 throw new BadRequest(
-                    ResponseCode.Move_PlayerInstanceNotFound,
+                    ApplicationCode.GameHandlerCode.UnequipItemPlayerInstanceNotFound,
                     $"User with user ID: {command.UserID} has no player instance");
 
             // Fire intent
-            itemService.Unequip(player, command.Slot);
+            itemUsageService.Unequip(player, command.Slot);
         }
         #endregion
     }

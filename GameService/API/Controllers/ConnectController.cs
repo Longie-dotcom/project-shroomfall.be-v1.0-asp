@@ -45,11 +45,11 @@ namespace API.Controllers
         {
             var (userId, steamId, role) = ClaimReader.GetIdentity(User);
 
-            var result = await dispatcher.Send<CreateSessionCommand, ExistedSessionEntryDTO>(
+            await dispatcher.Send<CreateSessionCommand>(
                 new CreateSessionCommand(userId, dto)
             );
 
-            return Ok(result);
+            return Ok();
         }
 
         [Authorize]

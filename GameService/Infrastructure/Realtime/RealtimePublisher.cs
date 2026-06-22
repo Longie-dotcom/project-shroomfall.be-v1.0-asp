@@ -1,7 +1,10 @@
 ﻿using Application.Interfaces.Realtime;
+using Application.Interfaces.Utility;
 using Contract;
+using Contract.DTO.Admin;
+using Contract.DTO.Design;
+using Contract.DTO.Domain.Runtime;
 using Contract.DTO.Game;
-using Contract.DTO.Runtime;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Infrastructure.Realtime
@@ -38,8 +41,8 @@ namespace Infrastructure.Realtime
         // Vitals & Attributes
         // ─────────────────────────────
         public Task SendEntityVitalChanged(
-                    string roomId,
-                    EntityVitalChangedDTO payload)
+            string roomId,
+            EntityVitalChangedDTO payload)
         {
             return hub.Clients
                 .Group(roomId)
@@ -51,7 +54,7 @@ namespace Infrastructure.Realtime
         // ─────────────────────────────
         public Task SendPlayerCharacteristicSync(
             string connectionId,
-            CharacteristicRuntimeDTO payload)
+            CharacteristicInstanceDTO payload)
         {
             return hub.Clients
                 .Client(connectionId)
@@ -59,20 +62,17 @@ namespace Infrastructure.Realtime
         }
 
         // ─────────────────────────────
-        // Spawn (broadcast to room)
+        // Spawn & Despawn (broadcast to room)
         // ─────────────────────────────
         public Task SendEntitySpawned(
             string roomId, 
-            EntityRuntimeDTO entity)
+            EntityInstanceDTO entity)
         {
             return hub.Clients
                 .Group(roomId)
                 .SendAsync(NetworkMethod.OnEntitySpawned, entity);
         }
 
-        // ─────────────────────────────
-        // Despawn (broadcast to room)
-        // ─────────────────────────────
         public Task SendEntityDespawned(
             string roomId, 
             string entityId)
@@ -98,16 +98,55 @@ namespace Infrastructure.Realtime
         // Definition update (broadcast)
         // ─────────────────────────────
         public Task SendDefinitionUpdated(
-            string key,
-            long version)
+            UpdateDefinitionNotificationDTO notification)
         {
             return hub.Clients
                 .All
-                .SendAsync(NetworkMethod.OnDefinitionUpdated, new
-                {
-                    Key = key,
-                    Version = version
-                });
+                .SendAsync(NetworkMethod.OnDefinitionUpdated, notification);
+        }
+
+        // ─────────────────────────────
+        // Telemetry
+        // ─────────────────────────────
+        public Task SendTelemetryAlert(
+            TelemetryEvent payload)
+        {
+            return hub.Clients
+                .Group(Constraint.ADMIN_REALTIME_GROUP)
+                .SendAsync(NetworkMethod.OnTelemetrySended, payload);
+        }
+
+        // ─────────────────────────────
+        // Admin Dashboard Updates
+        // ─────────────────────────────
+        public Task SendRoomResidencyChanged(
+            RoomResidencyChangedDTO payload)
+        {
+            return hub.Clients
+                .Group(Constraint.ADMIN_REALTIME_GROUP)
+                .SendAsync(
+                    NetworkMethod.OnRoomResidencyChanged,
+                    payload);
+        }
+
+        public Task SendUserConnectionChanged(
+                    UserConnectionChangedDTO payload)
+        {
+            return hub.Clients
+                .Group(Constraint.ADMIN_REALTIME_GROUP)
+                .SendAsync(
+                    NetworkMethod.OnUserConnectionChanged,
+                    payload);
+        }
+
+        public Task SendUserSessionChanged(
+            UserSessionChangedDTO payload)
+        {
+            return hub.Clients
+                .Group(Constraint.ADMIN_REALTIME_GROUP)
+                .SendAsync(
+                    NetworkMethod.OnUserSessionChanged,
+                    payload);
         }
         #endregion
     }

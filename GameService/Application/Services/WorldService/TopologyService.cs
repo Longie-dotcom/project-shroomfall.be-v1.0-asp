@@ -1,11 +1,13 @@
 ﻿using Application.Context;
 using Application.Interfaces.Cache;
-using Application.Interfaces.Factory;
+using Application.Services.WorldService.Factory;
 using Domain.Definition.WorldDomain;
-using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
-using Domain.Runtime.WorldDomain;
-using Domain.Shared;
+using Domain.Runtime.EntityDomain.Component;
+using Domain.Runtime.WorldDomain.Spatial;
+using Domain.Runtime.WorldDomain.Topology;
+using Domain.Shared.DomainException;
+using Domain.Shared.ResponseCode;
 
 namespace Application.Services.WorldService
 {
@@ -13,8 +15,8 @@ namespace Application.Services.WorldService
     {
         #region Attributes
         private readonly WorldContext worldContext;
-        private readonly IRoomConnectionCache roomConnectionCache;
-        private readonly IRoomConnectionInstanceFactory roomConnectionInstanceFactory;
+        private readonly ICacheProvider cacheProvider;
+        private readonly RoomConnectionInstanceFactory roomConnectionInstanceFactory;
         private readonly InitializationService initializationService;
         #endregion
 
@@ -23,59 +25,60 @@ namespace Application.Services.WorldService
 
         public TopologyService(
             WorldContext worldContext,
-            IRoomConnectionCache roomConnectionCache,
-            IRoomConnectionInstanceFactory roomConnectionInstanceFactory,
+            ICacheProvider cacheProvider,
+            RoomConnectionInstanceFactory roomConnectionInstanceFactory,
             InitializationService initializationService)
         {
             this.worldContext = worldContext;
-            this.roomConnectionCache = roomConnectionCache;
+            this.cacheProvider = cacheProvider;
             this.roomConnectionInstanceFactory = roomConnectionInstanceFactory;
             this.initializationService = initializationService;
         }
 
         #region Methods
-        public async Task<(RoomConnectionInstance Connection, RoomSnapshot? NewRoomSnapshot, bool IsNewRoom)>
+        public async Task<(RoomConnectionInstance ConnectionForward, RoomConnectionInstance? ConnectionReverse, RoomSnapshot? NewRoomSnapshot, bool IsNewRoom)>
             ResolveOrCreateConnection(string entityInstanceId)
         {
-            // Resolve source entity
             var entity = RequireEntity(entityInstanceId);
 
             // Reuse existing connection
             var existing = GetExistingConnection(entityInstanceId);
             if (existing != null)
             {
-                return (existing, null, false);
+                return (existing, null, null, false);
             }
 
-            // Resolve topology definition
             var (room, connectionDefinition) = ResolveConnectionDefinition(entity);
 
-            // Create destination room (NEW ROOM CASE)
-            var snapshot = CreateDestinationRoom(connectionDefinition);
+            RoomSnapshot snapshot = CreateDestinationRoom(connectionDefinition);
 
-            // Resolve destination entity
-            var destinationEntity = ResolveDestinationEntity(
-                snapshot,
-                connectionDefinition.DestinationEntityID);
+            var destinationEntity = ResolveDestinationEntity(snapshot, connectionDefinition.DestinationEntityID);
 
-            // Create runtime connection
-            var connection = CreateConnection(
-                room.ID,
-                entity.ID,
-                snapshot.Room.ID,
-                destinationEntity.ID);
+            // Create/Bind Connections
+            var connectionForward = CreateConnection(room.ID, entity.ID, snapshot.Room.ID, destinationEntity.ID, snapshot.Room.DefinitionID);
+            RoomConnectionInstance? connectionReverse = null;
 
-            return (connection, snapshot, true);
+            var reverseDefinition = cacheProvider.RoomConnection.GetByDestination(snapshot.Room.DefinitionID, destinationEntity.DefinitionID);
+            if (reverseDefinition != null)
+            {
+                connectionReverse = CreateConnection(snapshot.Room.ID, destinationEntity.ID, room.ID, entity.ID, room.DefinitionID);
+                connectionForward.BindDestination(snapshot.Room.ID, destinationEntity.ID);
+
+                connectionForward.SetReverseConnection(connectionReverse.ID);
+                connectionReverse.SetReverseConnection(connectionForward.ID);
+            }
+
+            return (connectionForward, connectionReverse, snapshot, true);
         }
 
         private EntityInstance RequireEntity(
             string entityInstanceId)
         {
-            var entity = worldContext.GetEntity<EntityInstance>(entityInstanceId);
+            var entity = worldContext.GetEntity(entityInstanceId);
             if (entity == null)
                 throw new InternalException(
-                    ResponseCode.TopologyService_EntityNotFound,
-                    $"Entity not found: {entityInstanceId}");
+                    ApplicationCode.TopologyServiceCode.EntityNotFound,
+                    $"Topology resolution aborted. Entity target '{entityInstanceId}' could not be resolved from active context.");
 
             return entity;
         }
@@ -93,17 +96,23 @@ namespace Application.Services.WorldService
         private (RoomSpatial Room, RoomConnection Definition) ResolveConnectionDefinition(
             EntityInstance entity)
         {
-            var room = worldContext.GetRoom(entity.RoomSpatialID);
+            var transform = entity.GetComponent<TransformInstance>();
+            if (transform == null)
+                throw new InternalException(
+                    ApplicationCode.TopologyServiceCode.TransformComponentMissing,
+                    $"Topology resolution aborted. Entity '{entity.ID}' (Def: '{entity.DefinitionID}') is missing required structural Transform component.");
+
+            var room = worldContext.GetRoom(transform.RoomSpatialID);
             if (room == null)
                 throw new InternalException(
-                    ResponseCode.TopologyService_RoomNotFound,
-                    $"Room not found: {entity.RoomSpatialID}");
+                    ApplicationCode.TopologyServiceCode.CurrentRoomNotFound,
+                    $"Topology resolution aborted. Current active room boundary '{transform.RoomSpatialID}' holding Entity '{entity.ID}' was not found.");
 
-            var definition = roomConnectionCache.GetBySource(room.DefinitionID, entity.DefinitionID);
+            var definition = cacheProvider.RoomConnection.GetBySource(room.DefinitionID, entity.DefinitionID);
             if (definition == null)
                 throw new InternalException(
-                    ResponseCode.TopologyService_NoConnectionDefinition,
-                    "No connection definition for this entity");
+                    ApplicationCode.TopologyServiceCode.ConnectionDefinitionMissing,
+                    $"Topology resolution aborted. No spatial connection blueprint is defined matching Source Room Type '{room.DefinitionID}' and Trigger Entity Type '{entity.DefinitionID}'.");
 
             return (room, definition);
         }
@@ -116,7 +125,8 @@ namespace Application.Services.WorldService
             return initializationService.InitializeRoom(
                 connectionDefinition.DestinationRoomID,
                 roomSpatialId,
-                null);
+                null,
+                null).room;
         }
 
         private EntityInstance ResolveDestinationEntity(
@@ -128,20 +138,21 @@ namespace Application.Services.WorldService
 
             if (entity == null)
                 throw new InternalException(
-                    ResponseCode.TopologyService_DestinationEntityMissing,
-                    "Destination entity not found in initialized room");
+                    ApplicationCode.TopologyServiceCode.DestinationEntityMissing,
+                    $"Topology binding aborted. The initialized target Room '{snapshot.Room.ID}' (Def: '{snapshot.Room.DefinitionID}') failed to generate expected anchor Entity Blueprint '{destinationEntityDefinitionId}'.");
 
             return entity;
         }
 
         private RoomConnectionInstance CreateConnection(
+            string roomDefinitionId,
             string sourceRoomSpatialId,
             string sourceEntityInstanceId,
             string destinationRoomSpatialId,
             string destinationEntityInstanceId)
         {
             return roomConnectionInstanceFactory.Create(
-                definitionId: Guid.NewGuid().ToString(),
+                definitionId: roomDefinitionId,
                 sourceRoomSpatialId: sourceRoomSpatialId,
                 sourceEntityInstanceId: sourceEntityInstanceId,
                 destinationRoomSpatialId: destinationRoomSpatialId,

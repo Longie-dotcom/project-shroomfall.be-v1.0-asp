@@ -1,9 +1,9 @@
-﻿using Application.Helper;
-using Application.Interfaces.Factory;
+﻿using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.NonRelational;
+using Application.Services.WorldService.Factory;
 using AutoMapper;
-using Domain.Document.EntityDomain;
 using Domain.Runtime.EntityDomain;
+using Domain.Snapshot.EntityDomain;
 
 namespace Application.Persistence
 {
@@ -11,8 +11,8 @@ namespace Application.Persistence
     {
         #region Attributes
         private readonly IMapper mapper;
-        private readonly INonRelationalUoW nonRelational;
-        private readonly IEntityInstanceFactory entityInstanceFactory;
+        private readonly INonRelationalUoW nonRelationalUoW;
+        private readonly EntityInstanceFactory entityInstanceFactory;
         #endregion
 
         #region Properties
@@ -20,60 +20,54 @@ namespace Application.Persistence
 
         public EntityPersistence(
             IMapper mapper,
-            INonRelationalUoW nonRelational,
-            IEntityInstanceFactory entityInstanceFactory)
+            INonRelationalUoW nonRelationalUoW,
+            EntityInstanceFactory entityInstanceFactory)
         {
             this.mapper = mapper;
-            this.nonRelational = nonRelational;
+            this.nonRelationalUoW = nonRelationalUoW;
             this.entityInstanceFactory = entityInstanceFactory;
         }
 
         #region Methods
-        public async Task<T?> LoadAsync<T>(
-            string entityInstanceId) where T : EntityInstance
+        public async Task<EntityInstance?> LoadEntityAsync(
+            string entityId)
         {
             // Resolve repository
-            var entityRepo = nonRelational.GetRepository<IEntityDocumentRepository>();
+            var entitySnapshotRepo = nonRelationalUoW.GetRepository<IEntitySnapshotRepository>();
 
-            // Retrieve entity document object
-            var doc = await entityRepo.GetByIdAsync(entityInstanceId);
-            if (doc == null)
-                return null;
+            // Fetch the raw data bag (Snapshot) from Mongo
+            var snapshot = await entitySnapshotRepo.GetByIdAsync(entityId);
 
-            // Map to runtime object
-            return EntityMapper.ToRuntime(doc, entityInstanceFactory) as T;
+            if (snapshot == null) return null;
+
+            // Convert Snapshot -> Domain Object
+            var entity = entityInstanceFactory.Rehydrate(snapshot);
+
+            return entity;
         }
 
         public async Task<List<EntityInstance>> LoadByRoomAsync(
             string roomSpatialId)
         {
-            var entityRepo = nonRelational.GetRepository<IEntityDocumentRepository>();
+            // Resolve repository
+            var entitySnapshotRepo = nonRelationalUoW.GetRepository<IEntitySnapshotRepository>();
 
-            var docs = await entityRepo.GetByRoomIdAsync(roomSpatialId);
+            var snapshots = await entitySnapshotRepo.GetByRoomIdAsync(roomSpatialId);
 
-            return docs.Select(x => EntityMapper.ToRuntime(x, entityInstanceFactory)).ToList();
-        }
-
-        public async Task SaveAsync(
-            EntityInstance entity)
-        {
-            var entityRepo = nonRelational.GetRepository<IEntityDocumentRepository>();
-
-            var doc = EntityMapper.ToDocument(entity, mapper);
-            if (doc == null)
-                return;
-
-            await entityRepo.UpdateAsync(doc);
+            return snapshots.Select(x => entityInstanceFactory.Rehydrate(x)).ToList();
         }
 
         public async Task SaveManyAsync(
             IEnumerable<EntityInstance> entities)
         {
-            var entityRepo = nonRelational.GetRepository<IEntityDocumentRepository>();
+            // Resolve repository
+            var entitySnapshotRepo = nonRelationalUoW.GetRepository<IEntitySnapshotRepository>();
 
-            var docs = entities.Select(mapper.Map<EntityDocument>).ToList();
+            // Project the collection of Domain Entities to the collection of Snapshots
+            var snapshots = entities.Select(e => mapper.Map<EntitySnapshot>(e));
 
-            await entityRepo.UpdateManyAsync(docs);
+            // Save all snapshots in one bulk operation
+            await entitySnapshotRepo.UpdateManyAsync(snapshots);
         }
         #endregion
     }

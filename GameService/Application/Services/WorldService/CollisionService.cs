@@ -1,13 +1,12 @@
 ﻿using Application.Context;
 using Application.Interfaces.Cache;
-using Contract;
+using Contract.Enum.EntityDomain;
 using Contract.Enum.WorldDomain;
 using Domain.Abstraction;
 using Domain.Common;
-using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
-using Domain.Runtime.WorldDomain;
-using Domain.Shared;
+using Domain.Runtime.EntityDomain.Component;
+using Domain.Runtime.WorldDomain.Spatial;
 
 namespace Application.Services.WorldService
 {
@@ -19,6 +18,8 @@ namespace Application.Services.WorldService
         public Vector2 Offset { get; }
         public int LayerZ { get; }
         public ICollisionShape CollisionShape { get; }
+        public CollisionLayer Layer { get; }
+        public CollisionLayer Mask { get; }
 
         public CollisionBody(
             string entityInstanceID,
@@ -26,65 +27,41 @@ namespace Application.Services.WorldService
             Vector2 position,
             Vector2 offset,
             int layerZ,
-            ICollisionShape collisionShape)
+            ICollisionShape collisionShape,
+            CollisionLayer layer,
+            CollisionLayer mask)
         {
             EntityInstanceID = entityInstanceID;
             RoomSpatialID = roomSpatialID;
-
             Position = position;
-            Offset = offset; // Assign Offset
+            Offset = offset;
             LayerZ = layerZ;
-
             CollisionShape = collisionShape;
+            Layer = layer;
+            Mask = mask;
         }
     }
 
     public class CollisionContext
     {
-        // Final state
         public bool IsBlocked { get; set; }
-
-        // Per-axis
         public bool BlockX { get; set; }
         public bool BlockY { get; set; }
-
-        // Resolved layer
         public int LayerZ { get; set; }
-
-        // Dynamic collisions
-        public List<EntityInstance> Entities { get; }
-
-        // Trigger entities
-        public HashSet<string> Triggers { get; }
+        public List<EntityInstance> Entities { get; } // Dynamic collisions
+        public HashSet<EntityInstance> Triggers { get; } // Trigger entities
 
         public CollisionContext()
         {
             Entities = new List<EntityInstance>();
-            Triggers = new HashSet<string>();
+            Triggers = new HashSet<EntityInstance>();
         }
-    }
-
-    public readonly struct ChunkKey : IEquatable<ChunkKey>
-    {
-        public readonly int X;
-        public readonly int Y;
-
-        public ChunkKey(int x, int y)
-        {
-            X = x;
-            Y = y;
-        }
-
-        public bool Equals(ChunkKey other)
-            => X == other.X && Y == other.Y;
     }
 
     public class CollisionService
     {
         #region Attributes
-        private readonly HashSet<ChunkKey> visitedChunks = new();
-
-        private readonly IRoomCache roomCache;
+        private readonly ICacheProvider cacheProvider;
         private readonly WorldContext worldContext;
         #endregion
 
@@ -92,71 +69,14 @@ namespace Application.Services.WorldService
         #endregion
 
         public CollisionService(
-            IRoomCache roomCache,
+            ICacheProvider cacheProvider,
             WorldContext worldContext)
         {
-            this.roomCache = roomCache;
+            this.cacheProvider = cacheProvider;
             this.worldContext = worldContext;
         }
 
         #region Methods
-        public bool QueryInteractions(
-            CollisionBody self,
-            RoomSpatial roomSpatial,
-            Vector2 position,
-            CollisionContext context,
-            Span<(int x, int y)> buffer)
-        {
-            bool isBlocked = false;
-            visitedChunks.Clear();
-
-            // 1. Calculate the effective position of the moving body
-            Vector2 effectiveSelfPosition = new Vector2(
-                position.X + self.Offset.X,
-                position.Y + self.Offset.Y);
-
-            // Compute cells using the offset position
-            int count = self.CollisionShape.ComputeCells(effectiveSelfPosition, buffer);
-
-            for (int i = 0; i < count; i++)
-            {
-                var (cellX, cellY) = buffer[i];
-                var (cx, cy) = ChunkMath.ToChunkOnly(cellX, cellY, Constraint.CHUNK_SIZE);
-                var key = new ChunkKey(cx, cy);
-
-                if (visitedChunks.Add(key))
-                {
-                    var (_, entityIds) = worldContext.QuerySpatial(self.RoomSpatialID, cellX, cellY, self.LayerZ);
-
-                    foreach (var entityId in entityIds)
-                    {
-                        var entity = worldContext.GetEntity<EntityInstance>(entityId);
-                        if (entity == null || entity.ID == self.EntityInstanceID) continue;
-
-                        // 2. Calculate the effective position of the target entity
-                        // (Requires EntityInstance to expose its CollisionOffset)
-                        Vector2 effectiveEntityPosition = new Vector2(
-                            entity.Position.X + entity.CollisionOffset.X,
-                            entity.Position.Y + entity.CollisionOffset.Y);
-
-                        // 3. Check intersection using both effective positions
-                        if (self.CollisionShape.Intersects(effectiveSelfPosition, entity.CollisionShape, effectiveEntityPosition))
-                        {
-                            if (!context.Entities.Contains(entity))
-                                context.Entities.Add(entity);
-
-                            if (entity.CollisionShape.IsBlocking) isBlocked = true;
-                            if (entity.CollisionShape.IsTrigger) context.Triggers.Add(entity.ID);
-                        }
-                    }
-                }
-
-                var cell = roomCache.GetTopCell(roomSpatial.DefinitionID, cellX, cellY);
-                if (cell != null && cell.Type != CellType.Walkable) isBlocked = true;
-            }
-            return isBlocked;
-        }
-
         public CollisionContext QueryMovement(
             CollisionBody self,
             Vector2 desiredPosition)
@@ -166,33 +86,12 @@ namespace Application.Services.WorldService
             var roomSpatial = worldContext.GetRoom(self.RoomSpatialID);
             if (roomSpatial == null) return result;
 
-            Span<(int x, int y)> buffer =
-                stackalloc (int, int)[256];
+            Span<(int x, int y)> buffer = stackalloc (int, int)[256];
 
-            result.BlockX = QueryInteractions(
-                self,
-                roomSpatial,
-                new Vector2(
-                    desiredPosition.X,
-                    self.Position.Y),
-                result,
-                buffer);
-
-            result.BlockY = QueryInteractions(
-                self,
-                roomSpatial,
-                new Vector2(
-                    self.Position.X,
-                    desiredPosition.Y),
-                result,
-                buffer);
-
+            result.BlockX = QueryInteractions(self, roomSpatial, new Vector2(desiredPosition.X, self.Position.Y), result, buffer);
+            result.BlockY = QueryInteractions(self, roomSpatial, new Vector2(self.Position.X, desiredPosition.Y), result, buffer);
             result.IsBlocked = result.BlockX || result.BlockY;
-
-            result.LayerZ = ResolveLayer(
-                self,
-                roomSpatial,
-                desiredPosition);
+            result.LayerZ = ResolveLayer(self, roomSpatial, desiredPosition);
 
             return result;
         }
@@ -202,124 +101,237 @@ namespace Application.Services.WorldService
             Vector2 position)
         {
             var result = new CollisionContext();
+
             var roomSpatial = worldContext.GetRoom(self.RoomSpatialID);
             if (roomSpatial == null) return result;
 
             Span<(int x, int y)> buffer = stackalloc (int, int)[256];
 
-            // Single pass check
-            var isBlocked = QueryInteractions(self, roomSpatial, position, result, buffer);
+            result.IsBlocked = QueryInteractions(self, roomSpatial, position, result, buffer);
 
-            result.IsBlocked = isBlocked;
             return result;
         }
 
-        public void ValidateSpawn(
-            ICollisionShape shape,
+        public void SpawnAtNearestValidPosition(
+            EntityInstance entity,
+            string roomDefinitionId,
             string roomSpatialId,
-            Vector2 position,
-            Vector2 offset, // 1. Add offset parameter
-            int layerZ,
-            string? ignoreEntityId = null)
+            Vector2 targetPosition,
+            int targetLayerZ,
+            IEnumerable<EntityInstance>? pendingEntities = null,
+            int maxRadius = 5)
         {
-            var roomSpatial = worldContext.GetRoom(roomSpatialId);
-            if (roomSpatial == null)
-                throw new InternalException(
-                    ResponseCode.CollisionService_RoomSpatialNotFoundOnValidateSpawn,
-                    $"Room spatial with room spatial ID: {roomSpatialId} not found on validate spawn");
+            // Default to the target position
+            Vector2 finalPosition = targetPosition;
 
-            Span<(int x, int y)> buffer = stackalloc (int, int)[256];
-
-            // 2. Calculate the effective spawn position
-            Vector2 effectiveSpawnPosition = new Vector2(
-                position.X + offset.X,
-                position.Y + offset.Y);
-
-            // 3. Compute cells using the effective position
-            int count = shape.ComputeCells(effectiveSpawnPosition, buffer);
-
-            for (int i = 0; i < count; i++)
+            // If collision exists, find the nearest valid spot
+            var collision = entity.GetComponent<CollisionInstance>();
+            if (collision != null && collision.CollisionShape.IsBlocking)
             {
-                var (cellX, cellY) = buffer[i];
-
-                var (_, entityIds) = worldContext.QuerySpatial(
+                finalPosition = FindNearestValid(
+                    collision.CollisionShape,
+                    collision.Mask,
+                    roomDefinitionId,
                     roomSpatialId,
-                    cellX,
-                    cellY,
-                    layerZ);
+                    targetPosition,
+                    collision.CollisionOffset,
+                    targetLayerZ,
+                    entity.ID,
+                    pendingEntities,
+                    maxRadius);
+            }
 
-                foreach (var entityId in entityIds)
-                {
-                    if (entityId == ignoreEntityId)
-                        continue;
-
-                    var entity = worldContext.GetEntity<EntityInstance>(entityId);
-                    if (entity == null)
-                        continue;
-
-                    // 4. Calculate the effective position of the existing entity
-                    Vector2 effectiveEntityPosition = new Vector2(
-                        entity.Position.X + entity.CollisionOffset.X,
-                        entity.Position.Y + entity.CollisionOffset.Y);
-
-                    // 5. Intersect using the effective positions
-                    bool intersects = shape.Intersects(
-                        effectiveSpawnPosition,
-                        entity.CollisionShape,
-                        effectiveEntityPosition);
-
-                    if (!intersects)
-                        continue;
-
-                    if (entity.CollisionShape.IsBlocking)
-                        throw new InternalException(
-                            ResponseCode.CollisionService_SpawnBlockedByEntity,
-                            $"Spawn blocked by entity instance ID: {entity.ID}");
-                }
-
-                var cell = roomCache.GetTopCell(
-                    roomSpatial.DefinitionID,
-                    cellX,
-                    cellY);
-
-                if (cell != null && cell.Type != CellType.Walkable)
-                    throw new InternalException(
-                        ResponseCode.CollisionService_SpawnBlockedByTile,
-                        $"Spawn blocked by tile at ({cellX}, {cellY})");
+            // Apply the final position to the entity's transform
+            var transform = entity.GetComponent<TransformInstance>();
+            if (transform != null)
+            {
+                transform.SetPosition(finalPosition, targetLayerZ);
             }
         }
 
-        public void ValidateSpawnOnNotExistedRoom(
+        private Vector2 FindNearestValid(
             ICollisionShape shape,
+            CollisionLayer mask,
+            string roomDefId,
+            string roomSpatialId,
+            Vector2 pos,
+            Vector2 offset,
+            int layerZ,
+            string? ignoreEntityId,
+            IEnumerable<EntityInstance>? pendingEntities = null,
+            int maxRadius = 5)
+        {
+            // Check initial
+            if (IsValidPosition(shape, mask, roomDefId, roomSpatialId, pos, offset, layerZ, ignoreEntityId, pendingEntities))
+                return pos;
+
+            // Spiral search logic
+            for (int r = 1; r <= maxRadius; r++)
+            {
+                for (int dx = -r; dx <= r; dx++)
+                {
+                    for (int dy = -r; dy <= r; dy++)
+                    {
+                        if (Math.Abs(dx) != r && Math.Abs(dy) != r) continue;
+                        Vector2 candidate = new Vector2(pos.X + dx, pos.Y + dy);
+                        if (IsValidPosition(shape, mask, roomDefId, roomSpatialId, candidate, offset, layerZ, ignoreEntityId, pendingEntities))
+                            return candidate;
+                    }
+                }
+            }
+            return pos;
+        }
+
+        private bool IsValidPosition(
+            ICollisionShape shape,
+            CollisionLayer mask,
             string roomDefinitionId,
+            string roomSpatialId,
             Vector2 position,
-            Vector2 offset, // 1. Add offset parameter
-            int layerZ)
+            Vector2 offset,
+            int layerZ,
+            string? ignoreEntityId,
+            IEnumerable<EntityInstance>? pendingEntities = null)
         {
             Span<(int x, int y)> buffer = stackalloc (int, int)[256];
+            Vector2 effectivePos = new Vector2(position.X + offset.X, position.Y + offset.Y);
+            int count = shape.ComputeCells(effectivePos, buffer);
 
-            // 2. Calculate the effective spawn position
-            Vector2 effectiveSpawnPosition = new Vector2(
-                position.X + offset.X,
-                position.Y + offset.Y);
-
-            // 3. Compute cells using the effective position
-            int count = shape.ComputeCells(effectiveSpawnPosition, buffer);
+            HashSet<string> checkedEntities = new HashSet<string>();
 
             for (int i = 0; i < count; i++)
             {
                 var (cellX, cellY) = buffer[i];
 
-                var cell = roomCache.GetTopCell(
-                    roomDefinitionId,
-                    cellX,
-                    cellY);
+                var cell = cacheProvider.Room.GetTopCell(roomDefinitionId, cellX, cellY);
+                if (cell != null && cell.Type != CellType.Walkable) return false;
 
-                if (cell != null && cell.Type != CellType.Walkable)
-                    throw new InternalException(
-                        ResponseCode.CollisionService_SpawnBlockedByTile,
-                        $"Spawn blocked by tile at ({cellX}, {cellY})");
+                var roomSpatial = worldContext.GetRoom(roomSpatialId);
+                if (roomSpatial != null)
+                {
+                    var (_, entities) = worldContext.QuerySpatial(roomSpatialId, cellX, cellY, layerZ);
+                    foreach (var entity in entities)
+                    {
+                        if (entity.ID == ignoreEntityId) continue;
+
+                        // Deduplicate entity checks
+                        if (!checkedEntities.Add(entity.ID)) continue;
+
+                        if (IsCollidingWithEntityInstance(shape, mask, effectivePos, entity)) return false;
+                    }
+                }
+
+                if (pendingEntities != null)
+                {
+                    foreach (var entity in pendingEntities)
+                    {
+                        if (entity.ID == ignoreEntityId) continue;
+
+                        if (!checkedEntities.Add(entity.ID)) continue;
+
+                        if (IsCollidingWithEntityInstance(shape, mask, effectivePos, entity)) return false;
+                    }
+                }
             }
+            return true;
+        }
+
+        private bool IsCollidingWithEntityInstance(
+            ICollisionShape selfShape,
+            CollisionLayer selfMask,
+            Vector2 selfPos,
+            EntityInstance entity)
+        {
+            var collision = entity.GetComponent<CollisionInstance>();
+            var transform = entity.GetComponent<TransformInstance>();
+            if (collision == null || transform == null || !collision.CollisionShape.IsBlocking) return false;
+
+            // --- THE COLLISION MATRIX CHECK ---
+            if ((selfMask & collision.Layer) == 0) return false;
+
+            Vector2 effectiveEntityPos = new Vector2(
+                transform.Position.X + collision.CollisionOffset.X,
+                transform.Position.Y + collision.CollisionOffset.Y);
+
+            return selfShape.Intersects(selfPos, collision.CollisionShape, effectiveEntityPos);
+        }
+
+        private bool QueryInteractions(
+            CollisionBody self,
+            RoomSpatial roomSpatial,
+            Vector2 position,
+            CollisionContext context,
+            Span<(int x, int y)> buffer)
+        {
+            bool isBlocked = false;
+
+            // THREAD SAFETY: Local stack buffer instead of shared class field
+            Span<(int x, int y)> visitedBuffer = stackalloc (int, int)[16];
+            int visitedCount = 0;
+
+            Vector2 effectiveSelfPosition = new Vector2(
+                position.X + self.Offset.X,
+                position.Y + self.Offset.Y);
+
+            int count = self.CollisionShape.ComputeCells(effectiveSelfPosition, buffer);
+
+            for (int i = 0; i < count; i++)
+            {
+                var cell = buffer[i];
+
+                // Manual inline check for visited cells (super fast on stack)
+                bool alreadyVisited = false;
+                for (int j = 0; j < visitedCount; j++)
+                {
+                    if (visitedBuffer[j] == cell)
+                    {
+                        alreadyVisited = true;
+                        break;
+                    }
+                }
+
+                if (alreadyVisited) continue;
+
+                // Record visited cell
+                if (visitedCount < visitedBuffer.Length)
+                {
+                    visitedBuffer[visitedCount++] = cell;
+                }
+
+                var (_, entities) = worldContext.QuerySpatial(self.RoomSpatialID, cell.x, cell.y, self.LayerZ);
+
+                foreach (var entity in entities)
+                {
+                    if (entity == null || entity.ID == self.EntityInstanceID) continue;
+
+                    var collision = entity.GetComponent<CollisionInstance>();
+                    if (collision == null) continue;
+
+                    // --- THE COLLISION MATRIX CHECK ---
+                    if ((self.Mask & collision.Layer) == 0) continue;
+
+                    var transform = entity.GetComponent<TransformInstance>();
+                    if (transform == null) continue;
+
+                    Vector2 effectiveEntityPosition = new Vector2(
+                        transform.Position.X + collision.CollisionOffset.X,
+                        transform.Position.Y + collision.CollisionOffset.Y);
+
+                    if (self.CollisionShape.Intersects(effectiveSelfPosition, collision.CollisionShape, effectiveEntityPosition))
+                    {
+                        if (context.Triggers.Add(entity))
+                        {
+                            context.Entities.Add(entity);
+                        }
+
+                        if (collision.CollisionShape.IsBlocking) isBlocked = true;
+                    }
+                }
+
+                var tileCell = cacheProvider.Room.GetTopCell(roomSpatial.DefinitionID, cell.x, cell.y);
+                if (tileCell != null && tileCell.Type != CellType.Walkable) isBlocked = true;
+            }
+            return isBlocked;
         }
 
         private int ResolveLayer(
@@ -330,10 +342,7 @@ namespace Application.Services.WorldService
             int wx = (int)MathF.Floor(desiredPosition.X);
             int wy = (int)MathF.Floor(desiredPosition.Y);
 
-            var cell = roomCache.GetTopCell(
-                roomSpatial.DefinitionID,
-                wx,
-                wy);
+            var cell = cacheProvider.Room.GetTopCell(roomSpatial.DefinitionID, wx, wy);
 
             return cell?.Z ?? self.LayerZ;
         }

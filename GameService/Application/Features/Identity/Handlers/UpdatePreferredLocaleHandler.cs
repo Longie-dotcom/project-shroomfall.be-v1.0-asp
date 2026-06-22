@@ -1,55 +1,56 @@
 ﻿using Application.Features.Abstraction;
 using Application.Features.Identity.Commands;
 using Application.Interfaces.Cache;
+using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
-using Domain.DomainException;
-using Domain.Shared;
+using Domain.Shared.DomainException;
+using Domain.Shared.ResponseCode;
 
 namespace Application.Features.Identity.Handlers
 {
     public class UpdatePreferredLocaleHandler : IHandler<UpdatePreferredLocaleCommand>
     {
         #region Attributes
-        private readonly IRelationalUoW relational;
-        private readonly ILocaleCache localeCache;
+        private readonly IRelationalUoW relationalUoW;
+        private readonly ICacheProvider cacheProvider;
         #endregion
 
         #region Properties
         #endregion
 
         public UpdatePreferredLocaleHandler(
-            IRelationalUoW relational,
-            ILocaleCache localeCache)
+            IRelationalUoW relationalUoW,
+            ICacheProvider cacheProvider)
         {
-            this.relational = relational;
-            this.localeCache = localeCache;
+            this.relationalUoW = relationalUoW;
+            this.cacheProvider = cacheProvider;
         }
 
         #region Methods
         public async Task Handle(
             UpdatePreferredLocaleCommand command)
         {
-            // Validate locale existence
-            if (!localeCache.Exists(command.PreferredLocale))
-                throw new BadRequest(
-                    ResponseCode.UpdateProfile_LocaleFound,
-                    $"Locale: {command.PreferredLocale} is not existed.");
-
             // Resolve repository
-            var userRepo = relational.GetRepository<IUserRepository>();
+            var userRepo = relationalUoW.GetRepository<IUserRepository>();
+
+            // Validate locale existence
+            if (!cacheProvider.Locale.Exists(command.PreferredLocale))
+                throw new BadRequest(
+                    ApplicationCode.IdentityHandlerCode.UpdatePreferredLocaleLocaleNotFound,
+                    $"Locale: {command.PreferredLocale} is not existed.");
 
             // Validate existence
             var user = await userRepo.GetByIdAsync(command.UserID);
             if (user == null)
                 throw new NotFound(
-                    ResponseCode.UpdateProfile_UserNotFound,
+                    ApplicationCode.IdentityHandlerCode.UpdatePreferredLocaleUserNotFound,
                     $"User with user ID: {command.UserID} was not found");
 
             // Apply domain - Update preferred locale
             user.UpdatePreferredLocale(command.PreferredLocale);
 
             // Apply persistence
-            await relational.SaveChangesAsync();
+            await relationalUoW.SaveChangesAsync();
         }
         #endregion
     }

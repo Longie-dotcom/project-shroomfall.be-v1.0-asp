@@ -1,11 +1,11 @@
 ﻿using Application.Context;
 using Application.Features.Abstraction;
 using Application.Features.Game.Commands;
-using Application.Interfaces.Security;
+using Application.Interfaces.Realtime.Managers;
 using Domain.Common;
-using Domain.DomainException;
-using Domain.Runtime.EntityDomain;
-using Domain.Shared;
+using Domain.Runtime.EntityDomain.Component;
+using Domain.Shared.DomainException;
+using Domain.Shared.ResponseCode;
 
 namespace Application.Features.Game.Handlers
 {
@@ -37,18 +37,25 @@ namespace Application.Features.Game.Handlers
             var playerInstanceId = sessionManager.Get(command.UserID);
             if (string.IsNullOrWhiteSpace(playerInstanceId))
                 throw new Unauthorized(
-                    ResponseCode.Move_SessionNotFound,
+                    ApplicationCode.GameHandlerCode.MoveSessionNotFound,
                     $"User with user ID: {command.UserID} has no session");
 
             // Validate player instance existence
-            var player = worldContext.GetEntity<PlayerInstance>(playerInstanceId);
+            var player = worldContext.GetEntity(playerInstanceId);
             if (player == null)
                 throw new BadRequest(
-                    ResponseCode.Move_PlayerInstanceNotFound,
+                    ApplicationCode.GameHandlerCode.MovePlayerInstanceNotFound,
                     $"User with user ID: {command.UserID} has no player instance");
 
+            // Validate transform existence
+            var transform = player.GetComponent<TransformInstance>();
+            if (transform == null)
+                throw new InternalException(
+                    ApplicationCode.GameHandlerCode.MoveTransformMissing,
+                    $"Player instance {playerInstanceId} is missing TransformInstance component");
+
             // Fire intent
-            player.SetMovementIntent(new Vector2(dto.X, dto.Y));
+            transform.SetMovementIntent(new Vector2(dto.X, dto.Y));
         }
         #endregion
     }

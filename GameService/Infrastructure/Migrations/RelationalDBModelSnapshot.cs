@@ -22,13 +22,148 @@ namespace Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Domain.Definition.AttributeDomain.AttributeValue", b =>
+            modelBuilder.Entity("Domain.Definition.DefinitionVersionLog", b =>
                 {
-                    b.Property<string>("CharacteristicID")
+                    b.Property<string>("ID")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("Type")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<long>("Version")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("Key", "Version")
+                        .IsUnique();
+
+                    b.ToTable("DefinitionVersionLogs", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.AIDefinition", b =>
+                {
+                    b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<float>("AggroRadius")
+                        .HasColumnType("real");
+
+                    b.Property<string>("EntityDefinitionID")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("IsAIControlled")
+                        .HasColumnType("bit");
+
+                    b.Property<float>("LeashDistance")
+                        .HasColumnType("real");
+
+                    b.Property<float>("ThinkInterval")
+                        .HasColumnType("real");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("EntityDefinitionID")
+                        .IsUnique();
+
+                    b.HasIndex("IsAIControlled");
+
+                    b.ToTable("AIDefinitions", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.AppearanceDefinition", b =>
+                {
+                    b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("EntityDefinitionID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("EyesID")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("HairID")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("PantID")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ShirtID")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("SkinID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("EntityDefinitionID")
+                        .IsUnique();
+
+                    b.HasIndex("EyesID");
+
+                    b.HasIndex("HairID");
+
+                    b.HasIndex("PantID");
+
+                    b.HasIndex("ShirtID");
+
+                    b.HasIndex("SkinID");
+
+                    b.ToTable("AppearanceDefinitions", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.AttributeGrowthValue", b =>
+                {
+                    b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AttributeValueID")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<float>("GrowthValue")
+                        .HasColumnType("real");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("int");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("AttributeValueID");
+
+                    b.HasIndex("AttributeValueID", "Level")
+                        .IsUnique();
+
+                    b.ToTable("AttributeGrowthValues", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.AttributeValue", b =>
+                {
+                    b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<float>("BaseValue")
+                        .HasColumnType("real");
+
+                    b.Property<Guid>("CharacteristicDefinitionID")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Level")
                         .HasColumnType("int");
@@ -39,193 +174,384 @@ namespace Infrastructure.Migrations
                     b.Property<float>("Min")
                         .HasColumnType("real");
 
-                    b.Property<float>("Value")
-                        .HasColumnType("real");
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
-                    b.HasKey("CharacteristicID", "Type", "Level");
+                    b.HasKey("ID");
 
-                    b.HasIndex("CharacteristicID", "Type", "Level")
-                        .IsUnique();
+                    b.HasIndex("CharacteristicDefinitionID");
+
+                    b.HasIndex("Type");
 
                     b.ToTable("AttributeValues", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Definition.AttributeDomain.Characteristic", b =>
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.CharacteristicDefinition", b =>
                 {
-                    b.Property<string>("ID")
+                    b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("EntityDefinitionID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("EntityDefinitionID")
+                        .IsUnique();
+
+                    b.ToTable("CharacteristicDefinitions", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.CollisionDefinition", b =>
+                {
+                    b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("EntityDefinitionID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<float>("Height")
+                        .HasColumnType("real");
+
+                    b.Property<bool>("IsBlocking")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Layer")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Mask")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<float>("OffsetX")
+                        .HasColumnType("real");
+
+                    b.Property<float>("OffsetY")
+                        .HasColumnType("real");
+
+                    b.Property<float>("Radius")
+                        .HasColumnType("real");
+
+                    b.Property<string>("ShapeType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<float>("Width")
+                        .HasColumnType("real");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("EntityDefinitionID")
+                        .IsUnique();
+
+                    b.HasIndex("IsBlocking");
+
+                    b.HasIndex("ShapeType");
+
+                    b.ToTable("CollisionDefinitions", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.EntityRelationshipDefinition", b =>
+                {
+                    b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("EntityDefinitionID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("SourceEntityDefinitionID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("TargetEntityDefinitionID")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("ID");
 
-                    b.ToTable("Characteristics", (string)null);
+                    b.HasIndex("EntityDefinitionID")
+                        .IsUnique();
+
+                    b.HasIndex("SourceEntityDefinitionID");
+
+                    b.HasIndex("TargetEntityDefinitionID");
+
+                    b.HasIndex("Type");
+
+                    b.ToTable("EntityRelationshipDefinitions", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Definition.AttributeDomain.Effect", b =>
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.InteractableDefinition", b =>
                 {
-                    b.Property<string>("ID")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("AttributeType")
+                    b.Property<string>("EntityDefinitionID")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<float?>("Duration")
-                        .HasColumnType("real");
-
-                    b.Property<float?>("Interval")
-                        .HasColumnType("real");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<float>("Value")
-                        .HasColumnType("real");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("ID");
 
-                    b.ToTable("Effects", (string)null);
+                    b.HasIndex("EntityDefinitionID")
+                        .IsUnique();
+
+                    b.HasIndex("Type");
+
+                    b.ToTable("InteractableDefinitions", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Definition.EntityDomain.Entity", b =>
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.InventoryDefinition", b =>
                 {
-                    b.Property<string>("ID")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Discriminator")
+                    b.Property<string>("EntityDefinitionID")
                         .IsRequired()
-                        .HasMaxLength(13)
-                        .HasColumnType("nvarchar(13)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("ID");
-
-                    b.ToTable("Entities", (string)null);
-
-                    b.HasDiscriminator().HasValue("Entity");
-
-                    b.UseTphMappingStrategy();
-                });
-
-            modelBuilder.Entity("Domain.Definition.EntityDomain.EntityRelationship", b =>
-                {
-                    b.Property<string>("SourceEntityID")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("TargetEntityID")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.HasKey("SourceEntityID", "TargetEntityID", "Type");
-
-                    b.HasIndex("TargetEntityID");
-
-                    b.ToTable("EntityRelationships", (string)null);
-                });
-
-            modelBuilder.Entity("Domain.Definition.ItemDomain.Inventory", b =>
-                {
-                    b.Property<string>("ID")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("SlotCount")
                         .HasColumnType("int");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("ID");
 
-                    b.ToTable("Inventories", (string)null);
+                    b.HasIndex("EntityDefinitionID")
+                        .IsUnique();
+
+                    b.ToTable("InventoryDefinitions", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Definition.ItemDomain.InventoryItem", b =>
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.InventoryEntry", b =>
                 {
-                    b.Property<string>("InventoryID")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ItemID")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Amount")
                         .HasColumnType("int");
+
+                    b.Property<string>("DefinitionID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("InventoryDefinitionID")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Quality")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("InventoryID", "ItemID");
+                    b.HasKey("ID");
 
-                    b.HasIndex("ItemID");
+                    b.HasIndex("DefinitionID");
 
-                    b.ToTable("InventoryItems", (string)null);
+                    b.HasIndex("InventoryDefinitionID");
+
+                    b.ToTable("InventoryEntries", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Definition.ItemDomain.Item", b =>
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.LifetimeDefinition", b =>
                 {
-                    b.Property<string>("ID")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Category")
+                    b.Property<string>("EntityDefinitionID")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("DefaultAction")
+                    b.Property<float>("Lifetime")
+                        .HasColumnType("real");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("EntityDefinitionID")
+                        .IsUnique();
+
+                    b.HasIndex("Lifetime");
+
+                    b.ToTable("LifetimeDefinitions", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.ProjectileDefinition", b =>
+                {
+                    b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("EntityDefinitionID")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int?>("Durability")
-                        .HasColumnType("int");
-
-                    b.Property<string>("EntityID")
+                    b.Property<string>("OnImpactSpawnEntityDefinitionID")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("Stackable")
-                        .HasColumnType("bit");
+                    b.Property<float>("Velocity")
+                        .HasColumnType("real");
 
-                    b.Property<string>("Type")
+                    b.HasKey("ID");
+
+                    b.HasIndex("EntityDefinitionID")
+                        .IsUnique();
+
+                    b.HasIndex("Velocity");
+
+                    b.ToTable("ProjectileDefinitions", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.SpawnDefinition", b =>
+                {
+                    b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("EntityDefinitionID")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("ID");
 
-                    b.HasIndex("Category");
+                    b.HasIndex("EntityDefinitionID")
+                        .IsUnique();
 
-                    b.HasIndex("DefaultAction");
-
-                    b.HasIndex("Type");
-
-                    b.ToTable("Items", (string)null);
+                    b.ToTable("SpawnDefinitions", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Definition.ItemDomain.ItemEffect", b =>
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.SpawnEntry", b =>
                 {
-                    b.Property<string>("ItemID")
+                    b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("SpawnDefinitionID")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SpawnedEntityDefinitionID")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("EffectID")
+                    b.HasKey("ID");
+
+                    b.HasIndex("SpawnDefinitionID");
+
+                    b.HasIndex("SpawnedEntityDefinitionID");
+
+                    b.ToTable("SpawnEntries", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.TriggeredEffectDefinition", b =>
+                {
+                    b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("EffectDefinitionIDs")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EntityDefinitionID")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("ItemID1")
+                    b.HasKey("ID");
+
+                    b.HasIndex("EntityDefinitionID")
+                        .IsUnique();
+
+                    b.ToTable("TriggeredEffectDefinitions", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Definition.EntityDomain.EntityDefinition", b =>
+                {
+                    b.Property<string>("ID")
                         .HasColumnType("nvarchar(450)");
 
-                    b.HasKey("ItemID", "EffectID");
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasIndex("EffectID");
+                    b.HasKey("ID");
 
-                    b.HasIndex("ItemID1");
+                    b.ToTable("EntityDefinitions", (string)null);
+                });
 
-                    b.ToTable("ItemEffects", (string)null);
+            modelBuilder.Entity("Domain.Definition.IdentityDomain.User", b =>
+                {
+                    b.Property<string>("ID")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<DateTime?>("Dob")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Gender")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("LastLogin")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PreferredLocale")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RefreshToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RefreshTokenExpiry")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SteamID")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasFilter("[Email] IS NOT NULL");
+
+                    b.HasIndex("SteamID")
+                        .IsUnique()
+                        .HasFilter("[SteamID] IS NOT NULL");
+
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Definition.LocalizationDomain.Locale", b =>
@@ -254,8 +580,9 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Definition.LocalizationDomain.LocalizationEntry", b =>
                 {
-                    b.Property<string>("ID")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -296,9 +623,72 @@ namespace Infrastructure.Migrations
                     b.ToTable("LocalizationEntries", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Definition.MetaDomain.EffectDefinition", b =>
+                {
+                    b.Property<string>("ID")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("AttributeType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<float?>("Duration")
+                        .HasColumnType("real");
+
+                    b.Property<float?>("Interval")
+                        .HasColumnType("real");
+
+                    b.Property<string>("SourceType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<float>("Value")
+                        .HasColumnType("real");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("AttributeType");
+
+                    b.ToTable("EffectDefinitions", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Definition.MetaDomain.ItemDefinition", b =>
+                {
+                    b.Property<string>("ID")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("MaxDurability")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MaxStack")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TriggeredAction")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("Category");
+
+                    b.HasIndex("Type");
+
+                    b.ToTable("ItemDefinitions", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Definition.WorldDomain.Cell", b =>
                 {
-                    b.Property<string>("RoomID")
+                    b.Property<string>("RoomDefinitionID")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("X")
@@ -318,11 +708,11 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("RoomID", "X", "Y", "Z");
+                    b.HasKey("RoomDefinitionID", "X", "Y", "Z");
 
                     b.HasIndex("TileID");
 
-                    b.HasIndex("RoomID", "X", "Y", "Z")
+                    b.HasIndex("RoomDefinitionID", "X", "Y", "Z")
                         .IsUnique();
 
                     b.ToTable("Cells", (string)null);
@@ -330,15 +720,37 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Definition.WorldDomain.EntitySpawnRule", b =>
                 {
-                    b.Property<string>("ID")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("EntityID")
+                    b.Property<string>("EntityDefinitionID")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("RoomID")
+                    b.Property<int>("MaxCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaxX")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaxY")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinX")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinY")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RoomDefinitionID")
                         .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("RoomDefinitionID1")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Type")
@@ -347,25 +759,13 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("ID");
 
-                    b.HasIndex("EntityID");
+                    b.HasIndex("EntityDefinitionID");
 
-                    b.HasIndex("RoomID");
+                    b.HasIndex("RoomDefinitionID");
+
+                    b.HasIndex("RoomDefinitionID1");
 
                     b.ToTable("EntitySpawnRules", (string)null);
-                });
-
-            modelBuilder.Entity("Domain.Definition.WorldDomain.Room", b =>
-                {
-                    b.Property<string>("ID")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("ID");
-
-                    b.ToTable("Rooms", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Definition.WorldDomain.RoomConnection", b =>
@@ -391,6 +791,10 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("ID");
 
+                    b.HasIndex("DestinationEntityID");
+
+                    b.HasIndex("SourceEntityID");
+
                     b.HasIndex("DestinationRoomID", "DestinationEntityID");
 
                     b.HasIndex("SourceRoomID", "SourceEntityID")
@@ -399,600 +803,220 @@ namespace Infrastructure.Migrations
                     b.ToTable("RoomConnections", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Definition.WorldDomain.SpawnArea", b =>
+            modelBuilder.Entity("Domain.Definition.WorldDomain.RoomDefinition", b =>
                 {
                     b.Property<string>("ID")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("EntitySpawnRuleID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("MaxCount")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MaxX")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MaxY")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MinCount")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MinX")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MinY")
-                        .HasColumnType("int");
-
-                    b.Property<float>("Weight")
-                        .HasColumnType("real");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("EntitySpawnRuleID");
-
-                    b.HasIndex("MaxX", "MaxY");
-
-                    b.HasIndex("MinX", "MinY");
-
-                    b.ToTable("SpawnAreas", (string)null);
-                });
-
-            modelBuilder.Entity("Domain.Other.IdentityDomain.User", b =>
-                {
-                    b.Property<string>("ID")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<DateTime?>("Dob")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("Gender")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<DateTime>("LastLogin")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Name")
+                    b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PasswordHash")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("PreferredLocale")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RefreshToken")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime?>("RefreshTokenExpiry")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SteamID")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("ID");
 
-                    b.HasIndex("Email")
-                        .IsUnique()
-                        .HasFilter("[Email] IS NOT NULL");
-
-                    b.HasIndex("SteamID")
-                        .IsUnique()
-                        .HasFilter("[SteamID] IS NOT NULL");
-
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("RoomDefinitions", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Other.VersionDomain.DefinitionVersionLog", b =>
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.AppearanceDefinition", b =>
                 {
-                    b.Property<string>("ID")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("Key")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<long>("Version")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("Key", "Version")
-                        .IsUnique();
-
-                    b.ToTable("DefinitionVersions", (string)null);
-                });
-
-            modelBuilder.Entity("Domain.Definition.EntityDomain.AreaEffect", b =>
-                {
-                    b.HasBaseType("Domain.Definition.EntityDomain.Entity");
-
-                    b.Property<float>("Duration")
-                        .HasColumnType("real");
-
-                    b.HasDiscriminator().HasValue("AreaEffect");
-                });
-
-            modelBuilder.Entity("Domain.Definition.EntityDomain.Creature", b =>
-                {
-                    b.HasBaseType("Domain.Definition.EntityDomain.Entity");
-
-                    b.Property<string>("CharacteristicID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("InventoryID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("Level")
-                        .HasColumnType("int");
-
-                    b.HasIndex("CharacteristicID");
-
-                    b.HasIndex("InventoryID");
-
-                    b.HasDiscriminator().HasValue("Creature");
-                });
-
-            modelBuilder.Entity("Domain.Definition.EntityDomain.Portal", b =>
-                {
-                    b.HasBaseType("Domain.Definition.EntityDomain.Entity");
-
-                    b.HasDiscriminator().HasValue("Portal");
-                });
-
-            modelBuilder.Entity("Domain.Definition.EntityDomain.Projectile", b =>
-                {
-                    b.HasBaseType("Domain.Definition.EntityDomain.Entity");
-
-                    b.Property<float>("Duration")
-                        .HasColumnType("real");
-
-                    b.Property<float>("Velocity")
-                        .HasColumnType("real");
-
-                    b.ToTable("Entities", t =>
+                    b.OwnsOne("Domain.Common.HSV", "HairColor", b1 =>
                         {
-                            t.Property("Duration")
-                                .HasColumnName("Projectile_Duration");
+                            b1.Property<Guid>("AppearanceDefinitionID")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<float>("H")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("real")
+                                .HasDefaultValue(0f);
+
+                            b1.Property<float>("S")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("real")
+                                .HasDefaultValue(0f);
+
+                            b1.Property<float>("V")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("real")
+                                .HasDefaultValue(0f);
+
+                            b1.HasKey("AppearanceDefinitionID");
+
+                            b1.ToTable("AppearanceDefinitions");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AppearanceDefinitionID");
                         });
 
-                    b.HasDiscriminator().HasValue("Projectile");
-                });
-
-            modelBuilder.Entity("Domain.Definition.EntityDomain.WorldObject", b =>
-                {
-                    b.HasBaseType("Domain.Definition.EntityDomain.Entity");
-
-                    b.Property<string>("InteractionType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("InventoryID")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsInteractable")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsPickupable")
-                        .HasColumnType("bit");
-
-                    b.ToTable("Entities", t =>
+                    b.OwnsOne("Domain.Common.HSV", "PantColor", b1 =>
                         {
-                            t.Property("InventoryID")
-                                .HasColumnName("WorldObject_InventoryID");
+                            b1.Property<Guid>("AppearanceDefinitionID")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<float>("H")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("real")
+                                .HasDefaultValue(0f);
+
+                            b1.Property<float>("S")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("real")
+                                .HasDefaultValue(0f);
+
+                            b1.Property<float>("V")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("real")
+                                .HasDefaultValue(0f);
+
+                            b1.HasKey("AppearanceDefinitionID");
+
+                            b1.ToTable("AppearanceDefinitions");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AppearanceDefinitionID");
                         });
 
-                    b.HasDiscriminator().HasValue("WorldObject");
+                    b.OwnsOne("Domain.Common.HSV", "SkinColor", b1 =>
+                        {
+                            b1.Property<Guid>("AppearanceDefinitionID")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<float>("H")
+                                .HasColumnType("real");
+
+                            b1.Property<float>("S")
+                                .HasColumnType("real");
+
+                            b1.Property<float>("V")
+                                .HasColumnType("real");
+
+                            b1.HasKey("AppearanceDefinitionID");
+
+                            b1.ToTable("AppearanceDefinitions");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AppearanceDefinitionID");
+                        });
+
+                    b.Navigation("HairColor")
+                        .IsRequired();
+
+                    b.Navigation("PantColor")
+                        .IsRequired();
+
+                    b.Navigation("SkinColor")
+                        .IsRequired();
                 });
 
-            modelBuilder.Entity("Domain.Definition.EntityDomain.Player", b =>
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.AttributeGrowthValue", b =>
                 {
-                    b.HasBaseType("Domain.Definition.EntityDomain.Creature");
-
-                    b.HasDiscriminator().HasValue("Player");
-                });
-
-            modelBuilder.Entity("Domain.Definition.AttributeDomain.AttributeValue", b =>
-                {
-                    b.HasOne("Domain.Definition.AttributeDomain.Characteristic", "Characteristic")
-                        .WithMany("AttributeValues")
-                        .HasForeignKey("CharacteristicID")
+                    b.HasOne("Domain.Definition.EntityDomain.Component.AttributeValue", "AttributeValue")
+                        .WithMany("AttributeGrowthValues")
+                        .HasForeignKey("AttributeValueID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Characteristic");
+                    b.Navigation("AttributeValue");
                 });
 
-            modelBuilder.Entity("Domain.Definition.AttributeDomain.Characteristic", b =>
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.AttributeValue", b =>
                 {
-                    b.OwnsOne("Domain.Definition.LocalizationDomain.LocalizedText", "LocalizedText", b1 =>
+                    b.HasOne("Domain.Definition.EntityDomain.Component.CharacteristicDefinition", "CharacteristicDefinition")
+                        .WithMany("AttributeValues")
+                        .HasForeignKey("CharacteristicDefinitionID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CharacteristicDefinition");
+                });
+
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.InventoryEntry", b =>
+                {
+                    b.HasOne("Domain.Definition.EntityDomain.Component.InventoryDefinition", "InventoryDefinition")
+                        .WithMany("DefaultItems")
+                        .HasForeignKey("InventoryDefinitionID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("InventoryDefinition");
+                });
+
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.SpawnEntry", b =>
+                {
+                    b.HasOne("Domain.Definition.EntityDomain.Component.SpawnDefinition", "SpawnDefinition")
+                        .WithMany("SpawnEntries")
+                        .HasForeignKey("SpawnDefinitionID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("Domain.Common.Vector2", "Offset", b1 =>
                         {
-                            b1.Property<string>("CharacteristicID")
-                                .HasColumnType("nvarchar(450)");
+                            b1.Property<Guid>("SpawnEntryID")
+                                .HasColumnType("uniqueidentifier");
 
-                            b1.Property<string>("DescriptionKey")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
+                            b1.Property<float>("X")
+                                .HasColumnType("real");
 
-                            b1.Property<string>("NameKey")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
+                            b1.Property<float>("Y")
+                                .HasColumnType("real");
 
-                            b1.HasKey("CharacteristicID");
+                            b1.HasKey("SpawnEntryID");
 
-                            b1.ToTable("Characteristics");
+                            b1.ToTable("SpawnEntries");
 
                             b1.WithOwner()
-                                .HasForeignKey("CharacteristicID");
+                                .HasForeignKey("SpawnEntryID");
                         });
 
-                    b.Navigation("LocalizedText")
+                    b.Navigation("Offset")
                         .IsRequired();
+
+                    b.Navigation("SpawnDefinition");
                 });
 
-            modelBuilder.Entity("Domain.Definition.AttributeDomain.Effect", b =>
+            modelBuilder.Entity("Domain.Definition.EntityDomain.EntityDefinition", b =>
                 {
-                    b.OwnsOne("Domain.Definition.LocalizationDomain.LocalizedText", "LocalizedText", b1 =>
+                    b.OwnsOne("Domain.Definition.EntityDomain.EntityPresentationDefinition", "Presentation", b1 =>
                         {
-                            b1.Property<string>("EffectID")
+                            b1.Property<string>("EntityDefinitionID")
                                 .HasColumnType("nvarchar(450)");
 
-                            b1.Property<string>("DescriptionKey")
-                                .IsRequired()
+                            b1.Property<string>("IconID")
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.Property<string>("NameKey")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
+                            b1.HasKey("EntityDefinitionID");
 
-                            b1.HasKey("EffectID");
-
-                            b1.ToTable("Effects");
+                            b1.ToTable("EntityDefinitions");
 
                             b1.WithOwner()
-                                .HasForeignKey("EffectID");
-                        });
+                                .HasForeignKey("EntityDefinitionID");
 
-                    b.Navigation("LocalizedText")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Domain.Definition.EntityDomain.Entity", b =>
-                {
-                    b.OwnsOne("Domain.Definition.EntityDomain.Component.Appearance", "Appearance", b1 =>
-                        {
-                            b1.Property<string>("EntityID")
-                                .HasColumnType("nvarchar(450)");
-
-                            b1.Property<string>("EyesID")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("HairID")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("PantID")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("ShirtID")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("SkinID")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.HasKey("EntityID");
-
-                            b1.ToTable("Entities");
-
-                            b1.WithOwner()
-                                .HasForeignKey("EntityID");
-
-                            b1.OwnsOne("Domain.Common.HSV", "HairColor", b2 =>
+                            b1.OwnsOne("Domain.Definition.LocalizationDomain.LocalizedText", "LocalizedText", b2 =>
                                 {
-                                    b2.Property<string>("AppearanceEntityID")
+                                    b2.Property<string>("EntityPresentationDefinitionEntityDefinitionID")
                                         .HasColumnType("nvarchar(450)");
 
-                                    b2.Property<float>("H")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("real")
-                                        .HasDefaultValue(0f);
+                                    b2.Property<string>("DescriptionKey")
+                                        .IsRequired()
+                                        .HasColumnType("nvarchar(max)");
 
-                                    b2.Property<float>("S")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("real")
-                                        .HasDefaultValue(0f);
+                                    b2.Property<string>("NameKey")
+                                        .IsRequired()
+                                        .HasColumnType("nvarchar(max)");
 
-                                    b2.Property<float>("V")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("real")
-                                        .HasDefaultValue(0f);
+                                    b2.HasKey("EntityPresentationDefinitionEntityDefinitionID");
 
-                                    b2.HasKey("AppearanceEntityID");
-
-                                    b2.ToTable("Entities");
+                                    b2.ToTable("EntityDefinitions");
 
                                     b2.WithOwner()
-                                        .HasForeignKey("AppearanceEntityID");
+                                        .HasForeignKey("EntityPresentationDefinitionEntityDefinitionID");
                                 });
 
-                            b1.OwnsOne("Domain.Common.HSV", "PantColor", b2 =>
-                                {
-                                    b2.Property<string>("AppearanceEntityID")
-                                        .HasColumnType("nvarchar(450)");
-
-                                    b2.Property<float>("H")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("real")
-                                        .HasDefaultValue(0f);
-
-                                    b2.Property<float>("S")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("real")
-                                        .HasDefaultValue(0f);
-
-                                    b2.Property<float>("V")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("real")
-                                        .HasDefaultValue(0f);
-
-                                    b2.HasKey("AppearanceEntityID");
-
-                                    b2.ToTable("Entities");
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("AppearanceEntityID");
-                                });
-
-                            b1.OwnsOne("Domain.Common.HSV", "SkinColor", b2 =>
-                                {
-                                    b2.Property<string>("AppearanceEntityID")
-                                        .HasColumnType("nvarchar(450)");
-
-                                    b2.Property<float>("H")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("real")
-                                        .HasDefaultValue(0f);
-
-                                    b2.Property<float>("S")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("real")
-                                        .HasDefaultValue(0f);
-
-                                    b2.Property<float>("V")
-                                        .ValueGeneratedOnAdd()
-                                        .HasColumnType("real")
-                                        .HasDefaultValue(0f);
-
-                                    b2.HasKey("AppearanceEntityID");
-
-                                    b2.ToTable("Entities");
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("AppearanceEntityID");
-                                });
-
-                            b1.Navigation("HairColor");
-
-                            b1.Navigation("PantColor");
-
-                            b1.Navigation("SkinColor")
+                            b1.Navigation("LocalizedText")
                                 .IsRequired();
                         });
 
-                    b.OwnsOne("Domain.Definition.EntityDomain.Component.Collision", "Collision", b1 =>
-                        {
-                            b1.Property<string>("EntityID")
-                                .HasColumnType("nvarchar(450)");
-
-                            b1.Property<float>("Height")
-                                .HasColumnType("real");
-
-                            b1.Property<bool>("IsBlocking")
-                                .HasColumnType("bit");
-
-                            b1.Property<bool>("IsTrigger")
-                                .HasColumnType("bit");
-
-                            b1.Property<float>("OffsetX")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("real")
-                                .HasDefaultValue(0f);
-
-                            b1.Property<float>("OffsetY")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("real")
-                                .HasDefaultValue(0f);
-
-                            b1.Property<float>("Radius")
-                                .HasColumnType("real");
-
-                            b1.Property<string>("ShapeType")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<float>("Width")
-                                .HasColumnType("real");
-
-                            b1.HasKey("EntityID");
-
-                            b1.ToTable("Entities");
-
-                            b1.WithOwner()
-                                .HasForeignKey("EntityID");
-                        });
-
-                    b.OwnsOne("Domain.Definition.LocalizationDomain.LocalizedText", "LocalizedText", b1 =>
-                        {
-                            b1.Property<string>("EntityID")
-                                .HasColumnType("nvarchar(450)");
-
-                            b1.Property<string>("DescriptionKey")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("NameKey")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.HasKey("EntityID");
-
-                            b1.ToTable("Entities");
-
-                            b1.WithOwner()
-                                .HasForeignKey("EntityID");
-                        });
-
-                    b.Navigation("Appearance")
+                    b.Navigation("Presentation")
                         .IsRequired();
-
-                    b.Navigation("Collision")
-                        .IsRequired();
-
-                    b.Navigation("LocalizedText")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Domain.Definition.EntityDomain.EntityRelationship", b =>
-                {
-                    b.HasOne("Domain.Definition.EntityDomain.Entity", null)
-                        .WithMany()
-                        .HasForeignKey("SourceEntityID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Definition.EntityDomain.Entity", null)
-                        .WithMany()
-                        .HasForeignKey("TargetEntityID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Domain.Definition.ItemDomain.Inventory", b =>
-                {
-                    b.OwnsOne("Domain.Definition.LocalizationDomain.LocalizedText", "LocalizedText", b1 =>
-                        {
-                            b1.Property<string>("InventoryID")
-                                .HasColumnType("nvarchar(450)");
-
-                            b1.Property<string>("DescriptionKey")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("NameKey")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.HasKey("InventoryID");
-
-                            b1.ToTable("Inventories");
-
-                            b1.WithOwner()
-                                .HasForeignKey("InventoryID");
-                        });
-
-                    b.Navigation("LocalizedText")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Domain.Definition.ItemDomain.InventoryItem", b =>
-                {
-                    b.HasOne("Domain.Definition.ItemDomain.Inventory", "Inventory")
-                        .WithMany("DefaultItems")
-                        .HasForeignKey("InventoryID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Definition.ItemDomain.Item", "Item")
-                        .WithMany()
-                        .HasForeignKey("ItemID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Inventory");
-
-                    b.Navigation("Item");
-                });
-
-            modelBuilder.Entity("Domain.Definition.ItemDomain.Item", b =>
-                {
-                    b.OwnsOne("Domain.Definition.LocalizationDomain.LocalizedText", "LocalizedText", b1 =>
-                        {
-                            b1.Property<string>("ItemID")
-                                .HasColumnType("nvarchar(450)");
-
-                            b1.Property<string>("DescriptionKey")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("NameKey")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.HasKey("ItemID");
-
-                            b1.ToTable("Items");
-
-                            b1.WithOwner()
-                                .HasForeignKey("ItemID");
-                        });
-
-                    b.Navigation("LocalizedText")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Domain.Definition.ItemDomain.ItemEffect", b =>
-                {
-                    b.HasOne("Domain.Definition.AttributeDomain.Effect", "Effect")
-                        .WithMany()
-                        .HasForeignKey("EffectID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Definition.ItemDomain.Item", "Item")
-                        .WithMany()
-                        .HasForeignKey("ItemID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Definition.ItemDomain.Item", null)
-                        .WithMany("Effects")
-                        .HasForeignKey("ItemID1");
-
-                    b.Navigation("Effect");
-
-                    b.Navigation("Item");
                 });
 
             modelBuilder.Entity("Domain.Definition.LocalizationDomain.LocalizationEntry", b =>
@@ -1006,168 +1030,322 @@ namespace Infrastructure.Migrations
                     b.Navigation("Locale");
                 });
 
+            modelBuilder.Entity("Domain.Definition.MetaDomain.EffectDefinition", b =>
+                {
+                    b.OwnsOne("Domain.Definition.MetaDomain.EffectPresentationDefinition", "Presentation", b1 =>
+                        {
+                            b1.Property<string>("EffectDefinitionID")
+                                .HasColumnType("nvarchar(450)");
+
+                            b1.Property<string>("IconID")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("EffectDefinitionID");
+
+                            b1.ToTable("EffectDefinitions");
+
+                            b1.WithOwner()
+                                .HasForeignKey("EffectDefinitionID");
+
+                            b1.OwnsOne("Domain.Definition.LocalizationDomain.LocalizedText", "LocalizedText", b2 =>
+                                {
+                                    b2.Property<string>("EffectPresentationDefinitionEffectDefinitionID")
+                                        .HasColumnType("nvarchar(450)");
+
+                                    b2.Property<string>("DescriptionKey")
+                                        .IsRequired()
+                                        .HasColumnType("nvarchar(max)");
+
+                                    b2.Property<string>("NameKey")
+                                        .IsRequired()
+                                        .HasColumnType("nvarchar(max)");
+
+                                    b2.HasKey("EffectPresentationDefinitionEffectDefinitionID");
+
+                                    b2.ToTable("EffectDefinitions");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("EffectPresentationDefinitionEffectDefinitionID");
+                                });
+
+                            b1.Navigation("LocalizedText")
+                                .IsRequired();
+                        });
+
+                    b.Navigation("Presentation")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Definition.MetaDomain.ItemDefinition", b =>
+                {
+                    b.OwnsOne("Domain.Definition.MetaDomain.ApplyEffectConfig", "ApplyEffectConfig", b1 =>
+                        {
+                            b1.Property<string>("ItemDefinitionID")
+                                .HasColumnType("nvarchar(450)");
+
+                            b1.PrimitiveCollection<string>("EffectDefinitionIDs")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("ItemDefinitionID");
+
+                            b1.ToTable("ItemDefinitions");
+
+                            b1
+                                .ToJson("ApplyEffectConfig")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ItemDefinitionID");
+                        });
+
+                    b.OwnsOne("Domain.Definition.MetaDomain.CostConfig", "CostConfig", b1 =>
+                        {
+                            b1.Property<string>("ItemDefinitionID")
+                                .HasColumnType("nvarchar(450)");
+
+                            b1.Property<string>("Method")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<int>("Value")
+                                .HasColumnType("int");
+
+                            b1.HasKey("ItemDefinitionID");
+
+                            b1.ToTable("ItemDefinitions");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ItemDefinitionID");
+                        });
+
+                    b.OwnsOne("Domain.Definition.MetaDomain.EquipConfig", "EquipConfig", b1 =>
+                        {
+                            b1.Property<string>("ItemDefinitionID")
+                                .HasColumnType("nvarchar(450)");
+
+                            b1.Property<string>("Slot")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("ItemDefinitionID");
+
+                            b1.ToTable("ItemDefinitions");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ItemDefinitionID");
+                        });
+
+                    b.OwnsOne("Domain.Definition.MetaDomain.ItemPresentationDefinition", "Presentation", b1 =>
+                        {
+                            b1.Property<string>("ItemDefinitionID")
+                                .HasColumnType("nvarchar(450)");
+
+                            b1.Property<string>("IconID")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("ItemDefinitionID");
+
+                            b1.ToTable("ItemDefinitions");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ItemDefinitionID");
+
+                            b1.OwnsOne("Domain.Definition.LocalizationDomain.LocalizedText", "LocalizedText", b2 =>
+                                {
+                                    b2.Property<string>("ItemPresentationDefinitionItemDefinitionID")
+                                        .HasColumnType("nvarchar(450)");
+
+                                    b2.Property<string>("DescriptionKey")
+                                        .IsRequired()
+                                        .HasColumnType("nvarchar(max)");
+
+                                    b2.Property<string>("NameKey")
+                                        .IsRequired()
+                                        .HasColumnType("nvarchar(max)");
+
+                                    b2.HasKey("ItemPresentationDefinitionItemDefinitionID");
+
+                                    b2.ToTable("ItemDefinitions");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("ItemPresentationDefinitionItemDefinitionID");
+                                });
+
+                            b1.Navigation("LocalizedText")
+                                .IsRequired();
+                        });
+
+                    b.OwnsOne("Domain.Definition.MetaDomain.SpawnEntityConfig", "SpawnEntityConfig", b1 =>
+                        {
+                            b1.Property<string>("ItemDefinitionID")
+                                .HasColumnType("nvarchar(450)");
+
+                            b1.Property<string>("EntityDefinitionID")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<float>("MaxRange")
+                                .HasColumnType("real");
+
+                            b1.Property<string>("TargetType")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("ItemDefinitionID");
+
+                            b1.ToTable("ItemDefinitions");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ItemDefinitionID");
+                        });
+
+                    b.Navigation("ApplyEffectConfig");
+
+                    b.Navigation("CostConfig")
+                        .IsRequired();
+
+                    b.Navigation("EquipConfig");
+
+                    b.Navigation("Presentation")
+                        .IsRequired();
+
+                    b.Navigation("SpawnEntityConfig");
+                });
+
             modelBuilder.Entity("Domain.Definition.WorldDomain.Cell", b =>
                 {
-                    b.HasOne("Domain.Definition.WorldDomain.Room", "Room")
+                    b.HasOne("Domain.Definition.WorldDomain.RoomDefinition", "RoomDefinition")
                         .WithMany("Cells")
-                        .HasForeignKey("RoomID")
+                        .HasForeignKey("RoomDefinitionID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Room");
+                    b.Navigation("RoomDefinition");
                 });
 
             modelBuilder.Entity("Domain.Definition.WorldDomain.EntitySpawnRule", b =>
                 {
-                    b.HasOne("Domain.Definition.EntityDomain.Entity", "Entity")
+                    b.HasOne("Domain.Definition.EntityDomain.EntityDefinition", "EntityDefinition")
                         .WithMany()
-                        .HasForeignKey("EntityID")
+                        .HasForeignKey("EntityDefinitionID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Definition.WorldDomain.Room", "Room")
+                    b.HasOne("Domain.Definition.WorldDomain.RoomDefinition", "RoomDefinition")
+                        .WithMany()
+                        .HasForeignKey("RoomDefinitionID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Definition.WorldDomain.RoomDefinition", null)
                         .WithMany("EntitySpawnRules")
-                        .HasForeignKey("RoomID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("RoomDefinitionID1");
 
-                    b.Navigation("Entity");
+                    b.Navigation("EntityDefinition");
 
-                    b.Navigation("Room");
-                });
-
-            modelBuilder.Entity("Domain.Definition.WorldDomain.Room", b =>
-                {
-                    b.OwnsOne("Domain.Definition.LocalizationDomain.LocalizedText", "LocalizedText", b1 =>
-                        {
-                            b1.Property<string>("RoomID")
-                                .HasColumnType("nvarchar(450)");
-
-                            b1.Property<string>("DescriptionKey")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("NameKey")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.HasKey("RoomID");
-
-                            b1.ToTable("Rooms");
-
-                            b1.WithOwner()
-                                .HasForeignKey("RoomID");
-                        });
-
-                    b.Navigation("LocalizedText")
-                        .IsRequired();
+                    b.Navigation("RoomDefinition");
                 });
 
             modelBuilder.Entity("Domain.Definition.WorldDomain.RoomConnection", b =>
                 {
-                    b.HasOne("Domain.Definition.WorldDomain.Room", null)
+                    b.HasOne("Domain.Definition.EntityDomain.EntityDefinition", "DestinationEntity")
+                        .WithMany()
+                        .HasForeignKey("DestinationEntityID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Definition.WorldDomain.RoomDefinition", "DestinationRoom")
                         .WithMany()
                         .HasForeignKey("DestinationRoomID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Domain.Definition.WorldDomain.Room", null)
+                    b.HasOne("Domain.Definition.EntityDomain.EntityDefinition", "SourceEntity")
+                        .WithMany()
+                        .HasForeignKey("SourceEntityID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Definition.WorldDomain.RoomDefinition", "SourceRoom")
                         .WithMany()
                         .HasForeignKey("SourceRoomID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("DestinationEntity");
+
+                    b.Navigation("DestinationRoom");
+
+                    b.Navigation("SourceEntity");
+
+                    b.Navigation("SourceRoom");
                 });
 
-            modelBuilder.Entity("Domain.Definition.WorldDomain.SpawnArea", b =>
+            modelBuilder.Entity("Domain.Definition.WorldDomain.RoomDefinition", b =>
                 {
-                    b.HasOne("Domain.Definition.WorldDomain.EntitySpawnRule", "EntitySpawnRule")
-                        .WithMany("SpawnAreas")
-                        .HasForeignKey("EntitySpawnRuleID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("EntitySpawnRule");
-                });
-
-            modelBuilder.Entity("Domain.Definition.EntityDomain.Portal", b =>
-                {
-                    b.OwnsOne("Domain.Common.Vector2", "EntrancePosition", b1 =>
+                    b.OwnsOne("Domain.Definition.WorldDomain.RoomPresentationDefinition", "Presentation", b1 =>
                         {
-                            b1.Property<string>("PortalID")
+                            b1.Property<string>("RoomDefinitionID")
                                 .HasColumnType("nvarchar(450)");
 
-                            b1.Property<float>("X")
-                                .HasColumnType("real");
-
-                            b1.Property<float>("Y")
-                                .HasColumnType("real");
-
-                            b1.HasKey("PortalID");
-
-                            b1.ToTable("Entities");
-
-                            b1.WithOwner()
-                                .HasForeignKey("PortalID");
-                        });
-
-                    b.OwnsOne("Domain.Definition.EntityDomain.Component.Collision", "Entrance", b1 =>
-                        {
-                            b1.Property<string>("PortalID")
-                                .HasColumnType("nvarchar(450)");
-
-                            b1.Property<float>("Height")
-                                .HasColumnType("real");
-
-                            b1.Property<bool>("IsBlocking")
-                                .HasColumnType("bit");
-
-                            b1.Property<bool>("IsTrigger")
-                                .HasColumnType("bit");
-
-                            b1.Property<float>("OffsetX")
-                                .HasColumnType("real");
-
-                            b1.Property<float>("OffsetY")
-                                .HasColumnType("real");
-
-                            b1.Property<float>("Radius")
-                                .HasColumnType("real");
-
-                            b1.Property<string>("ShapeType")
-                                .IsRequired()
+                            b1.Property<string>("IconID")
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.Property<float>("Width")
-                                .HasColumnType("real");
+                            b1.HasKey("RoomDefinitionID");
 
-                            b1.HasKey("PortalID");
-
-                            b1.ToTable("Entities");
+                            b1.ToTable("RoomDefinitions");
 
                             b1.WithOwner()
-                                .HasForeignKey("PortalID");
+                                .HasForeignKey("RoomDefinitionID");
+
+                            b1.OwnsOne("Domain.Definition.LocalizationDomain.LocalizedText", "LocalizedText", b2 =>
+                                {
+                                    b2.Property<string>("RoomPresentationDefinitionRoomDefinitionID")
+                                        .HasColumnType("nvarchar(450)");
+
+                                    b2.Property<string>("DescriptionKey")
+                                        .IsRequired()
+                                        .HasColumnType("nvarchar(max)");
+
+                                    b2.Property<string>("NameKey")
+                                        .IsRequired()
+                                        .HasColumnType("nvarchar(max)");
+
+                                    b2.HasKey("RoomPresentationDefinitionRoomDefinitionID");
+
+                                    b2.ToTable("RoomDefinitions");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("RoomPresentationDefinitionRoomDefinitionID");
+                                });
+
+                            b1.Navigation("LocalizedText")
+                                .IsRequired();
                         });
 
-                    b.Navigation("Entrance")
-                        .IsRequired();
-
-                    b.Navigation("EntrancePosition")
+                    b.Navigation("Presentation")
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Domain.Definition.AttributeDomain.Characteristic", b =>
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.AttributeValue", b =>
+                {
+                    b.Navigation("AttributeGrowthValues");
+                });
+
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.CharacteristicDefinition", b =>
                 {
                     b.Navigation("AttributeValues");
                 });
 
-            modelBuilder.Entity("Domain.Definition.ItemDomain.Inventory", b =>
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.InventoryDefinition", b =>
                 {
                     b.Navigation("DefaultItems");
                 });
 
-            modelBuilder.Entity("Domain.Definition.ItemDomain.Item", b =>
+            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.SpawnDefinition", b =>
                 {
-                    b.Navigation("Effects");
+                    b.Navigation("SpawnEntries");
                 });
 
             modelBuilder.Entity("Domain.Definition.LocalizationDomain.Locale", b =>
@@ -1175,12 +1353,7 @@ namespace Infrastructure.Migrations
                     b.Navigation("LocalizationEntries");
                 });
 
-            modelBuilder.Entity("Domain.Definition.WorldDomain.EntitySpawnRule", b =>
-                {
-                    b.Navigation("SpawnAreas");
-                });
-
-            modelBuilder.Entity("Domain.Definition.WorldDomain.Room", b =>
+            modelBuilder.Entity("Domain.Definition.WorldDomain.RoomDefinition", b =>
                 {
                     b.Navigation("Cells");
 

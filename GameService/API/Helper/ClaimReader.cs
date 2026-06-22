@@ -1,5 +1,5 @@
-﻿using Domain.DomainException;
-using Domain.Shared;
+﻿using Domain.Shared.DomainException;
+using Domain.Shared.ResponseCode;
 using System.Security.Claims;
 
 namespace API.Helper
@@ -15,7 +15,7 @@ namespace API.Helper
 
             if (string.IsNullOrEmpty(userId))
                 throw new Unauthorized(
-                    ResponseCode.ClaimReader_ClaimMissingUserId,
+                    APICode.ClaimReaderCode.ClaimMissingUserId,
                     "User has no user ID in token");
 
             var steamId = user.FindFirst("steamId")?.Value;

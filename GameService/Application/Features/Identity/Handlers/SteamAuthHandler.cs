@@ -1,20 +1,21 @@
 ﻿using Application.Features.Abstraction;
 using Application.Features.Identity.Commands;
+using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
-using Application.Interfaces.Security;
+using Application.Interfaces.Utility;
 using Application.Services.IdentityService;
 using Contract.DTO.Identity;
 using Contract.Enum.IdentityDomain;
-using Domain.DomainException;
-using Domain.Other.IdentityDomain;
-using Domain.Shared;
+using Domain.Definition.IdentityDomain;
+using Domain.Shared.DomainException;
+using Domain.Shared.ResponseCode;
 
 namespace Application.Features.Identity.Handlers
 {
     public class SteamAuthHandler : IHandler<SteamAuthCommand, TokenDTO>
     {
         #region Attributes
-        private readonly IRelationalUoW relational;
+        private readonly IRelationalUoW relationalUoW;
         private readonly ISteamValidator steamValidator;
         private readonly TokenService tokenService;
         #endregion
@@ -23,11 +24,11 @@ namespace Application.Features.Identity.Handlers
         #endregion
 
         public SteamAuthHandler(
-            IRelationalUoW relational,
+            IRelationalUoW relationalUoW,
             ISteamValidator steamValidator,
             TokenService tokenService)
         {
-            this.relational = relational;
+            this.relationalUoW = relationalUoW;
             this.steamValidator = steamValidator;
             this.tokenService = tokenService;
         }
@@ -39,19 +40,19 @@ namespace Application.Features.Identity.Handlers
             var dto = command.DTO;
 
             // Resolve repository
-            var userRepo = relational.GetRepository<IUserRepository>();
+            var userRepo = relationalUoW.GetRepository<IUserRepository>();
 
             // Validate steam ticket
             if (string.IsNullOrEmpty(dto.SteamTicket))
                 throw new BadRequest(
-                    ResponseCode.SteamAuth_InvalidSteamTicket,
+                    ApplicationCode.IdentityHandlerCode.SteamAuthInvalidSteamTicket,
                     $"Steam ticket is invalid, can not authenticate by steam");
 
             // Validate steam ID
             var steamId = await steamValidator.ValidateTicket(dto.SteamTicket);
             if (string.IsNullOrEmpty(steamId))
                 throw new Unauthorized(
-                    ResponseCode.SteamAuth_SteamValidationFailed,
+                    ApplicationCode.IdentityHandlerCode.SteamAuthValidationFailed,
                     $"Steam validation was failed, there no such steam ID found");
 
             // Check existence
@@ -76,9 +77,9 @@ namespace Application.Features.Identity.Handlers
                 (accessToken, refreshToken) = tokenService.Generate(user);
 
                 // Apply persistence
-                await relational.BeginTransactionAsync();
+                await relationalUoW.BeginTransactionAsync();
                 await userRepo.AddAsync(user);
-                await relational.CommitAsync();
+                await relationalUoW.CommitAsync();
             }
             else
             {
@@ -87,7 +88,7 @@ namespace Application.Features.Identity.Handlers
                 (accessToken, refreshToken) = tokenService.Generate(user);
 
                 // Apply persistence
-                await relational.SaveChangesAsync();
+                await relationalUoW.SaveChangesAsync();
             }
 
             return new TokenDTO

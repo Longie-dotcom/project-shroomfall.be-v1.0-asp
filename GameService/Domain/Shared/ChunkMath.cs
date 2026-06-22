@@ -24,14 +24,17 @@
         }
 
         public static (int cx, int cy) ToChunkOnly(
-            int worldX, 
-            int worldY,
+            int worldX,
+            int worldY, 
             int size)
         {
-            return (
-                (int)Math.Floor((float)worldX / size),
-                (int)Math.Floor((float)worldY / size)
-            );
+            int cx = Math.DivRem(worldX, size, out int x);
+            int cy = Math.DivRem(worldY, size, out int y);
+
+            if (x < 0) cx--;
+            if (y < 0) cy--;
+
+            return (cx, cy);
         }
         #endregion
     }

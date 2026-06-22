@@ -1,24 +1,25 @@
 ﻿using Application.Features.Abstraction;
 using Application.Features.Identity.Commands;
+using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
-using Domain.DomainException;
-using Domain.Shared;
+using Domain.Shared.DomainException;
+using Domain.Shared.ResponseCode;
 
 namespace Application.Features.Identity.Handlers
 {
     public class UpdateProfileHandler : IHandler<UpdateProfileCommand>
     {
         #region Attributes
-        private readonly IRelationalUoW relational;
+        private readonly IRelationalUoW relationalUoW;
         #endregion
 
         #region Properties
         #endregion
 
         public UpdateProfileHandler(
-            IRelationalUoW relational)
+            IRelationalUoW relationalUoW)
         {
-            this.relational = relational;
+            this.relationalUoW = relationalUoW;
         }
 
         #region Methods
@@ -28,13 +29,13 @@ namespace Application.Features.Identity.Handlers
             var dto = command.DTO;
 
             // Resolve repository
-            var userRepo = relational.GetRepository<IUserRepository>();
+            var userRepo = relationalUoW.GetRepository<IUserRepository>();
 
             // Validate existence
             var user = await userRepo.GetByIdAsync(command.UserID);
             if (user == null)
                 throw new NotFound(
-                    ResponseCode.UpdateProfile_UserNotFound,
+                    ApplicationCode.IdentityHandlerCode.UpdateProfileUserNotFound,
                     $"User with user ID: {command.UserID} was not found");
 
             // Apply domain - Update profile
@@ -45,7 +46,7 @@ namespace Application.Features.Identity.Handlers
             );
 
             // Apply persistence
-            await relational.SaveChangesAsync();
+            await relationalUoW.SaveChangesAsync();
         }
         #endregion
     }

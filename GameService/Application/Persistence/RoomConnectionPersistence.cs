@@ -1,7 +1,9 @@
-﻿using Application.Interfaces.Repository.NonRelational;
+﻿using Application.Interfaces.Repository.Base;
+using Application.Interfaces.Repository.NonRelational;
+using Application.Services.WorldService.Factory;
 using AutoMapper;
-using Domain.Document.WorldDomain;
-using Domain.Runtime.WorldDomain;
+using Domain.Runtime.WorldDomain.Topology;
+using Domain.Snapshot.WorldDomain;
 
 namespace Application.Persistence
 {
@@ -9,7 +11,8 @@ namespace Application.Persistence
     {
         #region Attributes
         private readonly IMapper mapper;
-        private readonly INonRelationalUoW nonRelational;
+        private readonly INonRelationalUoW nonRelationalUoW;
+        private readonly RoomConnectionInstanceFactory roomConnectionInstanceFactory;
         #endregion
 
         #region Properties
@@ -17,21 +20,30 @@ namespace Application.Persistence
 
         public RoomConnectionPersistence(
             IMapper mapper,
-            INonRelationalUoW nonRelational)
+            INonRelationalUoW nonRelationalUoW,
+            RoomConnectionInstanceFactory roomConnectionInstanceFactory)
         {
             this.mapper = mapper;
-            this.nonRelational = nonRelational;
+            this.nonRelationalUoW = nonRelationalUoW;
+            this.roomConnectionInstanceFactory = roomConnectionInstanceFactory;
         }
 
         #region Methods
+        public async Task<List<RoomConnectionInstance>> LoadAsync()
+        {
+            var roomConnectionRepo = nonRelationalUoW.GetRepository<IRoomConnectionSnapshotRepository>();
+
+            var connections = await roomConnectionRepo.GetAllAsync();
+
+            return connections.Select(c => roomConnectionInstanceFactory.Rehydrate(c)).ToList();
+        }
+
         public async Task SaveAsync(
             RoomConnectionInstance connection)
         {
-            var repo = nonRelational.GetRepository<IRoomConnectionDocumentRepository>();
+            var roomConnectionRepo = nonRelationalUoW.GetRepository<IRoomConnectionSnapshotRepository>();
 
-            var doc = mapper.Map<RoomConnectionDocument>(connection);
-
-            await repo.UpdateAsync(doc);
+            await roomConnectionRepo.UpdateAsync(mapper.Map<RoomConnectionSnapshot>(connection));
         }
         #endregion
     }

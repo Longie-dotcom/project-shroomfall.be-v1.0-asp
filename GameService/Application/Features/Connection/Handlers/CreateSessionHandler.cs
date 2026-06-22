@@ -1,48 +1,47 @@
-﻿using Application.Coordinator;
-using Application.Features.Abstraction;
+﻿using Application.Features.Abstraction;
 using Application.Features.Connection.Commands;
-using AutoMapper;
-using Contract.DTO.Connection;
-using Contract.DTO.Runtime;
+using Application.Persistence;
+using Application.Services.WorldService;
 
 namespace Application.Features.Connection.Handlers
 {
-    public class CreateSessionHandler : IHandler<CreateSessionCommand, ExistedSessionEntryDTO>
+    public class CreateSessionHandler : IHandler<CreateSessionCommand>
     {
         #region Attributes
-        private readonly IMapper mapper;
-        private readonly PlayerCoordinator playerCoordinator;
+        private readonly InitializationService initializationService;
+        private readonly SnapshotPersistence snapshotPersistence;
         #endregion
 
         #region Properties
         #endregion
 
         public CreateSessionHandler(
-            IMapper mapper,
-            PlayerCoordinator playerCoordinator)
+            InitializationService initializationService,
+            SnapshotPersistence snapshotPersistence)
         {
-            this.mapper = mapper;
-            this.playerCoordinator = playerCoordinator;
+            this.initializationService = initializationService;
+            this.snapshotPersistence = snapshotPersistence;
         }
 
         #region Methods
-        public async Task<ExistedSessionEntryDTO> Handle(
+        public async Task Handle(
             CreateSessionCommand command)
         {
             var dto = command.DTO;
 
-            // Create new player instance (new save)
-            var playerInstance = await playerCoordinator.CreatePlayer(
-                dto.PlayerDefinitionID,
-                dto.RoomDefinitionID,
-                command.UserID);
+            // Generate IDs
+            var roomSpatialId = $"PLAYER_ROOM_{command.UserID}_{Guid.NewGuid():N}";
+            var playerInstanceId = $"{command.UserID}_{Guid.NewGuid():N}";
 
-            // Mapping and return
-            return new ExistedSessionEntryDTO()
-            {
-                PlayerInstanceID = playerInstance.ID,
-                PlayerAppearance = mapper.Map<AppearanceRuntimeDTO>(playerInstance.Appearance)
-            };
+            // Create room snapshot
+            var snapshot = initializationService.InitializeRoom(
+                roomDefinitionId: dto.RoomDefinitionID,
+                roomSpatialId: roomSpatialId,
+                playerDefinitionId: dto.PlayerDefinitionID,
+                playerInstanceId: playerInstanceId);
+
+            // Persist snapshot
+            await snapshotPersistence.SaveRoomSnapshotAsync(snapshot.room);
         }
         #endregion
     }

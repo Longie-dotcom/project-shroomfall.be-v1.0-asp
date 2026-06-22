@@ -1,5 +1,6 @@
-﻿using Contract.Enum.AttributeDomain;
+﻿using Contract.Enum.MetaDomain.Effect;
 using Domain.Runtime.EntityDomain;
+using Domain.Runtime.EntityDomain.Component;
 
 namespace Application.Services.AttributeService
 {
@@ -11,56 +12,15 @@ namespace Application.Services.AttributeService
         #region Properties
         #endregion
 
-        public CombatService()
-        {
-
-        }
+        public CombatService() { }
 
         #region Methods
         public static float ResolveMitigatedDamage(
-            CreatureInstance attacker,
-            CreatureInstance target)
-        {
-            // 1. Define the pairs of Power vs Resistance
-            var combatPairs = new[]
-            {
-                (AttributeType.FirePower,    AttributeType.FireResistance),
-                (AttributeType.IcePower,     AttributeType.IceResistance),
-                (AttributeType.EarthPower,   AttributeType.EarthResistance),
-                (AttributeType.DarkPower,    AttributeType.DarkResistance),
-                (AttributeType.LightPower,   AttributeType.LightResistance)
-            };
-
-            // 2. Start with base Physical AttackDamage
-            float totalRawDamage = attacker.Characteristic.GetCore(AttributeType.AttackDamage);
-
-            // 3. Sum all elemental powers and apply their specific resistance mitigations
-            foreach (var (powerType, resType) in combatPairs)
-            {
-                float power = attacker.Characteristic.GetCore(powerType);
-                if (power <= 0) continue;
-
-                float resistance = target.Characteristic.GetCore(resType);
-
-                // Calculate mitigation for this specific element
-                float multiplier = Math.Clamp(1.0f - resistance, 0.0f, 1.0f);
-
-                totalRawDamage += (power * multiplier);
-            }
-
-            // 4. Final physical mitigation (Optional: apply overall DamageResistance to the physical base)
-            float physRes = target.Characteristic.GetCore(AttributeType.DamageResistance);
-            totalRawDamage *= Math.Clamp(1.0f - physRes, 0.0f, 1.0f);
-
-            return Math.Max(0f, totalRawDamage);
-        }
-
-        public static float ResolveMitigatedDamage(
-            CreatureInstance target,
+            EntityInstance target,
             float rawDamage,
             AttributeType damageType)
         {
-            // 1. Map incoming offense directly to your pruned defensive categories
+            // Map incoming offense directly to your pruned defensive categories
             AttributeType resistanceType = damageType switch
             {
                 AttributeType.AttackDamage => AttributeType.DamageResistance,
@@ -69,19 +29,19 @@ namespace Application.Services.AttributeService
                 AttributeType.EarthPower => AttributeType.EarthResistance,
                 AttributeType.DarkPower => AttributeType.DarkResistance,
                 AttributeType.LightPower => AttributeType.LightResistance,
-
-                // Fallback catch-all
                 _ => AttributeType.DamageResistance
             };
 
-            // 2. Fetch runtime stats from target's characteristic sheet
-            float resistanceValue = target.Characteristic.GetCore(resistanceType);
+            // Fetch runtime stats from target's characteristic sheet
+            var characteristic = target.GetComponent<CharacteristicInstance>();
+            if (characteristic == null) return 0;
 
-            // 3. Process mitigation math (Example: resistance is a percentage value where 0.25f = 25% reduction)
+            float resistanceValue = characteristic.GetCore(resistanceType);
+
+            // Process mitigation math (Example: resistance is a percentage value where 0.25f = 25% reduction)
             float mitigationMultiplier = Math.Clamp(1.0f - resistanceValue, 0.0f, 2.0f);
             float finalDamage = rawDamage * mitigationMultiplier;
 
-            // Prevent negative calculations from accidentally performing healing cycles
             return Math.Max(0f, finalDamage);
         }
         #endregion

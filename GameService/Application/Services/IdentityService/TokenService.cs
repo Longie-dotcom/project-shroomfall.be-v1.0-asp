@@ -1,5 +1,5 @@
-﻿using Application.Interfaces.Security;
-using Domain.Other.IdentityDomain;
+﻿using Application.Interfaces.Utility;
+using Domain.Definition.IdentityDomain;
 
 namespace Application.Services.IdentityService
 {

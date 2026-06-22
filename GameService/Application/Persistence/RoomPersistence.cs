@@ -1,8 +1,9 @@
-﻿using Application.Interfaces.Factory;
+﻿using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.NonRelational;
+using Application.Services.WorldService.Factory;
 using AutoMapper;
-using Domain.Document.WorldDomain;
-using Domain.Runtime.WorldDomain;
+using Domain.Runtime.WorldDomain.Spatial;
+using Domain.Snapshot.WorldDomain;
 
 namespace Application.Persistence
 {
@@ -10,8 +11,8 @@ namespace Application.Persistence
     {
         #region Attributes
         private readonly IMapper mapper;
-        private readonly INonRelationalUoW nonRelational;
-        private readonly IRoomSpatialFactory roomSpatialFactory;
+        private readonly INonRelationalUoW nonRelationalUoW;
+        private readonly RoomSpatialFactory roomSpatialFactory;
         #endregion
 
         #region Properties
@@ -19,11 +20,11 @@ namespace Application.Persistence
 
         public RoomPersistence(
             IMapper mapper,
-            INonRelationalUoW nonRelational,
-            IRoomSpatialFactory roomSpatialFactory)
+            INonRelationalUoW nonRelationalUoW,
+            RoomSpatialFactory roomSpatialFactory)
         {
             this.mapper = mapper;
-            this.nonRelational = nonRelational;
+            this.nonRelationalUoW = nonRelationalUoW;
             this.roomSpatialFactory = roomSpatialFactory;
         }
 
@@ -31,21 +32,21 @@ namespace Application.Persistence
         public async Task<RoomSpatial?> LoadAsync(
             string roomSpatialId)
         {
-            var roomRepo = nonRelational.GetRepository<IRoomDocumentRepository>();
+            var roomRepo = nonRelationalUoW.GetRepository<IRoomSnapshotRepository>();
 
-            var doc = await roomRepo.GetByIdAsync(roomSpatialId);
-            if (doc == null)
+            var snapshot = await roomRepo.GetByIdAsync(roomSpatialId);
+            if (snapshot == null)
                 return null;
 
-            return roomSpatialFactory.CreateFromDocument(doc);
+            return roomSpatialFactory.Rehydrate(snapshot);
         }
 
         public async Task SaveAsync(
             RoomSpatial room)
         {
-            var roomRepo = nonRelational.GetRepository<IRoomDocumentRepository>();
+            var roomRepo = nonRelationalUoW.GetRepository<IRoomSnapshotRepository>();
 
-            var doc = mapper.Map<RoomDocument>(room);
+            var doc = mapper.Map<RoomSnapshot>(room);
 
             await roomRepo.UpdateAsync(doc);
         }

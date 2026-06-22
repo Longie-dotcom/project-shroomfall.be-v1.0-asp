@@ -1,5 +1,8 @@
-﻿using Contract.DTO.Game;
-using Contract.DTO.Runtime;
+﻿using Application.Interfaces.Utility;
+using Contract.DTO.Admin;
+using Contract.DTO.Design;
+using Contract.DTO.Domain.Runtime;
+using Contract.DTO.Game;
 
 namespace Application.Interfaces.Realtime
 {
@@ -24,14 +27,14 @@ namespace Application.Interfaces.Realtime
         // ─────────────────────────────
         Task SendPlayerCharacteristicSync(
             string connectionId,
-            CharacteristicRuntimeDTO payload);
+            CharacteristicInstanceDTO payload);
 
         // ─────────────────────────────
         // Lifecycle (spawn / despawn)
         // ─────────────────────────────
         Task SendEntitySpawned(
             string roomSpatialId, 
-            EntityRuntimeDTO entity);
+            EntityInstanceDTO entity);
         Task SendEntityDespawned(
             string roomSpatialId, 
             string entityId);
@@ -47,7 +50,22 @@ namespace Application.Interfaces.Realtime
         // Definition Update Notification
         // ─────────────────────────────
         Task SendDefinitionUpdated(
-            string key,
-            long version);
+            UpdateDefinitionNotificationDTO notification);
+
+        // ─────────────────────────────
+        // Telemetry
+        // ─────────────────────────────
+        Task SendTelemetryAlert(
+            TelemetryEvent payload);
+
+        // ─────────────────────────────
+        // Admin Dashboard Updates
+        // ─────────────────────────────
+        Task SendRoomResidencyChanged(
+            RoomResidencyChangedDTO payload);
+        Task SendUserConnectionChanged(
+            UserConnectionChangedDTO payload);
+        Task SendUserSessionChanged(
+            UserSessionChangedDTO payload);
     }
 }

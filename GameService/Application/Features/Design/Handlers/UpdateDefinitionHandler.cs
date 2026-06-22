@@ -1,13 +1,12 @@
-﻿using Application.Events.Event;
-using Application.Features.Abstraction;
+﻿using Application.Features.Abstraction;
 using Application.Features.Design.Commands;
 using Application.Interfaces.Cache;
-using Application.Interfaces.Realtime;
+using Application.Interfaces.Realtime.Events;
+using Application.Interfaces.Realtime.Events.Design;
+using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
 using Contract;
-using Domain.DomainException;
-using Domain.Other.VersionDomain;
-using Domain.Shared;
+using Domain.Definition;
 
 namespace Application.Features.Design.Handlers
 {
@@ -15,7 +14,7 @@ namespace Application.Features.Design.Handlers
     {
         #region Attributes
         private readonly IRelationalUoW relational;
-        private readonly ICacheLoader cacheLoader;
+        private readonly ICacheProvider cacheLoader;
         private readonly IEventBus eventBus;
         #endregion
 
@@ -24,7 +23,7 @@ namespace Application.Features.Design.Handlers
 
         public UpdateDefinitionHandler(
             IRelationalUoW relational,
-            ICacheLoader cacheLoader,
+            ICacheProvider cacheLoader,
             IEventBus eventBus)
         {
             this.relational = relational;
@@ -41,18 +40,16 @@ namespace Application.Features.Design.Handlers
             var definitionVersionLogRepo =
                 relational.GetRepository<IDefinitionVersionLogRepository>();
 
-            // Validate latest version for this key
-            var latest = await definitionVersionLogRepo.GetLatest(dto.Key ?? Constraint.GLOBAL_DEFINITION_VERSION);
-            if (latest != null && dto.Version <= latest.Version)
-                throw new BadRequest(
-                    ResponseCode.UpdateDefinition_InvalidVersion,
-                    $"Update definition must has newer version than old version");
+            // Generate latest version for this key
+            var key = dto.Key ?? Constraint.GLOBAL_DEFINITION_VERSION;
+            var latest = await definitionVersionLogRepo.GetLatest(key);
+            var nextVersion = latest == null ? 1 : latest.Version + 1;
 
             // Apply domain - Create new version log
             var log = new DefinitionVersionLog(
                 Guid.NewGuid().ToString(),
-                dto.Key ?? Constraint.GLOBAL_DEFINITION_VERSION,
-                dto.Version,
+                key,
+                nextVersion,
                 dto.Description
             );
 
@@ -64,8 +61,8 @@ namespace Application.Features.Design.Handlers
 
             // Publish realtime invalidation event
             eventBus.Publish(new DefinitionUpdatedEvent(
-                dto.Key ?? Constraint.GLOBAL_DEFINITION_VERSION,
-                dto.Version)
+                key,
+                nextVersion)
             );
         }
         #endregion

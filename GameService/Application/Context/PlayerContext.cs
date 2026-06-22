@@ -9,10 +9,7 @@
         #region Properties
         #endregion
 
-        public PlayerContext()
-        {
-
-        }
+        public PlayerContext() { }
 
         #region Methods
         public void JoinRoom(
