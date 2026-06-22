@@ -1,23 +1,21 @@
-﻿using Contract.DTO.Identity;
-
-namespace Application.Features.Identity.Commands
+﻿namespace Application.Features.Game.Commands
 {
-    public class UpdateProfileCommand
+    public class EnterHubCommand
     {
         #region Attributes
         #endregion
 
         #region Properties
         public string UserID { get; }
-        public UpdateProfileDTO DTO { get; }
+        public string HubRoomSpatialID { get; }
         #endregion
 
-        public UpdateProfileCommand(
+        public EnterHubCommand(
             string userId,
-            UpdateProfileDTO dto)
+            string hubRoomSpatialId)
         {
             UserID = userId;
-            DTO = dto;
+            HubRoomSpatialID = hubRoomSpatialId;
         }
 
         #region Methods

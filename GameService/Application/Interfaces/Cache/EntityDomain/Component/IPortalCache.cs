@@ -2,14 +2,14 @@
 
 namespace Application.Interfaces.Cache.EntityDomain.Component
 {
-    public interface ISpawnCache
+    public interface IPortalCache
     {
         void Load(
-            List<SpawnDefinition> data);
-        IEnumerable<SpawnDefinition> GetAll();
-        SpawnDefinition? Get(
+            List<PortalDefinition> data);
+        IEnumerable<PortalDefinition> GetAll();
+        PortalDefinition? Get(
             Guid id);
-        SpawnDefinition? GetByEntity(
+        PortalDefinition? GetByEntity(
             string entityDefinitionId);
     }
 }

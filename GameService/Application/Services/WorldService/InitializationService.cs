@@ -90,8 +90,14 @@ namespace Application.Services.WorldService
                     ApplicationCode.InitializationServiceCode.RoomDefinitionNotFound,
                     $"Room generation aborted. Master definition blueprint for ID '{roomDefId}' could not be loaded from store.");
 
+            // Base query: get rules by type
             var rules = roomDef.EntitySpawnRules.Where(r => r.Type == type);
-            if (!string.IsNullOrEmpty(entityDefId)) rules = rules.Where(r => r.EntityDefinitionID == entityDefId);
+
+            // ONLY filter by EntityDefinitionID if it's an Environment spawn
+            if (type == SpawnRuleType.Environment && !string.IsNullOrEmpty(entityDefId))
+            {
+                rules = rules.Where(r => r.EntityDefinitionID == entityDefId);
+            }
 
             EntityInstance? lastSpawned = null;
 
@@ -100,29 +106,31 @@ namespace Application.Services.WorldService
                 int count = random.Next(rule.MinCount, rule.MaxCount + 1);
                 for (int i = 0; i < count; i++)
                 {
-                    var (pos, layerZ) = ResolveSpawnPosition(roomDef, rule.EntityDefinitionID, type);
+                    // For players, use the passed-in template (entityDefId). 
+                    string activeEntityDefId = (type == SpawnRuleType.Player && !string.IsNullOrEmpty(entityDefId))
+                        ? entityDefId
+                        : rule.EntityDefinitionID!;
 
-                    string instanceId = forcedInstanceId ?? $"{Guid.NewGuid()}_{rule.EntityDefinitionID}";
+                    // Make sure we pass the rule directly to avoid double-querying it
+                    var (pos, layerZ) = ResolveSpawnPosition(roomDef, type, activeEntityDefId);
 
-                    // ─────────────────────────────
-                    // Context switching logic
-                    // ─────────────────────────────
+                    string instanceId = forcedInstanceId ?? $"{Guid.NewGuid()}_{activeEntityDefId}";
+
                     WorldEntityCreateContext context;
 
                     if (type == SpawnRuleType.Player && !string.IsNullOrEmpty(userId))
                     {
                         context = new PlayerEntityCreateContext(
-                            instanceId, rule.EntityDefinitionID, roomSpatialId, layerZ, pos, userId);
+                            instanceId, activeEntityDefId, roomSpatialId, layerZ, pos, userId);
                     }
                     else
                     {
                         context = new WorldEntityCreateContext(
-                            instanceId, rule.EntityDefinitionID, roomSpatialId, layerZ, pos);
+                            instanceId, activeEntityDefId, roomSpatialId, layerZ, pos);
                     }
 
-                    // Factory handles the specific context via polymorphism
                     var entity = entityInstanceFactory.Create(context);
-                    
+
                     collisionService.SpawnAtNearestValidPosition(entity, roomDef.ID, roomSpatialId, pos, layerZ, buffer, 5);
                     buffer.Add(entity);
 
@@ -134,17 +142,14 @@ namespace Application.Services.WorldService
 
         private (Vector2 position, int layerZ) ResolveSpawnPosition(
             RoomDefinition roomDef,
-            string entityDefinitionId,
-            SpawnRuleType type)
+            SpawnRuleType type,
+            string activeEntityDefId)
         {
-            // Resolve the specific rule
-            var rule = ResolveSpawnRule(roomDef, entityDefinitionId, type);
+            var rule = ResolveSpawnRule(roomDef, type, activeEntityDefId);
 
-            // Calculate random position within the rule's bounds
             int x = random.Next(rule.MinX, rule.MaxX + 1);
             int y = random.Next(rule.MinY, rule.MaxY + 1);
 
-            // Validate and get Z-level from the cache
             var cell = cacheProvider.Room.GetTopCell(roomDef.ID, x, y);
 
             if (cell == null)
@@ -157,20 +162,29 @@ namespace Application.Services.WorldService
 
         private EntitySpawnRule ResolveSpawnRule(
             RoomDefinition roomDef,
-            string entityDefinitionId,
-            SpawnRuleType type)
+            SpawnRuleType type,
+            string activeEntityDefId)
         {
-            // Filter rules
-            var rules = roomDef.EntitySpawnRules
-                .Where(r => r.EntityDefinitionID == entityDefinitionId && r.Type == type)
-                .ToList();
+            List<EntitySpawnRule> rules;
+
+            // If it's a player, grab ANY player spawn rule. Ignore definitions.
+            if (type == SpawnRuleType.Player)
+            {
+                rules = roomDef.EntitySpawnRules.Where(r => r.Type == SpawnRuleType.Player).ToList();
+            }
+            // If it's environment, we MUST match the specific entity definition (e.g., Slime vs Goblin)
+            else
+            {
+                rules = roomDef.EntitySpawnRules
+                    .Where(r => r.Type == type && r.EntityDefinitionID == activeEntityDefId)
+                    .ToList();
+            }
 
             if (rules.Count == 0)
                 throw new InternalException(
                     ApplicationCode.InitializationServiceCode.SpawnRuleMissing,
-                    $"Coordinate resolution failed. Room Blueprint '{roomDef.ID}' contains no active spawning rules matching Entity Definition Type '{entityDefinitionId}' for Category '{type}'.");
+                    $"Coordinate resolution failed. Room Blueprint '{roomDef.ID}' contains no active spawning rules matching Category '{type}'.");
 
-            // Randomly select one applicable rule
             return rules[random.Next(rules.Count)];
         }
         #endregion

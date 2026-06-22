@@ -5,7 +5,7 @@ using Infrastructure.Repository.Base;
 
 namespace Infrastructure.Repository.Relational
 {
-    public class EntityRelationshipDefinitionRepository : SQLGenericRepository<EntityRelationshipDefinition>, IEntityRelationshipDefinitionRepository
+    public class PortalDefinitionRepository : SQLGenericRepository<PortalDefinition>, IPortalDefinitionRepository
     {
         #region Attributes
         #endregion
@@ -13,7 +13,7 @@ namespace Infrastructure.Repository.Relational
         #region Properties
         #endregion
 
-        public EntityRelationshipDefinitionRepository(RelationalDB context) : base(context) { }
+        public PortalDefinitionRepository(RelationalDB context) : base(context) { }
 
         #region Methods
         #endregion

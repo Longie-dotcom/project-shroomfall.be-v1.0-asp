@@ -101,6 +101,13 @@
 
             public static string InvalidShapeType = Format("invalid-shape-type");
         }
+
+        public static class EntityDefinitionSchemaCode
+        {
+            private static string Format(string problem) => Code("entity-definition-schema", problem);
+
+            public static string EntityTypeNotConfigured = Format("entity-type-not-configured");
+        }
         #endregion
     }
 }

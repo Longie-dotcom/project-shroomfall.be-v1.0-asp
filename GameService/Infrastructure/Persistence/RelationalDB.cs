@@ -21,12 +21,11 @@ namespace Infrastructure.Persistence
         public DbSet<AppearanceDefinition> AppearanceDefinitions { get; set; }
         public DbSet<CollisionDefinition> CollisionDefinitions { get; set; }
         public DbSet<CharacteristicDefinition> CharacteristicDefinitions { get; set; }
-        public DbSet<EntityRelationshipDefinition> EntityRelationshipDefinitions { get; set; }
         public DbSet<InteractableDefinition> InteractableDefinitions { get; set; }
         public DbSet<InventoryDefinition> InventoryDefinitions { get; set; }
         public DbSet<LifetimeDefinition> LifetimeDefinitions { get; set; }
+        public DbSet<PortalDefinition> PortalDefinitions { get; set; }
         public DbSet<ProjectileDefinition> ProjectileDefinitions { get; set; }
-        public DbSet<SpawnDefinition> SpawnDefinitions { get; set; }
         public DbSet<TriggeredEffectDefinition> TriggeredEffectDefinitions { get; set; }
         public DbSet<EntityDefinition> EntityDefinitions { get; set; }
 
@@ -319,40 +318,6 @@ namespace Infrastructure.Persistence
                     .IsUnique();
             });
 
-            modelBuilder.Entity<EntityRelationshipDefinition>(entity =>
-            {
-                // ─────────────────────────────
-                // Table
-                // ─────────────────────────────
-                entity.ToTable("EntityRelationshipDefinitions");
-
-                // ─────────────────────────────
-                // Primary Key
-                // ─────────────────────────────
-                entity.HasKey(x => x.ID);
-
-                // ─────────────────────────────
-                // Properties
-                // ─────────────────────────────
-                entity.Property(x => x.EntityDefinitionID)
-                    .IsRequired();
-                entity.Property(x => x.SourceEntityDefinitionID)
-                    .IsRequired();
-                entity.Property(x => x.TargetEntityDefinitionID)
-                    .IsRequired();
-                entity.Property(x => x.Type)
-                    .HasConversion<string>()
-                    .IsRequired();
-
-                // ─────────────────────────────
-                // Indexes
-                // ─────────────────────────────
-                entity.HasIndex(x => x.SourceEntityDefinitionID);
-                entity.HasIndex(x => x.TargetEntityDefinitionID);
-                entity.HasIndex(x => x.Type);
-                entity.HasIndex(x => x.EntityDefinitionID).IsUnique();
-            });
-
             modelBuilder.Entity<InteractableDefinition>(entity =>
             {
                 // ─────────────────────────────
@@ -483,6 +448,38 @@ namespace Infrastructure.Persistence
                 entity.HasIndex(x => x.EntityDefinitionID).IsUnique();
             });
 
+            modelBuilder.Entity<PortalDefinition>(entity =>
+            {
+                // ─────────────────────────────
+                // Table
+                // ─────────────────────────────
+                entity.ToTable("PortalDefinitions");
+
+                // ─────────────────────────────
+                // Primary Key
+                // ─────────────────────────────
+                entity.HasKey(x => x.ID);
+
+                // ─────────────────────────────
+                // Properties
+                // ─────────────────────────────
+                entity.Property(x => x.EntityDefinitionID)
+                    .IsRequired();
+                entity.Property(x => x.LocalTriggerOffsetX)
+                    .IsRequired();
+                entity.Property(x => x.LocalTriggerOffsetY)
+                    .IsRequired();
+                entity.Property(x => x.TriggerWidth)
+                    .IsRequired();
+                entity.Property(x => x.TriggerHeight)
+                    .IsRequired();
+
+                // ─────────────────────────────
+                // Indexes
+                // ─────────────────────────────
+                entity.HasIndex(x => x.EntityDefinitionID).IsUnique();
+            });
+
             modelBuilder.Entity<ProjectileDefinition>(entity =>
             {
                 // ─────────────────────────────
@@ -510,83 +507,6 @@ namespace Infrastructure.Persistence
                 // ─────────────────────────────
                 entity.HasIndex(x => x.Velocity);
                 entity.HasIndex(x => x.EntityDefinitionID).IsUnique();
-            });
-
-            modelBuilder.Entity<SpawnDefinition>(entity =>
-            {
-                // ─────────────────────────────
-                // Table
-                // ─────────────────────────────
-                entity.ToTable("SpawnDefinitions");
-
-                // ─────────────────────────────
-                // Primary Key
-                // ─────────────────────────────
-                entity.HasKey(x => x.ID);
-
-                // ─────────────────────────────
-                // Properties
-                // ─────────────────────────────
-                entity.Property(x => x.EntityDefinitionID)
-                    .IsRequired();
-
-                // ─────────────────────────────
-                // Relationships
-                // ─────────────────────────────
-                entity.HasMany(x => x.SpawnEntries)
-                    .WithOne(x => x.SpawnDefinition)
-                    .HasForeignKey(x => x.SpawnDefinitionID)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                // ─────────────────────────────
-                // Indexes
-                // ─────────────────────────────
-                entity.HasIndex(x => x.EntityDefinitionID).IsUnique();
-            });
-
-            modelBuilder.Entity<SpawnEntry>(entity =>
-            {
-                // ─────────────────────────────
-                // Table
-                // ─────────────────────────────
-                entity.ToTable("SpawnEntries");
-
-                // ─────────────────────────────
-                // Primary Key
-                // ─────────────────────────────
-                entity.HasKey(x => x.ID);
-
-                // ─────────────────────────────
-                // Properties
-                // ─────────────────────────────
-                entity.Property(x => x.SpawnedEntityDefinitionID)
-                    .IsRequired();
-                entity.OwnsOne(x => x.Offset, offset =>
-                {
-                    offset.Property(x => x.X)
-                        .IsRequired();
-
-                    offset.Property(x => x.Y)
-                        .IsRequired();
-                });
-                entity.Property(x => x.Count)
-                    .IsRequired();
-                entity.Property(x => x.SpawnDefinitionID)
-                    .IsRequired();
-
-                // ─────────────────────────────
-                // Relationships
-                // ─────────────────────────────
-                entity.HasOne(x => x.SpawnDefinition)
-                    .WithMany(x => x.SpawnEntries)
-                    .HasForeignKey(x => x.SpawnDefinitionID)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                // ─────────────────────────────
-                // Indexes
-                // ─────────────────────────────
-                entity.HasIndex(x => x.SpawnedEntityDefinitionID);
-                entity.HasIndex(x => x.SpawnDefinitionID);
             });
 
             modelBuilder.Entity<TriggeredEffectDefinition>(entity =>
@@ -1052,7 +972,7 @@ namespace Infrastructure.Persistence
                 entity.Property(x => x.RoomDefinitionID)
                     .IsRequired();
                 entity.Property(x => x.EntityDefinitionID)
-                    .IsRequired();
+                    .IsRequired(false);
 
                 // ─────────────────────────────
                 // Relationships

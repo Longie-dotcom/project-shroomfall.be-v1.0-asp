@@ -55,13 +55,6 @@
             public static string DuplicateCharacteristicComponent = Format("duplicate-characteristic-component");
         }
 
-        public static class EntityRelationshipCacheCode
-        {
-            private static string Format(string problem) => Code("entity-relationship-cache", problem);
-
-            public static string DuplicateEntityRelationshipComponent = Format("duplicate-entity-relationship-component");
-        }
-
         public static class InteractableCacheCode
         {
             private static string Format(string problem) => Code("interactable-cache", problem);
@@ -83,18 +76,18 @@
             public static string DuplicateLifetimeComponent = Format("duplicate-lifetime-component");
         }
 
+        public static class PortalCacheCode
+        {
+            private static string Format(string problem) => Code("portal-cache", problem);
+
+            public static string DuplicatePortalComponent = Format("duplicate-portal-component");
+        }
+
         public static class ProjectileCacheCode
         {
             private static string Format(string problem) => Code("projectile-cache", problem);
 
             public static string DuplicateProjectileComponent = Format("duplicate-projectile-component");
-        }
-
-        public static class SpawnCacheCode
-        {
-            private static string Format(string problem) => Code("spawn-cache", problem);
-
-            public static string DuplicateSpawnComponent = Format("duplicate-spawn-component");
         }
 
         public static class TriggeredEffectCacheCode

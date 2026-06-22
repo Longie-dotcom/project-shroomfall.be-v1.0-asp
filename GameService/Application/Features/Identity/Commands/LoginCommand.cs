@@ -1,9 +1,8 @@
-﻿using Application.Features.Abstraction;
-using Contract.DTO.Identity;
+﻿using Contract.DTO.Identity;
 
 namespace Application.Features.Identity.Commands
 {
-    public class LoginCommand : ICommand<LoginDTO>
+    public class LoginCommand
     {
         #region Attributes
         #endregion

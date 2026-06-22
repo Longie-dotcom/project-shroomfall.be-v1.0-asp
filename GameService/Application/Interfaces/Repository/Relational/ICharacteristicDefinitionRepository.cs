@@ -5,6 +5,15 @@ namespace Application.Interfaces.Repository.Relational
 {
     public interface ICharacteristicDefinitionRepository : ISQLGenericRepository<CharacteristicDefinition>, IRelationalRepository
     {
-
+        Task SaveAttributeValuesAsync(
+            IEnumerable<AttributeValue> attributeValues);
+        Task SaveAttributeGrowthValuesAsync(
+            IEnumerable<AttributeGrowthValue> growthValues);
+        Task ReplaceAttributeValuesAsync(
+            Guid characteristicId,
+            IEnumerable<AttributeValue> newValues);
+        Task ReplaceAttributeGrowthValuesAsync(
+            Guid attributeValueId,
+            IEnumerable<AttributeGrowthValue> newGrowths);
     }
 }

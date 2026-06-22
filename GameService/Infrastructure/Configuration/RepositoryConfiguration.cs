@@ -34,12 +34,11 @@ namespace Infrastructure.Configuration
             services.AddScoped<IAppearanceDefinitionRepository, AppearanceDefinitionRepository>();
             services.AddScoped<ICollisionDefinitionRepository, CollisionDefinitionRepository>();
             services.AddScoped<ICharacteristicDefinitionRepository, CharacteristicDefinitionRepository>();
-            services.AddScoped<IEntityRelationshipDefinitionRepository, EntityRelationshipDefinitionRepository>();
             services.AddScoped<IInteractableDefinitionRepository, InteractableDefinitionRepository>();
             services.AddScoped<IInventoryDefinitionRepository, InventoryDefinitionRepository>();
             services.AddScoped<ILifetimeDefinitionRepository, LifetimeDefinitionRepository>();
+            services.AddScoped<IPortalDefinitionRepository, PortalDefinitionRepository>();
             services.AddScoped<IProjectileDefinitionRepository, ProjectileDefinitionRepository>();
-            services.AddScoped<ISpawnDefinitionRepository, SpawnDefinitionRepository>();
             services.AddScoped<ITriggeredEffectDefinitionRepository, TriggeredEffectDefinitionRepository>();
             services.AddScoped<IEntityDefinitionRepository, EntityDefinitionRepository>();
 

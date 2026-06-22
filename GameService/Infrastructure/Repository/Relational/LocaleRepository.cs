@@ -23,6 +23,39 @@ namespace Infrastructure.Repository.Relational
                 .Include(l => l.LocalizationEntries)
                 .ToListAsync();
         }
+
+        /// <summary>
+        /// Explicitly inserts a collection of child localization entries into the database.
+        /// </summary>
+        public async Task SaveLocalizationEntriesAsync(
+            IEnumerable<LocalizationEntry> localizationEntries)
+        {
+            if (localizationEntries == null || !localizationEntries.Any()) return;
+
+            await context.Set<LocalizationEntry>().AddRangeAsync(localizationEntries);
+        }
+
+        /// <summary>
+        /// Purges all existing localization entries attached to a locale and swaps them with an overwritten dataset.
+        /// </summary>
+        public async Task ReplaceLocalizationEntriesAsync(
+            string localeCode,
+            IEnumerable<LocalizationEntry> newEntries)
+        {
+            var oldEntries = await context.Set<LocalizationEntry>()
+                .Where(e => e.LocaleCode == localeCode)
+                .ToListAsync();
+
+            if (oldEntries.Any())
+            {
+                context.Set<LocalizationEntry>().RemoveRange(oldEntries);
+            }
+
+            if (newEntries != null && newEntries.Any())
+            {
+                await context.Set<LocalizationEntry>().AddRangeAsync(newEntries);
+            }
+        }
         #endregion
     }
 }

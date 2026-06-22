@@ -5,21 +5,21 @@ using Domain.Shared.ResponseCode;
 
 namespace Infrastructure.Cache.EntityDomain.Component
 {
-    public class EntityRelationshipCache : IEntityRelationshipCache
+    public class PortalCache : IPortalCache
     {
         #region Attributes
-        private Dictionary<Guid, EntityRelationshipDefinition> byId = new();
-        private Dictionary<string, EntityRelationshipDefinition> byEntityId = new();
+        private Dictionary<Guid, PortalDefinition> byId = new();
+        private Dictionary<string, PortalDefinition> byEntityId = new();
         #endregion
 
         #region Properties
         #endregion
 
-        public EntityRelationshipCache() { }
+        public PortalCache() { }
 
         #region Methods
         public void Load(
-            List<EntityRelationshipDefinition> data)
+            List<PortalDefinition> data)
         {
             byId = data.ToDictionary(x => x.ID, x => x);
 
@@ -31,26 +31,26 @@ namespace Infrastructure.Cache.EntityDomain.Component
 
                 if (byEntityId.TryGetValue(key, out var existing))
                     throw new InternalException(
-                        InfrastructureCode.EntityRelationshipCacheCode.DuplicateEntityRelationshipComponent,
-                        $"Duplicate component detected for EntityDefinitionID '{key}' in {typeof(EntityRelationshipDefinition).Name}. Existing: {existing.ID}, New: {item.ID}");
+                        InfrastructureCode.PortalCacheCode.DuplicatePortalComponent,
+                        $"Duplicate component detected for EntityDefinitionID '{key}' in {typeof(PortalDefinition).Name}. Existing: {existing.ID}, New: {item.ID}");
 
                 byEntityId[key] = item;
             }
         }
 
-        public IEnumerable<EntityRelationshipDefinition> GetAll()
+        public IEnumerable<PortalDefinition> GetAll()
         {
             return byId.Values;
         }
 
-        public EntityRelationshipDefinition? Get(
+        public PortalDefinition? Get(
             Guid id)
         {
             byId.TryGetValue(id, out var value);
             return value;
         }
 
-        public EntityRelationshipDefinition? GetByEntity(
+        public PortalDefinition? GetByEntity(
             string entityDefinitionId)
         {
             byEntityId.TryGetValue(entityDefinitionId, out var value);

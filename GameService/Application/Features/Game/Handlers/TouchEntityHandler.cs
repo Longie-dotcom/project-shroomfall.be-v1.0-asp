@@ -23,12 +23,10 @@ namespace Application.Features.Game.Handlers
         private readonly ISessionManager sessionManager;
         private readonly WorldContext worldContext;
         private readonly ResidencyService residencyService;
-        private readonly PlayerContext playerContext;
-        private readonly EntitySpawnService entitySpawnService;
-        private readonly IConnectionManager connectionManager; 
         private readonly TopologyService topologyService;
         private readonly SnapshotPersistence snapshotPersistence;
         private readonly RoomConnectionPersistence roomConnectionPersistence;
+        private readonly RoomMigrationService roomMigrationService;
         #endregion
 
         public TouchEntityHandler(
@@ -36,23 +34,19 @@ namespace Application.Features.Game.Handlers
             ISessionManager sessionManager,
             WorldContext worldContext,
             ResidencyService residencyService,
-            PlayerContext playerContext,
-            EntitySpawnService entitySpawnService,
-            IConnectionManager connectionManager,
             TopologyService topologyService,
             SnapshotPersistence snapshotPersistence,
-            RoomConnectionPersistence roomConnectionPersistence)
+            RoomConnectionPersistence roomConnectionPersistence,
+            RoomMigrationService roomMigrationService)
         {
             this.mapper = mapper;
             this.sessionManager = sessionManager;
             this.worldContext = worldContext;
             this.residencyService = residencyService;
-            this.playerContext = playerContext;
-            this.entitySpawnService = entitySpawnService;
-            this.connectionManager = connectionManager;
             this.topologyService = topologyService;
             this.snapshotPersistence = snapshotPersistence;
             this.roomConnectionPersistence = roomConnectionPersistence;
+            this.roomMigrationService = roomMigrationService;
         }
 
         #region Methods
@@ -107,44 +101,13 @@ namespace Application.Features.Game.Handlers
                 worldContext.AddConnection(connectionReverse!);
             }
 
-            return await PlayerChangeRoom(player, transform, connectionForward);
-        }
+            var toRoomId = connectionForward.DestinationRoomSpatialID!;
+            var loadedSnapshot = await residencyService.EnsureRoomLoaded(toRoomId);
+            var (position, layerZ) = ResolveValidSpawn(connectionForward, loadedSnapshot);
 
-        private async Task<RoomSnapshot> PlayerChangeRoom(
-            EntityInstance player,
-            TransformInstance transform,
-            RoomConnectionInstance connection)
-        {
-            var toRoomId = connection.DestinationRoomSpatialID!;
+            await roomMigrationService.ExecuteMigrationAsync(player, transform, toRoomId, position, layerZ);
 
-            var fromRoomId = transform.RoomSpatialID;
-
-            // Bring the room into RAM
-            var snapshot = await residencyService.EnsureRoomLoaded(toRoomId);
-
-            // PASS THE CONNECTION to the spawn resolver so we can target the portal anchor
-            var (position, layerZ) = ResolveValidSpawn(connection, snapshot);
-
-            // Execute spatial migration
-            entitySpawnService.TransitionRoom(player, toRoomId, position, layerZ);
-
-            // Update memory tracking states
-            ApplyMembershipTransition(player, fromRoomId, toRoomId);
-            ApplyResidencyTransition(fromRoomId, toRoomId);
-
-            // Route socket pipes directly
-            var ownership = player.GetComponent<OwnershipInstance>();
-            if (ownership != null)
-            {
-                var activeConnections = connectionManager.Get(ownership.UserID);
-                foreach (var connectionId in activeConnections)
-                {
-                    await connectionManager.Ungroup(connectionId, fromRoomId);
-                    await connectionManager.Group(connectionId, toRoomId);
-                }
-            }
-
-            return snapshot;
+            return loadedSnapshot;
         }
 
         private (Vector2 Position, int LayerZ) ResolveValidSpawn(
@@ -169,27 +132,6 @@ namespace Application.Features.Game.Handlers
             var spawnPosition = new Vector2(portalTransform.Position.X, portalTransform.Position.Y - 1.0f);
 
             return (spawnPosition, portalTransform.LayerZ);
-        }
-
-        private void ApplyMembershipTransition(
-            EntityInstance player,
-            string fromRoomId,
-            string toRoomId)
-        {
-            playerContext.LeaveRoom(fromRoomId, player.ID);
-            playerContext.JoinRoom(toRoomId, player.ID);
-        }
-
-        private void ApplyResidencyTransition(
-            string fromRoomId,
-            string toRoomId)
-        {
-            residencyService.MarkRoomHot(toRoomId);
-
-            if (playerContext.IsRoomEmpty(fromRoomId))
-                residencyService.MarkRoomExited(fromRoomId);
-            else
-                residencyService.TouchRoom(fromRoomId);
         }
 
         private RoomSnapshotDTO BuildDTO(

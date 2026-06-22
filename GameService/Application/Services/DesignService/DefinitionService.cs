@@ -36,8 +36,10 @@ namespace Application.Services.DesignService
             var effects = mapper.Map<List<EffectDefinitionDTO>>(cacheProvider.Effect.GetAll());
             var items = mapper.Map<List<ItemDefinitionDTO>>(cacheProvider.Item.GetAll());
             var entities = mapper.Map<List<EntityDefinitionDTO>>(cacheProvider.Entity.GetAll());
+            var interactables = mapper.Map<List<InteractableDefinitionDTO>>(cacheProvider.Interactable.GetAll());
+            var portals = mapper.Map<List<PortalDefinitionDTO>>(cacheProvider.Portal.GetAll());
             var cells = mapper.Map<List<CellDefinitionDTO>>(allRooms.SelectMany(r => r.Cells).ToList());
-            var spawnRules = mapper.Map<List<EntitySpawnRuleDefinitionDTO>>(allRooms.SelectMany(r => r.EntitySpawnRules).ToList());
+            var entitySpawnRules = mapper.Map<List<EntitySpawnRuleDefinitionDTO>>(allRooms.SelectMany(r => r.EntitySpawnRules).ToList());
             var rooms = mapper.Map<List<RoomDefinitionDTO>>(allRooms);
             var roomConnections = mapper.Map<List<RoomConnectionDefinitionDTO>>(allConnections);
             var locales = mapper.Map<List<LocaleDTO>>(cacheProvider.Locale.GetAll());
@@ -49,8 +51,10 @@ namespace Application.Services.DesignService
                 Effects = effects,
                 Items = items,
                 Entities = entities,
+                Interactables = interactables,
+                Portals = portals,
                 Cells = cells,
-                EntitySpawnRules = spawnRules,
+                EntitySpawnRules = entitySpawnRules,
                 Rooms = rooms,
                 RoomConnections = roomConnections,
                 Locales = locales

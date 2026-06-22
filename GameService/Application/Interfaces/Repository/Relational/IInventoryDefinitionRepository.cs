@@ -5,6 +5,10 @@ namespace Application.Interfaces.Repository.Relational
 {
     public interface IInventoryDefinitionRepository : ISQLGenericRepository<InventoryDefinition>, IRelationalRepository
     {
-
+        Task SaveDefaultItemsAsync(
+            IEnumerable<InventoryEntry> defaultItems);
+        Task ReplaceDefaultItemsAsync(
+            Guid inventoryDefinitionId,
+            IEnumerable<InventoryEntry> newItems);
     }
 }

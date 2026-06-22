@@ -73,7 +73,7 @@ namespace Domain.Definition.WorldDomain
         public int MinCount { get; private set; }
         public int MaxCount { get; private set; }
         public string RoomDefinitionID { get; private set; } = string.Empty;
-        public string EntityDefinitionID { get; private set; } = string.Empty;
+        public string? EntityDefinitionID { get; private set; } = string.Empty;
 
         public RoomDefinition RoomDefinition { get; private set; }
         public EntityDefinition EntityDefinition { get; private set; }
@@ -91,7 +91,7 @@ namespace Domain.Definition.WorldDomain
             int minCount,
             int maxCount,
             string roomDefinitionId,
-            string entityDefinitionId)
+            string? entityDefinitionId)
         {
             ID = id;
             Type = type;

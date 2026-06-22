@@ -1,9 +1,8 @@
-﻿using Application.Features.Abstraction;
-using Contract.DTO.Identity;
+﻿using Contract.DTO.Identity;
 
 namespace Application.Features.Identity.Commands
 {
-    public class RefreshTokenCommand : ICommand<RefreshTokenDTO>
+    public class RefreshTokenCommand
     {
         #region Attributes
         #endregion

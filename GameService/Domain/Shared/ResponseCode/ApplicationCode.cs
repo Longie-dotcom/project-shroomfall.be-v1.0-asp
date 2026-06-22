@@ -52,6 +52,13 @@
             public static string TouchEntitySessionNotFound = Format("touch-entity-session-not-found");
             public static string TouchEntityPlayerInstanceNotFound = Format("touch-entity-player-instance-not-found");
             public static string TouchEntityTransformMissing = Format("touch-entity-transform-missing");
+            public static string EnterHubSessionNotFound = Format("enter-hub-session-not-found");
+            public static string EnterHubPlayerInstanceNotFound = Format("enter-hub-player-instance-not-found");
+            public static string EnterHubTransformMissing = Format("enter-hub-transform-missing");
+            public static string EnterHubRoomNotFound = Format("enter-hub-room-not-found");
+            public static string EnterHubPlayerSpawnRuleMissing = Format("enter-hub-player-spawn-rule-missing");
+            public static string EnterHubRoomDefinitionNotFound = Format("enter-hub-room-definition-not-found");
+            public static string EnterHubRoomNoSpawnCellFound = Format("enter-hub-room-no-spawn-cell-found");
         }
 
         public static class IdentityHandlerCode

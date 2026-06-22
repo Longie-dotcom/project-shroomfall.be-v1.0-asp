@@ -8,6 +8,7 @@ namespace Infrastructure.Repository.Base
     {
         #region Attributes
         protected readonly DbSet<T> dbSet;
+        protected readonly RelationalDB context;
         #endregion
 
         #region Properties
@@ -17,6 +18,7 @@ namespace Infrastructure.Repository.Base
             RelationalDB context)
         {
             dbSet = context.Set<T>();
+            this.context = context;
         }
 
         #region Methods

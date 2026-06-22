@@ -1,8 +1,6 @@
-﻿using Application.Features.Abstraction;
-
-namespace Application.Features.Identity.Commands
+﻿namespace Application.Features.Identity.Commands
 {
-    public class UpdatePreferredLocaleCommand : ICommand<string>
+    public class UpdatePreferredLocaleCommand
     {
         #region Attributes
         #endregion

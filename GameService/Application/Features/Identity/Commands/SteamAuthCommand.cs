@@ -1,9 +1,8 @@
-﻿using Application.Features.Abstraction;
-using Contract.DTO.Identity;
+﻿using Contract.DTO.Identity;
 
 namespace Application.Features.Identity.Commands
 {
-    public class SteamAuthCommand : ICommand<SteamAuthDTO>
+    public class SteamAuthCommand
     {
         #region Attributes
         #endregion

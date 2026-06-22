@@ -41,38 +41,59 @@ namespace Application.Services.WorldService
         {
             var entity = RequireEntity(entityInstanceId);
 
-            // Reuse existing connection
+            // Reuse existing dynamic runtime connections if already active
             var existing = GetExistingConnection(entityInstanceId);
             if (existing != null)
             {
                 return (existing, null, null, false);
             }
 
-            var (room, connectionDefinition) = ResolveConnectionDefinition(entity);
+            // Resolve the predesigned structural rule blueprint
+            var (sourceRoomInstance, connectionDefinition) = ResolveConnectionDefinition(entity);
 
-            RoomSnapshot snapshot = CreateDestinationRoom(connectionDefinition);
+            // Spawns the flat layout instance block
+            RoomSnapshot destinationSnapshot = CreateDestinationRoom(connectionDefinition);
 
-            var destinationEntity = ResolveDestinationEntity(snapshot, connectionDefinition.DestinationEntityID);
+            // Locate the anchor doorway entity matching the target layout
+            var destinationEntityInstance = ResolveDestinationEntity(destinationSnapshot, connectionDefinition.DestinationEntityID);
 
-            // Create/Bind Connections
-            var connectionForward = CreateConnection(room.ID, entity.ID, snapshot.Room.ID, destinationEntity.ID, snapshot.Room.DefinitionID);
+            // Create forward tracking with accurate signature parameters
+            var connectionForward = CreateConnection(
+                definitionId: connectionDefinition.ID,
+                sourceRoomSpatialId: sourceRoomInstance.ID,
+                sourceEntityInstanceId: entity.ID,
+                destinationRoomSpatialId: destinationSnapshot.Room.ID,
+                destinationEntityInstanceId: destinationEntityInstance.ID
+            );
+
             RoomConnectionInstance? connectionReverse = null;
 
-            var reverseDefinition = cacheProvider.RoomConnection.GetByDestination(snapshot.Room.DefinitionID, destinationEntity.DefinitionID);
+            // Query the return blueprint rule treating the new room as the SOURCE
+            var reverseDefinition = cacheProvider.RoomConnection.GetBySource(
+                destinationSnapshot.Room.DefinitionID,
+                destinationEntityInstance.DefinitionID
+            );
+
             if (reverseDefinition != null)
             {
-                connectionReverse = CreateConnection(snapshot.Room.ID, destinationEntity.ID, room.ID, entity.ID, room.DefinitionID);
-                connectionForward.BindDestination(snapshot.Room.ID, destinationEntity.ID);
+                // Create the reciprocal reverse shortcut connection
+                connectionReverse = CreateConnection(
+                    definitionId: reverseDefinition.ID,
+                    sourceRoomSpatialId: destinationSnapshot.Room.ID,
+                    sourceEntityInstanceId: destinationEntityInstance.ID,
+                    destinationRoomSpatialId: sourceRoomInstance.ID,
+                    destinationEntityInstanceId: entity.ID
+                );
 
+                // Tie both ends of the gateway together permanently
                 connectionForward.SetReverseConnection(connectionReverse.ID);
                 connectionReverse.SetReverseConnection(connectionForward.ID);
             }
 
-            return (connectionForward, connectionReverse, snapshot, true);
+            return (connectionForward, connectionReverse, destinationSnapshot, true);
         }
 
-        private EntityInstance RequireEntity(
-            string entityInstanceId)
+        private EntityInstance RequireEntity(string entityInstanceId)
         {
             var entity = worldContext.GetEntity(entityInstanceId);
             if (entity == null)
@@ -83,8 +104,7 @@ namespace Application.Services.WorldService
             return entity;
         }
 
-        private RoomConnectionInstance? GetExistingConnection(
-            string entityInstanceId)
+        private RoomConnectionInstance? GetExistingConnection(string entityInstanceId)
         {
             var connection = worldContext.GetConnectionByEntityInstanceID(entityInstanceId);
             if (connection == null || !connection.IsInstantiated())
@@ -93,8 +113,7 @@ namespace Application.Services.WorldService
             return connection;
         }
 
-        private (RoomSpatial Room, RoomConnection Definition) ResolveConnectionDefinition(
-            EntityInstance entity)
+        private (RoomSpatial Room, RoomConnection Definition) ResolveConnectionDefinition(EntityInstance entity)
         {
             var transform = entity.GetComponent<TransformInstance>();
             if (transform == null)
@@ -117,8 +136,7 @@ namespace Application.Services.WorldService
             return (room, definition);
         }
 
-        private RoomSnapshot CreateDestinationRoom(
-            RoomConnection connectionDefinition)
+        private RoomSnapshot CreateDestinationRoom(RoomConnection connectionDefinition)
         {
             var roomSpatialId = Guid.NewGuid().ToString();
 
@@ -129,9 +147,7 @@ namespace Application.Services.WorldService
                 null).room;
         }
 
-        private EntityInstance ResolveDestinationEntity(
-            RoomSnapshot snapshot,
-            string destinationEntityDefinitionId)
+        private EntityInstance ResolveDestinationEntity(RoomSnapshot snapshot, string destinationEntityDefinitionId)
         {
             var entity = snapshot.Entities
                 .FirstOrDefault(x => x.DefinitionID == destinationEntityDefinitionId);
@@ -145,14 +161,14 @@ namespace Application.Services.WorldService
         }
 
         private RoomConnectionInstance CreateConnection(
-            string roomDefinitionId,
+            string definitionId,
             string sourceRoomSpatialId,
             string sourceEntityInstanceId,
             string destinationRoomSpatialId,
             string destinationEntityInstanceId)
         {
             return roomConnectionInstanceFactory.Create(
-                definitionId: roomDefinitionId,
+                definitionId: definitionId,
                 sourceRoomSpatialId: sourceRoomSpatialId,
                 sourceEntityInstanceId: sourceEntityInstanceId,
                 destinationRoomSpatialId: destinationRoomSpatialId,

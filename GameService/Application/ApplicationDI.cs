@@ -64,6 +64,7 @@ namespace Application
             services.AddScoped<IHandler<UserRefreshCommand, DefinitionSnapshotDTO?>, UserRefreshHandler>();
 
             // Game
+            services.AddScoped<IHandler<EnterHubCommand, RoomSnapshotDTO>, EnterHubHandler>();
             services.AddScoped<IHandler<MoveCommand>, MoveHandler>();
             services.AddScoped<IHandler<TouchEntityCommand, RoomSnapshotDTO>, TouchEntityHandler>();
             services.AddScoped<IHandler<UnequipItemCommand>, UnequipItemHandler>();
@@ -130,6 +131,7 @@ namespace Application
             services.AddSingleton<EntitySpawnService>();
             services.AddSingleton<InitializationService>();
             services.AddSingleton<ResidencyService>();
+            services.AddSingleton<RoomMigrationService>();
             services.AddSingleton<TopologyService>();
 
             // ─────────────────────────────

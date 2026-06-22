@@ -8,6 +8,7 @@ using Domain.Abstraction;
 using Domain.Common;
 using Domain.Definition;
 using Domain.Definition.EntityDomain;
+using Domain.Definition.EntityDomain.Component;
 using Domain.Definition.IdentityDomain;
 using Domain.Definition.LocalizationDomain;
 using Domain.Definition.MetaDomain;
@@ -51,6 +52,13 @@ namespace Application.Mapper
             // Entity Domain
             CreateMap<EntityPresentationDefinition, EntityPresentationDefinitionDTO>();
             CreateMap<EntityDefinition, EntityDefinitionDTO>();
+
+            CreateMap<ComponentDefinition, ComponentDefinitionDTO>()
+                .Include<PortalDefinition, PortalDefinitionDTO>()
+                .Include<InteractableDefinition, InteractableDefinitionDTO>();
+
+            CreateMap<PortalDefinition, PortalDefinitionDTO>();
+            CreateMap<InteractableDefinition, InteractableDefinitionDTO>();
 
             // Meta Domain
             CreateMap<AttributeDefinition, AttributeDefinitionDTO>();
