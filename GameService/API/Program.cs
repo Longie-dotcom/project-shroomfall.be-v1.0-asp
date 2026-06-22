@@ -126,6 +126,26 @@ namespace API
             }
 
             // ─────────────────────────────
+            // SEEDING DATA
+            // ─────────────────────────────
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<RelationalDB>();
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+                try
+                {
+                    await DataSeeder.SeedAsync(db);
+
+                    logger.LogInformation("Database seeding completed successfully.");
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Database seeding failed.");
+                }
+            }
+
+            // ─────────────────────────────
             // LOAD CACHE
             // ─────────────────────────────
             using (var scope = app.Services.CreateScope())

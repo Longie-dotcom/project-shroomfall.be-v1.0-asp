@@ -33,6 +33,7 @@ namespace Infrastructure.Persistence
         public DbSet<User> Users { get; set; }
 
         public DbSet<Locale> Locales { get; set; }
+        public DbSet<LocalizationEntry> LocalizationEntries { get; set; }
 
         public DbSet<EffectDefinition> EffectDefinitions { get; set; }
         public DbSet<ItemDefinition> ItemDefinitions { get; set; }
