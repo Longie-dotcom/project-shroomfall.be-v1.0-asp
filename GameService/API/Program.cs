@@ -27,6 +27,20 @@ namespace API
             builder.Services.AddInfrastructure();
 
             // ─────────────────────────────
+            // CORS
+            // ─────────────────────────────
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("StudioCorsPolicy", policy =>
+                {
+                    policy.SetIsOriginAllowed(origin => true)
+                          .AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials();
+                });
+            });
+
+            // ─────────────────────────────
             // SWAGGER
             // ─────────────────────────────
             builder.Services.AddEndpointsApiExplorer();
