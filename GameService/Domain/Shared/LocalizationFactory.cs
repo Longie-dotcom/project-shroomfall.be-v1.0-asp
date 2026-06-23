@@ -31,15 +31,15 @@ namespace Domain.Shared
         }
 
         /// <summary>
-        /// Generates localized keys for Characteristic templates (e.g., characteristic.warrior_pool.name)
+        /// Generates localized keys for system Effect (e.g., parameter.burn.name)
         /// </summary>
-        public static LocalizedText ForCharacteristic(
-            string characteristicId)
+        public static LocalizedText ForEffect(
+            string effectId)
         {
             return new LocalizedText
             {
-                NameKey = $"characteristic.{characteristicId.ToLowerShared()}.name",
-                DescriptionKey = $"characteristic.{characteristicId.ToLowerShared()}.description"
+                NameKey = $"effect.{effectId.ToLowerShared()}.name",
+                DescriptionKey = $"effect.{effectId.ToLowerShared()}.description"
             };
         }
 
@@ -53,19 +53,6 @@ namespace Domain.Shared
             {
                 NameKey = $"entity.{entityId.ToLowerShared()}.name",
                 DescriptionKey = $"entity.{entityId.ToLowerShared()}.description"
-            };
-        }
-
-        /// <summary>
-        /// Generates localized keys for system Effect (e.g., parameter.burn.name)
-        /// </summary>
-        public static LocalizedText ForEffect(
-            string effectId)
-        {
-            return new LocalizedText
-            {
-                NameKey = $"effect.{effectId.ToLowerShared()}.name",
-                DescriptionKey = $"effect.{effectId.ToLowerShared()}.description"
             };
         }
 

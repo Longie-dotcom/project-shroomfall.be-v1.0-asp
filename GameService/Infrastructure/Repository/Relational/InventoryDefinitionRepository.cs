@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repository.Relational
 {
-    public class InventoryDefinitionRepository : SQLGenericRepository<InventoryDefinition>, IInventoryDefinitionRepository
+    public class InventoryDefinitionRepository : SQLDefinitionRepository<InventoryDefinition>, IInventoryDefinitionRepository
     {
         #region Attributes
         #endregion

@@ -32,7 +32,8 @@ namespace Application.Features.Design.Handlers
         }
 
         #region Methods
-        public async Task Handle(UpdateDefinitionCommand command)
+        public async Task Handle(
+            UpdateDefinitionCommand command)
         {
             var dto = command.DTO;
 

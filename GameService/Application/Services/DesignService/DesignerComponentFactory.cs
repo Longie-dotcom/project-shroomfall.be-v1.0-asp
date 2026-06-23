@@ -4,7 +4,6 @@ using Contract.DTO.Domain.Definition;
 using Contract.Enum.EntityDomain;
 using Contract.Enum.MetaDomain.Effect;
 using Contract.Enum.MetaDomain.Item;
-using Domain.Abstraction;
 using Domain.Common;
 using Domain.Definition.EntityDomain.Component;
 using Domain.Shared.DomainException;
@@ -28,50 +27,50 @@ namespace Application.Services.DesignService
         }
 
         #region Methods
-        public async Task CreateAndSaveAsync(
+        public async Task UpsertAndSaveAsync(
             ComponentDefinitionDTO dto,
             string entityDefinitionId)
         {
             switch (dto)
             {
                 case AIDefinitionDTO ai:
-                    await CreateAIAsync(ai, entityDefinitionId);
+                    await UpsertAIAsync(ai, entityDefinitionId);
                     break;
                 case AppearanceDefinitionDTO appearance:
-                    await CreateAppearanceAsync(appearance, entityDefinitionId);
+                    await UpsertAppearanceAsync(appearance, entityDefinitionId);
                     break;
                 case CollisionDefinitionDTO collision:
-                    await CreateCollisionAsync(collision, entityDefinitionId);
+                    await UpsertCollisionAsync(collision, entityDefinitionId);
                     break;
                 case CharacteristicDefinitionDTO characteristic:
-                    await CreateCharacteristicAsync(characteristic, entityDefinitionId);
-                    break;
-                case InventoryDefinitionDTO inventory:
-                    await CreateInventoryAsync(inventory, entityDefinitionId);
-                    break;
-                case LifetimeDefinitionDTO lifetime:
-                    await CreateLifeTimeAsync(lifetime, entityDefinitionId);
-                    break;
-                case ProjectileDefinitionDTO projectile:
-                    await CreateProjectileAsync(projectile, entityDefinitionId);
-                    break;
-                case TriggeredEffectDefinitionDTO triggeredEffect:
-                    await CreateTriggeredEffectAsync(triggeredEffect, entityDefinitionId);
-                    break;
-                case PortalDefinitionDTO portal:
-                    await CreatePortalAsync(portal, entityDefinitionId);
+                    await UpsertCharacteristicAsync(characteristic, entityDefinitionId);
                     break;
                 case InteractableDefinitionDTO interactable:
-                    await CreateInteractableAsync(interactable, entityDefinitionId);
+                    await UpsertInteractableAsync(interactable, entityDefinitionId);
+                    break;
+                case InventoryDefinitionDTO inventory:
+                    await UpsertInventoryAsync(inventory, entityDefinitionId);
+                    break;
+                case LifetimeDefinitionDTO lifetime:
+                    await UpsertLifeTimeAsync(lifetime, entityDefinitionId);
+                    break;
+                case PortalDefinitionDTO portal:
+                    await UpsertPortalAsync(portal, entityDefinitionId);
+                    break;
+                case ProjectileDefinitionDTO projectile:
+                    await UpsertProjectileAsync(projectile, entityDefinitionId);
+                    break;
+                case TriggeredEffectDefinitionDTO triggeredEffect:
+                    await UpsertTriggeredEffectAsync(triggeredEffect, entityDefinitionId);
                     break;
                 default:
                     throw new InternalException(
-                        ApplicationCode.DefinitionComponentFactoryCode.ComponentDefinitionNotSupported,
+                        ApplicationCode.DesignHandlerCode.ComponentSignatureMappingFailed,
                         $"Component DTO type '{dto.GetType().Name}' is not supported by the designer factory.");
             }
         }
 
-        private async Task CreateAIAsync(
+        private async Task UpsertAIAsync(
             AIDefinitionDTO dto, string entityDefinitionId)
         {
             var component = new AIDefinition(
@@ -83,10 +82,10 @@ namespace Application.Services.DesignService
                 dto.IsAIControlled
             );
 
-            await relationalUoW.GetRepository<IAIDefinitionRepository>().AddAsync(component);
+            await relationalUoW.GetRepository<IAIDefinitionRepository>().UpsertAsync(component);
         }
 
-        private async Task CreateAppearanceAsync(
+        private async Task UpsertAppearanceAsync(
             AppearanceDefinitionDTO dto, string entityDefinitionId)
         {
             var skinColor = new HSV(dto.SkinColor.H, dto.SkinColor.S, dto.SkinColor.V);
@@ -106,10 +105,10 @@ namespace Application.Services.DesignService
                 pantColor
             );
 
-            await relationalUoW.GetRepository<IAppearanceDefinitionRepository>().AddAsync(component);
+            await relationalUoW.GetRepository<IAppearanceDefinitionRepository>().UpsertAsync(component);
         }
 
-        private async Task CreateCollisionAsync(
+        private async Task UpsertCollisionAsync(
             CollisionDefinitionDTO dto, string entityDefinitionId)
         {
             var shapeType = Enum.Parse<CollisionShapeType>(dto.ShapeType, true);
@@ -130,12 +129,21 @@ namespace Application.Services.DesignService
                 dto.OffsetY
             );
 
-            await relationalUoW.GetRepository<ICollisionDefinitionRepository>().AddAsync(component);
+            await relationalUoW.GetRepository<ICollisionDefinitionRepository>().UpsertAsync(component);
         }
 
-        private async Task CreateCharacteristicAsync(
+        private async Task UpsertCharacteristicAsync(
             CharacteristicDefinitionDTO dto, string entityDefinitionId)
         {
+            var repo = relationalUoW.GetRepository<ICharacteristicDefinitionRepository>();
+            var existing = await repo.GetByEntityIdAsync(entityDefinitionId);
+
+            if (existing != null)
+            {
+                // Core Rule: Deep nested components must strip child nodes explicitly before the main record swaps
+                await repo.ReplaceAttributeValuesAsync(existing.ID, new List<AttributeValue>());
+            }
+
             var characteristicId = Guid.NewGuid();
             var characteristic = new CharacteristicDefinition(characteristicId, entityDefinitionId);
 
@@ -172,15 +180,36 @@ namespace Application.Services.DesignService
                 allAttributeValues.Add(attributeValue);
             }
 
-            var repo = relationalUoW.GetRepository<ICharacteristicDefinitionRepository>();
-            await repo.AddAsync(characteristic);
+            // Using generic upsert method for root, then appending the custom mapped sub-collections
+            await repo.UpsertAsync(characteristic);
             await repo.SaveAttributeValuesAsync(allAttributeValues);
             await repo.SaveAttributeGrowthValuesAsync(allGrowthValues);
         }
 
-        private async Task CreateInventoryAsync(
+        private async Task UpsertInteractableAsync(
+            InteractableDefinitionDTO dto, string entityDefinitionId)
+        {
+            var component = new InteractableDefinition(
+                Guid.NewGuid(),
+                entityDefinitionId,
+                dto.Type
+            );
+
+            await relationalUoW.GetRepository<IInteractableDefinitionRepository>().UpsertAsync(component);
+        }
+
+        private async Task UpsertInventoryAsync(
             InventoryDefinitionDTO dto, string entityDefinitionId)
         {
+            var repo = relationalUoW.GetRepository<IInventoryDefinitionRepository>();
+            var existing = await repo.GetByEntityIdAsync(entityDefinitionId);
+
+            if (existing != null)
+            {
+                // Purge sub-collection properties ahead of root swap execution
+                await repo.ReplaceDefaultItemsAsync(existing.ID, new List<InventoryEntry>());
+            }
+
             var inventoryId = Guid.NewGuid();
             var inventory = new InventoryDefinition(inventoryId, entityDefinitionId, dto.SlotCount);
             var defaultItems = new List<InventoryEntry>();
@@ -201,12 +230,11 @@ namespace Application.Services.DesignService
                 defaultItems.Add(entry);
             }
 
-            var repo = relationalUoW.GetRepository<IInventoryDefinitionRepository>();
-            await repo.AddAsync(inventory);
+            await repo.UpsertAsync(inventory);
             await repo.SaveDefaultItemsAsync(defaultItems);
         }
 
-        private async Task CreateLifeTimeAsync(
+        private async Task UpsertLifeTimeAsync(
             LifetimeDefinitionDTO dto, string entityDefinitionId)
         {
             var component = new LifetimeDefinition(
@@ -215,34 +243,10 @@ namespace Application.Services.DesignService
                 dto.Lifetime
             );
 
-            await relationalUoW.GetRepository<ILifetimeDefinitionRepository>().AddAsync(component);
+            await relationalUoW.GetRepository<ILifetimeDefinitionRepository>().UpsertAsync(component);
         }
 
-        private async Task CreateProjectileAsync(
-            ProjectileDefinitionDTO dto, string entityDefinitionId)
-        {
-            var component = new ProjectileDefinition(
-                Guid.NewGuid(),
-                entityDefinitionId,
-                dto.Velocity
-            );
-
-            await relationalUoW.GetRepository<IProjectileDefinitionRepository>().AddAsync(component);
-        }
-
-        private async Task CreateTriggeredEffectAsync(
-            TriggeredEffectDefinitionDTO dto, string entityDefinitionId)
-        {
-            var component = new TriggeredEffectDefinition(
-                Guid.NewGuid(),
-                entityDefinitionId,
-                dto.EffectDefinitionIDs
-            );
-
-            await relationalUoW.GetRepository<ITriggeredEffectDefinitionRepository>().AddAsync(component);
-        }
-
-        private async Task CreatePortalAsync(
+        private async Task UpsertPortalAsync(
             PortalDefinitionDTO dto, string entityDefinitionId)
         {
             var component = new PortalDefinition(
@@ -252,19 +256,31 @@ namespace Application.Services.DesignService
                 dto.LocalTriggerOffsetY
             );
 
-            await relationalUoW.GetRepository<IPortalDefinitionRepository>().AddAsync(component);
+            await relationalUoW.GetRepository<IPortalDefinitionRepository>().UpsertAsync(component);
         }
 
-        private async Task CreateInteractableAsync(
-            InteractableDefinitionDTO dto, string entityDefinitionId)
+        private async Task UpsertProjectileAsync(
+            ProjectileDefinitionDTO dto, string entityDefinitionId)
         {
-            var component = new InteractableDefinition(
+            var component = new ProjectileDefinition(
                 Guid.NewGuid(),
                 entityDefinitionId,
-                dto.Type
+                dto.Velocity
             );
 
-            await relationalUoW.GetRepository<IInteractableDefinitionRepository>().AddAsync(component);
+            await relationalUoW.GetRepository<IProjectileDefinitionRepository>().UpsertAsync(component);
+        }
+
+        private async Task UpsertTriggeredEffectAsync(
+            TriggeredEffectDefinitionDTO dto, string entityDefinitionId)
+        {
+            var component = new TriggeredEffectDefinition(
+                Guid.NewGuid(),
+                entityDefinitionId,
+                dto.EffectDefinitionIDs
+            );
+
+            await relationalUoW.GetRepository<ITriggeredEffectDefinitionRepository>().UpsertAsync(component);
         }
         #endregion
     }

@@ -61,6 +61,7 @@ namespace Application
             // Design
             services.AddScoped<IHandler<FetchLocaleCommand, ExistLocalesDTO>, FetchLocaleHandler>();
             services.AddScoped<IHandler<UpdateDefinitionCommand>, UpdateDefinitionHandler>();
+            services.AddScoped<IHandler<UpsertEntityDefinitionCommand>, UpsertEntityDefinitionHandler>();
             services.AddScoped<IHandler<UserRefreshCommand, DefinitionSnapshotDTO?>, UserRefreshHandler>();
 
             // Game
@@ -103,6 +104,8 @@ namespace Application
 
             // Design service
             services.AddSingleton<DefinitionService>();
+            services.AddSingleton<DesignerComponentFactory>();
+            services.AddSingleton<LocalizationEntryFactory>();
 
             // Entity service
             services.AddSingleton<AIService>();

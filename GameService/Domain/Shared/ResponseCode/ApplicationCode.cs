@@ -33,6 +33,14 @@
             public static string LoadSessionRoomNotFound = Format("load-session-room-not-found");
         }
 
+        public static class DesignHandlerCode
+        {
+            private static string Format(string problem) => Code("design-handler", problem);
+
+            public static string MandatorySchemaElementsMissing = Format("mandatory-schema-elements-missing");
+            public static string ComponentSignatureMappingFailed = Format("component-signature-mapping-failed");
+        }
+
         public static class GameHandlerCode
         {
             private static string Format(string problem) => Code("game-handler", problem);

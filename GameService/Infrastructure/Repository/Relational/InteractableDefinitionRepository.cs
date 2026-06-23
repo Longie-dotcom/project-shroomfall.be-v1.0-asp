@@ -5,7 +5,7 @@ using Infrastructure.Repository.Base;
 
 namespace Infrastructure.Repository.Relational
 {
-    public class InteractableDefinitionRepository : SQLGenericRepository<InteractableDefinition>, IInteractableDefinitionRepository
+    public class InteractableDefinitionRepository : SQLDefinitionRepository<InteractableDefinition>, IInteractableDefinitionRepository
     {
         #region Attributes
         #endregion

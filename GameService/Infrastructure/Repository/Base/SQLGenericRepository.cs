@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces.Repository.Base;
+using Domain.Abstraction;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -52,6 +53,38 @@ namespace Infrastructure.Repository.Base
             if (entity == null) return;
 
             dbSet.Remove(entity);
+        }
+        #endregion
+    }
+
+    public class SQLDefinitionRepository<T> : SQLGenericRepository<T>, ISQLDefinitionRepository<T>
+        where T : ComponentDefinition
+    {
+        #region Attributes
+        #endregion
+
+        #region Properties
+        #endregion
+
+        public SQLDefinitionRepository(RelationalDB context) : base(context) { }
+
+        #region Methods
+        public virtual async Task<T?> GetByEntityIdAsync(
+            string entityDefinitionId)
+        {
+            return await dbSet.FirstOrDefaultAsync(x => x.EntityDefinitionID == entityDefinitionId);
+        }
+
+        public virtual async Task UpsertAsync(T entity)
+        {
+            var existing = await dbSet.FirstOrDefaultAsync(x => x.EntityDefinitionID == entity.EntityDefinitionID);
+
+            if (existing != null)
+            {
+                dbSet.Remove(existing);
+            }
+
+            await dbSet.AddAsync(entity);
         }
         #endregion
     }

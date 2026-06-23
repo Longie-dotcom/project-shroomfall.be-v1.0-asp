@@ -75,13 +75,13 @@ namespace Domain.Definition.LocalizationDomain
             Guid id,
             string key,
             string localeCode,
-            string value,
+            string? value,
             string? description = null)
         {
             ID = id;
             Key = key;
             LocaleCode = localeCode;
-            Value = value;
+            Value = value ?? string.Empty;
             Description = description;
 
             Version = 1;

@@ -3,7 +3,7 @@ using Domain.Definition.EntityDomain.Component;
 
 namespace Application.Interfaces.Repository.Relational
 {
-    public interface ILifetimeDefinitionRepository : ISQLGenericRepository<LifetimeDefinition>, IRelationalRepository
+    public interface ILifetimeDefinitionRepository : ISQLDefinitionRepository<LifetimeDefinition>, IRelationalRepository
     {
 
     }

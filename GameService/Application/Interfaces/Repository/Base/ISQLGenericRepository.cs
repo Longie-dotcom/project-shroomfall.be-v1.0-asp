@@ -1,4 +1,6 @@
-﻿namespace Application.Interfaces.Repository.Base
+﻿using Domain.Abstraction;
+
+namespace Application.Interfaces.Repository.Base
 {
     public interface ISQLGenericRepository<T> 
         where T : class
@@ -12,5 +14,12 @@
             T entity);
         Task DeleteAsync<TKey>(
             TKey id);
+    }
+
+    public interface ISQLDefinitionRepository<T> : ISQLGenericRepository<T>
+        where T : ComponentDefinition
+    {
+        Task<T?> GetByEntityIdAsync(string entityDefinitionId);
+        Task UpsertAsync(T entity);
     }
 }

@@ -5,7 +5,7 @@ using Infrastructure.Repository.Base;
 
 namespace Infrastructure.Repository.Relational
 {
-    public class LifetimeDefinitionRepository : SQLGenericRepository<LifetimeDefinition>, ILifetimeDefinitionRepository
+    public class LifetimeDefinitionRepository : SQLDefinitionRepository<LifetimeDefinition>, ILifetimeDefinitionRepository
     {
         #region Attributes
         #endregion

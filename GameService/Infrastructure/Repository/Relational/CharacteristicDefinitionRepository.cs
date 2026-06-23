@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repository.Relational
 {
-    public class CharacteristicDefinitionRepository : SQLGenericRepository<CharacteristicDefinition>, ICharacteristicDefinitionRepository
+    public class CharacteristicDefinitionRepository : SQLDefinitionRepository<CharacteristicDefinition>, ICharacteristicDefinitionRepository
     {
         #region Attributes
         #endregion

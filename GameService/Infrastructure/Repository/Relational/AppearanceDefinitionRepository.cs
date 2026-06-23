@@ -5,7 +5,7 @@ using Infrastructure.Repository.Base;
 
 namespace Infrastructure.Repository.Relational
 {
-    public class AppearanceDefinitionRepository : SQLGenericRepository<AppearanceDefinition>, IAppearanceDefinitionRepository
+    public class AppearanceDefinitionRepository : SQLDefinitionRepository<AppearanceDefinition>, IAppearanceDefinitionRepository
     {
         #region Attributes
         #endregion

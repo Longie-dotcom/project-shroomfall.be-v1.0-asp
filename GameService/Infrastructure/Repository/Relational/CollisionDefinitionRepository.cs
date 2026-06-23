@@ -5,7 +5,7 @@ using Infrastructure.Repository.Base;
 
 namespace Infrastructure.Repository.Relational
 {
-    public class CollisionDefinitionRepository : SQLGenericRepository<CollisionDefinition>, ICollisionDefinitionRepository
+    public class CollisionDefinitionRepository : SQLDefinitionRepository<CollisionDefinition>, ICollisionDefinitionRepository
     {
         #region Attributes
         #endregion

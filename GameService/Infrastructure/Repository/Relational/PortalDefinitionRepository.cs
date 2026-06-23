@@ -5,7 +5,7 @@ using Infrastructure.Repository.Base;
 
 namespace Infrastructure.Repository.Relational
 {
-    public class PortalDefinitionRepository : SQLGenericRepository<PortalDefinition>, IPortalDefinitionRepository
+    public class PortalDefinitionRepository : SQLDefinitionRepository<PortalDefinition>, IPortalDefinitionRepository
     {
         #region Attributes
         #endregion

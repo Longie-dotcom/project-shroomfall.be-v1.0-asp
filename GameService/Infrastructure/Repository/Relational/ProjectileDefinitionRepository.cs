@@ -5,7 +5,7 @@ using Infrastructure.Repository.Base;
 
 namespace Infrastructure.Repository.Relational
 {
-    public class ProjectileDefinitionRepository : SQLGenericRepository<ProjectileDefinition>, IProjectileDefinitionRepository
+    public class ProjectileDefinitionRepository : SQLDefinitionRepository<ProjectileDefinition>, IProjectileDefinitionRepository
     {
         #region Attributes
         #endregion

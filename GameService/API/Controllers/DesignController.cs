@@ -37,6 +37,34 @@ namespace API.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
+        [HttpPost("definition")]
+        public async Task<IActionResult> UpdateDefinition(
+            [FromBody] UpdateDefinitionDTO dto)
+        {
+            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
+
+            await dispatcher.Send<UpdateDefinitionCommand>(
+                new UpdateDefinitionCommand(userId, dto)
+            );
+
+            return Ok();
+        }
+
+        [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
+        [HttpPost("entity-definition")]
+        public async Task<IActionResult> UpsertEntityDefinition(
+            [FromBody] UpsertEntityDefinitionDTO dto)
+        {
+            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
+
+            await dispatcher.Send<UpsertEntityDefinitionCommand>(
+                new UpsertEntityDefinitionCommand(userId, dto)
+            );
+
+            return Ok();
+        }
+
         [Authorize]
         [HttpGet("{version}")]
         public async Task<ActionResult<DefinitionSnapshotDTO?>> UserRefresh(
@@ -49,20 +77,6 @@ namespace API.Controllers
             );
 
             return Ok(result);
-        }
-
-        [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
-        [HttpPost("update")]
-        public async Task<IActionResult> UpdateDefinition(
-            [FromBody] UpdateDefinitionDTO dto)
-        {
-            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
-
-            await dispatcher.Send<UpdateDefinitionCommand>(
-                new UpdateDefinitionCommand(userId, dto)
-            );
-
-            return Ok();
         }
         #endregion
     }

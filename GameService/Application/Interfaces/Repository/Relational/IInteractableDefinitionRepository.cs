@@ -3,7 +3,7 @@ using Domain.Definition.EntityDomain.Component;
 
 namespace Application.Interfaces.Repository.Relational
 {
-    public interface IInteractableDefinitionRepository : ISQLGenericRepository<InteractableDefinition>, IRelationalRepository
+    public interface IInteractableDefinitionRepository : ISQLDefinitionRepository<InteractableDefinition>, IRelationalRepository
     {
 
     }

@@ -5,7 +5,7 @@ using Infrastructure.Repository.Base;
 
 namespace Infrastructure.Repository.Relational
 {
-    public class TriggeredEffectDefinitionRepository : SQLGenericRepository<TriggeredEffectDefinition>, ITriggeredEffectDefinitionRepository
+    public class TriggeredEffectDefinitionRepository : SQLDefinitionRepository<TriggeredEffectDefinition>, ITriggeredEffectDefinitionRepository
     {
         #region Attributes
         #endregion

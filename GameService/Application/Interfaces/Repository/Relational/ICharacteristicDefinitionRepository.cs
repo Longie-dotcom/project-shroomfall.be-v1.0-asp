@@ -3,7 +3,7 @@ using Domain.Definition.EntityDomain.Component;
 
 namespace Application.Interfaces.Repository.Relational
 {
-    public interface ICharacteristicDefinitionRepository : ISQLGenericRepository<CharacteristicDefinition>, IRelationalRepository
+    public interface ICharacteristicDefinitionRepository : ISQLDefinitionRepository<CharacteristicDefinition>, IRelationalRepository
     {
         Task SaveAttributeValuesAsync(
             IEnumerable<AttributeValue> attributeValues);

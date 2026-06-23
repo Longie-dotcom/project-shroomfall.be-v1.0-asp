@@ -3,7 +3,7 @@ using Domain.Definition.EntityDomain.Component;
 
 namespace Application.Interfaces.Repository.Relational
 {
-    public interface IInventoryDefinitionRepository : ISQLGenericRepository<InventoryDefinition>, IRelationalRepository
+    public interface IInventoryDefinitionRepository : ISQLDefinitionRepository<InventoryDefinition>, IRelationalRepository
     {
         Task SaveDefaultItemsAsync(
             IEnumerable<InventoryEntry> defaultItems);

@@ -5,7 +5,7 @@ using Infrastructure.Repository.Base;
 
 namespace Infrastructure.Repository.Relational
 {
-    public class AIDefinitionRepository : SQLGenericRepository<AIDefinition>, IAIDefinitionRepository
+    public class AIDefinitionRepository : SQLDefinitionRepository<AIDefinition>, IAIDefinitionRepository
     {
         #region Attributes
         #endregion

@@ -3,7 +3,7 @@ using Domain.Definition.EntityDomain.Component;
 
 namespace Application.Interfaces.Repository.Relational
 {
-    public interface ITriggeredEffectDefinitionRepository : ISQLGenericRepository<TriggeredEffectDefinition>, IRelationalRepository
+    public interface ITriggeredEffectDefinitionRepository : ISQLDefinitionRepository<TriggeredEffectDefinition>, IRelationalRepository
     {
 
     }

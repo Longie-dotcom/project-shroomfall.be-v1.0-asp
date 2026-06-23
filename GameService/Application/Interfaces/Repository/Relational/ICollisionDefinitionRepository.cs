@@ -3,7 +3,7 @@ using Domain.Definition.EntityDomain.Component;
 
 namespace Application.Interfaces.Repository.Relational
 {
-    public interface ICollisionDefinitionRepository : ISQLGenericRepository<CollisionDefinition>, IRelationalRepository
+    public interface ICollisionDefinitionRepository : ISQLDefinitionRepository<CollisionDefinition>, IRelationalRepository
     {
 
     }
