@@ -1,4 +1,6 @@
 ﻿using Contract;
+using Contract.Enum.IdentityDomain;
+using Domain.Definition.IdentityDomain;
 using Domain.Definition.LocalizationDomain;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +14,7 @@ namespace Infrastructure.Persistence
         {
             await SeedLocale(context);
             await SeedGlobalDefinitionVersion(context);
+            await SeedAdministrativeAccounts(context);
 
             await context.SaveChangesAsync();
         }
@@ -64,6 +67,45 @@ namespace Infrastructure.Persistence
 
             await context.Set<LocalizationEntry>()
                 .AddAsync(entry);
+        }
+
+        private static async Task SeedAdministrativeAccounts(
+            RelationalDB context)
+        {
+            const string EasyPassword = "password123";
+            var sharedPasswordHash = Password.Create(EasyPassword);
+
+            var administrativeSeeds = new List<User>
+            {
+                // Admin Account
+                new User(
+                    id: "usr_admin_01",
+                    name: "Admin Workspace",
+                    preferredLocale: Constraint.DEFAULT_LOCALE,
+                    role: Role.Admin,
+                    password: sharedPasswordHash,
+                    email: "admin@shroomfall.com"
+                ),
+
+                // Designer Account
+                new User(
+                    id: "usr_designer_01",
+                    name: "Designer Workspace",
+                    preferredLocale: Constraint.DEFAULT_LOCALE,
+                    role: Role.Designer,
+                    password: sharedPasswordHash,
+                    email: "designer@shroomfall.com"
+                )
+            };
+
+            foreach (var userSeed in administrativeSeeds)
+            {
+                var exists = await context.Set<User>().AnyAsync(x => x.ID == userSeed.ID || x.Email == userSeed.Email);
+                if (!exists)
+                {
+                    await context.Set<User>().AddAsync(userSeed);
+                }
+            }
         }
         #endregion
     }
