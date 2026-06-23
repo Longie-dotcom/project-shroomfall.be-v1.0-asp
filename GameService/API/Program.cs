@@ -199,6 +199,8 @@ namespace API
             app.UseSwagger();
             app.UseSwaggerUI();
 
+            app.UseCors("StudioCorsPolicy");
+
             app.UseAuthentication();
             app.UseAuthorization();
 
