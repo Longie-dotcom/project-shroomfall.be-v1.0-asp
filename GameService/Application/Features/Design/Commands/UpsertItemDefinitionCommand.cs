@@ -2,22 +2,22 @@
 
 namespace Application.Features.Design.Commands
 {
-    public class FetchEntityDefinitionCommand
+    public class UpsertItemDefinitionCommand
     {
         #region Attributes
         #endregion
 
         #region Properties
         public string UserID { get; }
-        public EntityDefinitionQueryDTO Queries { get; }
+        public UpsertItemDefinitionDTO DTO { get; }
         #endregion
 
-        public FetchEntityDefinitionCommand(
+        public UpsertItemDefinitionCommand(
             string userId,
-            EntityDefinitionQueryDTO queries)
+            UpsertItemDefinitionDTO dto)
         {
-            Queries = queries;
             UserID = userId;
+            DTO = dto;
         }
 
         #region Methods

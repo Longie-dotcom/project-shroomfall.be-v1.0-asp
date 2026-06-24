@@ -8,7 +8,7 @@ using Contract.DTO.Domain.Definition;
 
 namespace Application.Features.Design.Handlers
 {
-    public class FetchEntityDefinitionHandler : IHandler<FetchEntityDefinitionCommand, PagedResponseDTO<EntityDefinitionDTO>>
+    public class FetchEffectDefinitionHandler : IHandler<FetchEffectDefinitionCommand, PagedResponseDTO<EffectDefinitionDTO>>
     {
         #region Attributes
         private readonly IRelationalUoW relationalUoW;
@@ -18,7 +18,7 @@ namespace Application.Features.Design.Handlers
         #region Properties
         #endregion
 
-        public FetchEntityDefinitionHandler(
+        public FetchEffectDefinitionHandler(
             IRelationalUoW relationalUoW,
             IMapper mapper)
         {
@@ -27,8 +27,8 @@ namespace Application.Features.Design.Handlers
         }
 
         #region Methods
-        public async Task<PagedResponseDTO<EntityDefinitionDTO>> Handle(
-            FetchEntityDefinitionCommand command)
+        public async Task<PagedResponseDTO<EffectDefinitionDTO>> Handle(
+            FetchEffectDefinitionCommand command)
         {
             var queries = command.Queries;
 
@@ -36,22 +36,24 @@ namespace Application.Features.Design.Handlers
             int pageNumber = queries.PageNumber < 1 ? 1 : queries.PageNumber;
             int pageSize = queries.PageSize < 1 ? 10 : queries.PageSize;
 
-            var entityRepo = relationalUoW.GetRepository<IEntityDefinitionRepository>();
+            var effectRepo = relationalUoW.GetRepository<IEffectDefinitionRepository>();
 
-            var (entities, totalCount) = await entityRepo.GetPagedDefinitionsAsync(
-                queries.SearchTerm,
+            var (entities, totalCount) = await effectRepo.GetPagedDefinitionsAsync(
+                queries?.SearchTerm,
+                queries?.Type,
+                queries?.AttributeType,
+                queries?.SourceType,
                 pageNumber,
                 pageSize
             );
 
-            var mappedItems = mapper.Map<List<EntityDefinitionDTO>>(entities);
+            var dtos = mapper.Map<List<EffectDefinitionDTO>>(entities);
 
-            return new PagedResponseDTO<EntityDefinitionDTO>(
-                mappedItems,
-                totalCount,
+            return new PagedResponseDTO<EffectDefinitionDTO>(
+                dtos, 
+                totalCount, 
                 pageNumber,
-                pageSize
-            );
+                pageSize);
         }
         #endregion
     }

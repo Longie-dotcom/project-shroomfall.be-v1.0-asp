@@ -8,7 +8,7 @@ using Contract.DTO.Domain.Definition;
 
 namespace Application.Features.Design.Handlers
 {
-    public class FetchEntityDefinitionHandler : IHandler<FetchEntityDefinitionCommand, PagedResponseDTO<EntityDefinitionDTO>>
+    public class FetchItemDefinitionHandler : IHandler<FetchItemDefinitionCommand, PagedResponseDTO<ItemDefinitionDTO>>
     {
         #region Attributes
         private readonly IRelationalUoW relationalUoW;
@@ -18,7 +18,7 @@ namespace Application.Features.Design.Handlers
         #region Properties
         #endregion
 
-        public FetchEntityDefinitionHandler(
+        public FetchItemDefinitionHandler(
             IRelationalUoW relationalUoW,
             IMapper mapper)
         {
@@ -27,8 +27,8 @@ namespace Application.Features.Design.Handlers
         }
 
         #region Methods
-        public async Task<PagedResponseDTO<EntityDefinitionDTO>> Handle(
-            FetchEntityDefinitionCommand command)
+        public async Task<PagedResponseDTO<ItemDefinitionDTO>> Handle(
+            FetchItemDefinitionCommand command)
         {
             var queries = command.Queries;
 
@@ -36,22 +36,23 @@ namespace Application.Features.Design.Handlers
             int pageNumber = queries.PageNumber < 1 ? 1 : queries.PageNumber;
             int pageSize = queries.PageSize < 1 ? 10 : queries.PageSize;
 
-            var entityRepo = relationalUoW.GetRepository<IEntityDefinitionRepository>();
+            var itemRepo = relationalUoW.GetRepository<IItemDefinitionRepository>();
 
-            var (entities, totalCount) = await entityRepo.GetPagedDefinitionsAsync(
-                queries.SearchTerm,
+            var (entities, totalCount) = await itemRepo.GetPagedDefinitionsAsync(
+                queries?.SearchTerm,
+                queries?.Type,
+                queries?.Category,
                 pageNumber,
                 pageSize
             );
 
-            var mappedItems = mapper.Map<List<EntityDefinitionDTO>>(entities);
+            var dtos = mapper.Map<List<ItemDefinitionDTO>>(entities);
 
-            return new PagedResponseDTO<EntityDefinitionDTO>(
-                mappedItems,
-                totalCount,
-                pageNumber,
-                pageSize
-            );
+            return new PagedResponseDTO<ItemDefinitionDTO>(
+                dtos, 
+                totalCount, 
+                pageNumber, 
+                pageSize);
         }
         #endregion
     }

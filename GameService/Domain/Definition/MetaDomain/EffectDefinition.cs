@@ -42,6 +42,21 @@ namespace Domain.Definition.MetaDomain
         }
 
         #region Methods
+        public void UpdateFields(
+            EffectType type,
+            AttributeType attributeType,
+            AttributeType? sourceType,
+            float value,
+            float? duration,
+            float? interval)
+        {
+            Type = type;
+            AttributeType = attributeType;
+            SourceType = sourceType;
+            Value = value;
+            Duration = duration;
+            Interval = interval;
+        }
         #endregion
     }
 

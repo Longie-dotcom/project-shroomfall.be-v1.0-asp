@@ -61,11 +61,15 @@ namespace Application
             services.AddScoped<IHandler<UserConnectCommand>, UserConnectHandler>();
 
             // Design
-            services.AddScoped<IHandler<FetchEntityDefinitionDetailCommand, EntityDefinitionDetailDTO>, FetchEntityDefinitionDetailHandler>();
+            services.AddScoped<IHandler<FetchEffectDefinitionCommand, PagedResponseDTO<EffectDefinitionDTO>>, FetchEffectDefinitionHandler>();
             services.AddScoped<IHandler<FetchEntityDefinitionCommand, PagedResponseDTO<EntityDefinitionDTO>>, FetchEntityDefinitionHandler>();
+            services.AddScoped<IHandler<FetchEntityDefinitionDetailCommand, EntityDefinitionDetailDTO>, FetchEntityDefinitionDetailHandler>();
+            services.AddScoped<IHandler<FetchItemDefinitionCommand, PagedResponseDTO<ItemDefinitionDTO>>, FetchItemDefinitionHandler>();
             services.AddScoped<IHandler<FetchLocaleCommand, ExistLocalesDTO>, FetchLocaleHandler>();
             services.AddScoped<IHandler<UpdateDefinitionCommand>, UpdateDefinitionHandler>();
+            services.AddScoped<IHandler<UpsertEffectDefinitionCommand>, UpsertEffectDefinitionHandler>();
             services.AddScoped<IHandler<UpsertEntityDefinitionCommand>, UpsertEntityDefinitionHandler>();
+            services.AddScoped<IHandler<UpsertItemDefinitionCommand>, UpsertItemDefinitionHandler>();
             services.AddScoped<IHandler<UserRefreshCommand, DefinitionSnapshotDTO?>, UserRefreshHandler>();
 
             // Game

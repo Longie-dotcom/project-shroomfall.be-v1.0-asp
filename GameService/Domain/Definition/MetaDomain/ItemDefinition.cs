@@ -55,6 +55,27 @@ namespace Domain.Definition.MetaDomain
         }
 
         #region Methods
+        public void UpdateFields(
+            ItemType type,
+            ItemCategory category,
+            int? maxStack,
+            int? maxDurability,
+            EntityAction? triggeredAction,
+            SpawnEntityConfig? spawnEntityConfig,
+            ApplyEffectConfig? applyEffectConfig,
+            EquipConfig? equipConfig,
+            CostConfig costConfig)
+        {
+            Type = type;
+            Category = category;
+            MaxStack = maxStack;
+            MaxDurability = maxDurability;
+            TriggeredAction = triggeredAction;
+            SpawnEntityConfig = spawnEntityConfig;
+            ApplyEffectConfig = applyEffectConfig;
+            EquipConfig = equipConfig;
+            CostConfig = costConfig;
+        }
         #endregion
     }
 

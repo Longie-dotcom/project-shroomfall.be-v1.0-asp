@@ -2,19 +2,19 @@
 
 namespace Application.Features.Design.Commands
 {
-    public class FetchEntityDefinitionCommand
+    public class FetchEffectDefinitionCommand
     {
         #region Attributes
         #endregion
 
         #region Properties
         public string UserID { get; }
-        public EntityDefinitionQueryDTO Queries { get; }
+        public EffectDefinitionQueryDTO Queries { get; }
         #endregion
 
-        public FetchEntityDefinitionCommand(
+        public FetchEffectDefinitionCommand(
             string userId,
-            EntityDefinitionQueryDTO queries)
+            EffectDefinitionQueryDTO queries)
         {
             Queries = queries;
             UserID = userId;
