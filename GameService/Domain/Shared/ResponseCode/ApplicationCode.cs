@@ -39,6 +39,7 @@
 
             public static string MandatorySchemaElementsMissing = Format("mandatory-schema-elements-missing");
             public static string ComponentSignatureMappingFailed = Format("component-signature-mapping-failed");
+            public static string EntityDefinitionNotFound = Format("entity-definition-not-found");
         }
 
         public static class GameHandlerCode

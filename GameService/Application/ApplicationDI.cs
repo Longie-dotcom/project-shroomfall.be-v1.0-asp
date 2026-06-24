@@ -21,8 +21,10 @@ using Application.Services.WorldService.Factory;
 using Application.Services.WorldService.Factory.Component;
 using Application.Systems.Queue;
 using Application.Systems.System;
+using Contract.DTO.Common;
 using Contract.DTO.Connection;
 using Contract.DTO.Design;
+using Contract.DTO.Domain.Definition;
 using Contract.DTO.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -59,6 +61,8 @@ namespace Application
             services.AddScoped<IHandler<UserConnectCommand>, UserConnectHandler>();
 
             // Design
+            services.AddScoped<IHandler<FetchEntityDefinitionDetailCommand, EntityDefinitionDetailDTO>, FetchEntityDefinitionDetailHandler>();
+            services.AddScoped<IHandler<FetchEntityDefinitionCommand, PagedResponseDTO<EntityDefinitionDTO>>, FetchEntityDefinitionHandler>();
             services.AddScoped<IHandler<FetchLocaleCommand, ExistLocalesDTO>, FetchLocaleHandler>();
             services.AddScoped<IHandler<UpdateDefinitionCommand>, UpdateDefinitionHandler>();
             services.AddScoped<IHandler<UpsertEntityDefinitionCommand>, UpsertEntityDefinitionHandler>();
@@ -103,6 +107,7 @@ namespace Application
             services.AddSingleton<EffectService>();
 
             // Design service
+            services.AddSingleton<ComponentDiscoveryRegistry>();
             services.AddSingleton<DefinitionService>();
             services.AddSingleton<DesignerComponentFactory>();
             services.AddSingleton<LocalizationEntryFactory>();

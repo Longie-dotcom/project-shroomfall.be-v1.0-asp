@@ -1,7 +1,9 @@
 ﻿using API.Helper;
 using Application.Features.Abstraction;
 using Application.Features.Design.Commands;
+using Contract.DTO.Common;
 using Contract.DTO.Design;
+using Contract.DTO.Domain.Definition;
 using Contract.Enum.IdentityDomain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,6 +28,34 @@ namespace API.Controllers
         }
 
         #region Methods
+        [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
+        [HttpGet("entities/{id}")]
+        public async Task<ActionResult<EntityDefinitionDetailDTO>> FetchEntityDefinitionDetail(
+            [FromRoute] string id)
+        {
+            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
+
+            var result = await dispatcher.Send<FetchEntityDefinitionDetailCommand, EntityDefinitionDetailDTO?>(
+                new FetchEntityDefinitionDetailCommand(id, userId)
+            );
+
+            return Ok(result);
+        }
+
+        [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
+        [HttpGet("entities")]
+        public async Task<ActionResult<PagedResponseDTO<EntityDefinitionDTO>>> GetAllEntities(
+            [FromQuery] FetchAllEntitiesQueriesDTO queries)
+        {
+            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
+
+            var result = await dispatcher.Send<FetchEntityDefinitionCommand, PagedResponseDTO<EntityDefinitionDTO>>(
+                new FetchEntityDefinitionCommand(userId, queries)
+            );
+
+            return Ok(result);
+        }
+
         [AllowAnonymous]
         [HttpGet("locale")]
         public async Task<ActionResult<ExistLocalesDTO>> GetLocales()
