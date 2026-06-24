@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces.Utility;
+using Contract.DTO.Common;
 using Domain.Shared.DomainException;
 using System.Text.Json;
 
@@ -10,6 +11,8 @@ namespace API.Middleware
         private readonly RequestDelegate requestDelegate;
         private readonly ILogger<GlobalExceptionHandler> logger;
         private readonly ITelemetryQueue telemetryQueue;
+
+        private static string defaultErrorCode = "api.unpredicted.error";
         #endregion
 
         #region Properties
@@ -57,7 +60,7 @@ namespace API.Middleware
                         telemetryQueue.EnqueueAlert(internalEx.Code, internalEx.Message, TelemetrySeverity.Error);
                         break;
                     default:
-                        telemetryQueue.EnqueueAlert("api.unpredicted.error", ex.Message, TelemetrySeverity.Fatal);
+                        telemetryQueue.EnqueueAlert(defaultErrorCode, ex.Message, TelemetrySeverity.Fatal);
                         break;
                 }
 
@@ -66,7 +69,7 @@ namespace API.Middleware
         }
 
         private static async Task HandleExceptionAsync(
-            HttpContext context, 
+            HttpContext context,
             Exception exception)
         {
             context.Response.ContentType = "application/json";
@@ -74,32 +77,37 @@ namespace API.Middleware
             var statusCode = StatusCodes.Status500InternalServerError;
             var type = "Unpredicted Internal Error";
             var message = "An internal error occurred. Please try again later.";
+            string errorCode = defaultErrorCode;
             string? details = null;
 
             switch (exception)
             {
-                case BadRequest:
+                case BadRequest badRequest:
                     statusCode = StatusCodes.Status400BadRequest;
                     type = "Bad Request";
-                    message = exception.Message;
+                    message = badRequest.Message;
+                    errorCode = badRequest.Code;
                     break;
 
-                case NotFound:
+                case NotFound notFound:
                     statusCode = StatusCodes.Status404NotFound;
                     type = "Not Found";
-                    message = exception.Message;
+                    message = notFound.Message;
+                    errorCode = notFound.Code;
                     break;
 
-                case Unauthorized:
+                case Unauthorized unauthorized:
                     statusCode = StatusCodes.Status401Unauthorized;
                     type = "Unauthorized";
-                    message = exception.Message;
+                    message = unauthorized.Message;
+                    errorCode = unauthorized.Code;
                     break;
 
-                case InternalException:
+                case InternalException internalEx:
                     statusCode = StatusCodes.Status500InternalServerError;
                     type = "Internal Server Error";
-                    message = exception.Message;
+                    message = internalEx.Message;
+                    errorCode = internalEx.Code;
                     break;
 
                 default:
@@ -109,11 +117,13 @@ namespace API.Middleware
 
             context.Response.StatusCode = statusCode;
 
-            var response = new
+            // Use the explicit contract DTO instead of an anonymous type
+            var response = new ApiErrorDTO
             {
-                type,
-                message,
-                details
+                Type = type,
+                Code = errorCode,
+                Message = message,
+                Details = details
             };
 
             var json = JsonSerializer.Serialize(response, new JsonSerializerOptions
