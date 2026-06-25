@@ -50,7 +50,7 @@ namespace API.Controllers
             var (userId, steamId, role) = ClaimReader.GetIdentity(User);
 
             var result = await dispatcher.Send<FetchEntityDefinitionDetailCommand, EntityDefinitionDetailDTO?>(
-                new FetchEntityDefinitionDetailCommand(id, userId)
+                new FetchEntityDefinitionDetailCommand(userId, id)
             );
 
             return Ok(result);
