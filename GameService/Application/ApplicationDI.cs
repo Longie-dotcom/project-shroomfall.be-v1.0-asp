@@ -111,7 +111,7 @@ namespace Application
             services.AddSingleton<EffectService>();
 
             // Design service
-            services.AddScoped<ComponentDiscoveryRegistry>();
+            services.AddSingleton<ComponentDiscoveryRegistry>();
             services.AddScoped<DefinitionService>();
             services.AddScoped<DesignerComponentFactory>();
             services.AddScoped<LocalizationEntryFactory>();
