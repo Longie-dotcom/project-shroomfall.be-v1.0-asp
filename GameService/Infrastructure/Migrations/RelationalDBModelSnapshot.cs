@@ -94,18 +94,6 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("EyesID")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("HairID")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("PantID")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ShirtID")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("SkinID")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -114,14 +102,6 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("EntityDefinitionID")
                         .IsUnique();
-
-                    b.HasIndex("EyesID");
-
-                    b.HasIndex("HairID");
-
-                    b.HasIndex("PantID");
-
-                    b.HasIndex("ShirtID");
 
                     b.HasIndex("SkinID");
 
@@ -769,62 +749,6 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Definition.EntityDomain.Component.AppearanceDefinition", b =>
                 {
-                    b.OwnsOne("Domain.Common.HSV", "HairColor", b1 =>
-                        {
-                            b1.Property<Guid>("AppearanceDefinitionID")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<float>("H")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("real")
-                                .HasDefaultValue(0f);
-
-                            b1.Property<float>("S")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("real")
-                                .HasDefaultValue(0f);
-
-                            b1.Property<float>("V")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("real")
-                                .HasDefaultValue(0f);
-
-                            b1.HasKey("AppearanceDefinitionID");
-
-                            b1.ToTable("AppearanceDefinitions");
-
-                            b1.WithOwner()
-                                .HasForeignKey("AppearanceDefinitionID");
-                        });
-
-                    b.OwnsOne("Domain.Common.HSV", "PantColor", b1 =>
-                        {
-                            b1.Property<Guid>("AppearanceDefinitionID")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<float>("H")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("real")
-                                .HasDefaultValue(0f);
-
-                            b1.Property<float>("S")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("real")
-                                .HasDefaultValue(0f);
-
-                            b1.Property<float>("V")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("real")
-                                .HasDefaultValue(0f);
-
-                            b1.HasKey("AppearanceDefinitionID");
-
-                            b1.ToTable("AppearanceDefinitions");
-
-                            b1.WithOwner()
-                                .HasForeignKey("AppearanceDefinitionID");
-                        });
-
                     b.OwnsOne("Domain.Common.HSV", "SkinColor", b1 =>
                         {
                             b1.Property<Guid>("AppearanceDefinitionID")
@@ -846,12 +770,6 @@ namespace Infrastructure.Migrations
                             b1.WithOwner()
                                 .HasForeignKey("AppearanceDefinitionID");
                         });
-
-                    b.Navigation("HairColor")
-                        .IsRequired();
-
-                    b.Navigation("PantColor")
-                        .IsRequired();
 
                     b.Navigation("SkinColor")
                         .IsRequired();

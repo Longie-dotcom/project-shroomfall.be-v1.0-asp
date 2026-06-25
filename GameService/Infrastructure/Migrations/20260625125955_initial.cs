@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class initialize : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -36,16 +36,6 @@ namespace Infrastructure.Migrations
                     SkinColor_H = table.Column<float>(type: "real", nullable: false),
                     SkinColor_S = table.Column<float>(type: "real", nullable: false),
                     SkinColor_V = table.Column<float>(type: "real", nullable: false),
-                    HairID = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    EyesID = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    ShirtID = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    PantID = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    HairColor_H = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
-                    HairColor_S = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
-                    HairColor_V = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
-                    PantColor_H = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
-                    PantColor_S = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
-                    PantColor_V = table.Column<float>(type: "real", nullable: false, defaultValue: 0f),
                     EntityDefinitionID = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
@@ -500,26 +490,6 @@ namespace Infrastructure.Migrations
                 table: "AppearanceDefinitions",
                 column: "EntityDefinitionID",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AppearanceDefinitions_EyesID",
-                table: "AppearanceDefinitions",
-                column: "EyesID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AppearanceDefinitions_HairID",
-                table: "AppearanceDefinitions",
-                column: "HairID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AppearanceDefinitions_PantID",
-                table: "AppearanceDefinitions",
-                column: "PantID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AppearanceDefinitions_ShirtID",
-                table: "AppearanceDefinitions",
-                column: "ShirtID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AppearanceDefinitions_SkinID",
