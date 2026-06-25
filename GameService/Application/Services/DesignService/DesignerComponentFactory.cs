@@ -1,9 +1,6 @@
 ﻿using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
 using Contract.DTO.Domain.Definition;
-using Contract.Enum.EntityDomain;
-using Contract.Enum.MetaDomain.Effect;
-using Contract.Enum.MetaDomain.Item;
 using Domain.Common;
 using Domain.Definition.EntityDomain.Component;
 using Domain.Shared.DomainException;
@@ -111,20 +108,16 @@ namespace Application.Services.DesignService
         private async Task UpsertCollisionAsync(
             CollisionDefinitionDTO dto, string entityDefinitionId)
         {
-            var shapeType = Enum.Parse<CollisionShapeType>(dto.ShapeType, true);
-            var layer = Enum.Parse<CollisionLayer>(dto.Layer, true);
-            var mask = Enum.Parse<CollisionLayer>(dto.Mask, true);
-
             var component = new CollisionDefinition(
                 Guid.NewGuid(),
                 entityDefinitionId,
-                shapeType,
+                dto.ShapeType,
                 dto.Width,
                 dto.Height,
                 dto.Radius,
                 dto.IsBlocking,
-                layer,
-                mask,
+                dto.Layer,
+                dto.Mask,
                 dto.OffsetX,
                 dto.OffsetY
             );
@@ -153,7 +146,7 @@ namespace Application.Services.DesignService
             foreach (var valDto in dto.AttributeValues)
             {
                 var attrId = valDto.ID == Guid.Empty ? Guid.NewGuid() : valDto.ID;
-                var attrType = Enum.Parse<AttributeType>(valDto.Type, true);
+                var attrType = valDto.Type;
 
                 var attributeValue = new AttributeValue(
                     attrId,
@@ -217,13 +210,12 @@ namespace Application.Services.DesignService
             foreach (var entryDto in dto.DefaultItems)
             {
                 var entryId = entryDto.ID == Guid.Empty ? Guid.NewGuid() : entryDto.ID;
-                var quality = Enum.Parse<ItemQuality>(entryDto.Quality, true);
 
                 var entry = new InventoryEntry(
                     entryId,
                     entryDto.DefinitionID,
                     entryDto.Amount,
-                    quality,
+                    entryDto.Quality,
                     inventoryId
                 );
 

@@ -62,7 +62,6 @@ namespace Application.Features.Design.Handlers
             // True Immutable Meta Rule: If the root definition metadata does not exist yet, build it once
             if (existingEntity == null)
             {
-                // Presentation now automatically binds localized keys and assigns IconID from entity ID
                 var localizedText = LocalizationFactory.ForEntity(dto.ID);
                 var presentation = new EntityPresentationDefinition(localizedText, dto.ID);
                 var entity = new EntityDefinition(dto.ID, dto.Type, presentation);
