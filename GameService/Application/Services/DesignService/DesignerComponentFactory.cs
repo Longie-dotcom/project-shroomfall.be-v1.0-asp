@@ -92,7 +92,7 @@ namespace Application.Services.DesignService
             var component = new AppearanceDefinition(
                 Guid.NewGuid(),
                 entityDefinitionId,
-                dto.SkinID,
+                dto.EntityDefinitionID,
                 new HSV(dto.SkinColor.H, dto.SkinColor.S, dto.SkinColor.V)
             );
 
