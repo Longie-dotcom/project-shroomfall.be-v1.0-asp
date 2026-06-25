@@ -74,7 +74,7 @@ namespace Application.Features.Design.Handlers
             {
                 // CREATE FLOW (Set identity, presentation, and icons ONCE)
                 var localizedText = LocalizationFactory.ForItem(dto.ID);
-                var presentation = new ItemPresentationDefinition(localizedText, dto.IconID);
+                var presentation = new ItemPresentationDefinition(localizedText, dto.ID);
 
                 var item = new ItemDefinition(
                     dto.ID,
@@ -95,7 +95,7 @@ namespace Application.Features.Design.Handlers
             }
             else
             {
-                // UPDATE FLOW (Mutates data fields safely on the tracked instance reference)
+                // UPDATE FLOW 
                 existingItem.UpdateFields(
                     dto.Type,
                     dto.Category,

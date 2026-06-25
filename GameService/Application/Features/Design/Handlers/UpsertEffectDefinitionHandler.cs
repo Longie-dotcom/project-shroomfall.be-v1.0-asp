@@ -37,9 +37,9 @@ namespace Application.Features.Design.Handlers
 
             if (existingEffect == null)
             {
-                // CREATE FLOW (Using full parameter constructor arguments)
+                // CREATE FLOW 
                 var localizedText = LocalizationFactory.ForEffect(dto.ID);
-                var presentation = new EffectPresentationDefinition(localizedText, dto.IconID);
+                var presentation = new EffectPresentationDefinition(localizedText, dto.ID);
 
                 var effect = new EffectDefinition(
                     dto.ID,
@@ -58,11 +58,6 @@ namespace Application.Features.Design.Handlers
             else
             {
                 // UPDATE FLOW
-                var updatedPresentation = new EffectPresentationDefinition(
-                    existingEffect.Presentation?.LocalizedText ?? LocalizationFactory.ForEffect(dto.ID),
-                    dto.IconID
-                );
-
                 existingEffect.UpdateFields(
                     dto.Type,
                     dto.AttributeType,
