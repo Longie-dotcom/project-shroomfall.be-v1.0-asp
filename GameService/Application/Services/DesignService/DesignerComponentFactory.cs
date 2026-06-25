@@ -145,7 +145,7 @@ namespace Application.Services.DesignService
 
             foreach (var valDto in dto.AttributeValues)
             {
-                var attrId = valDto.ID == Guid.Empty ? Guid.NewGuid() : valDto.ID;
+                var attrId = Guid.NewGuid();
                 var attrType = valDto.Type;
 
                 var attributeValue = new AttributeValue(
@@ -160,7 +160,7 @@ namespace Application.Services.DesignService
 
                 foreach (var growthDto in valDto.AttributeGrowthValues)
                 {
-                    var growthId = growthDto.ID == Guid.Empty ? Guid.NewGuid() : growthDto.ID;
+                    var growthId = Guid.NewGuid();
                     var growthValue = new AttributeGrowthValue(
                         growthId,
                         growthDto.Level,
@@ -209,7 +209,7 @@ namespace Application.Services.DesignService
 
             foreach (var entryDto in dto.DefaultItems)
             {
-                var entryId = entryDto.ID == Guid.Empty ? Guid.NewGuid() : entryDto.ID;
+                var entryId = Guid.NewGuid();
 
                 var entry = new InventoryEntry(
                     entryId,
