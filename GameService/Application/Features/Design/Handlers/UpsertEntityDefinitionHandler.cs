@@ -53,15 +53,28 @@ namespace Application.Features.Design.Handlers
         {
             var dto = command.DTO;
 
+            Console.WriteLine($"\n[UpsertEntity] ==================================================");
+            Console.WriteLine($"[UpsertEntity] Initiating save request for Entity ID: '{dto.ID}'");
+            Console.WriteLine($"[UpsertEntity] Entity Type: {dto.Type}");
+            Console.WriteLine($"[UpsertEntity] Components Received in Payload Count: {dto.Components?.Count ?? 0}");
+
+            if (dto.Components != null)
+            {
+                for (int i = 0; i < dto.Components.Count; i++)
+                {
+                    Console.WriteLine($"  -> Component [{i}]: Type String Identifier = '{dto.Components[i].ComponentType}'");
+                }
+            }
+
             // Validate batch payload against target EntityType schemas baseline
             ValidateRequiredComponents(dto.Type, dto.Components);
 
             var entityRepo = relationalUoW.GetRepository<IEntityDefinitionRepository>();
             var existingEntity = await entityRepo.GetByIdAsync(dto.ID);
 
-            // True Immutable Meta Rule: If the root definition metadata does not exist yet, build it once
             if (existingEntity == null)
             {
+                Console.WriteLine($"[UpsertEntity] Root definition '{dto.ID}' is brand new. Provisioning core structural layout row...");
                 var localizedText = LocalizationFactory.ForEntity(dto.ID);
                 var presentation = new EntityPresentationDefinition(localizedText, dto.ID);
                 var entity = new EntityDefinition(dto.ID, dto.Type, presentation);
@@ -69,14 +82,22 @@ namespace Application.Features.Design.Handlers
                 await entityRepo.AddAsync(entity);
                 await localizationEntryFactory.PreSavePlaceholderKeysAsync(localizedText);
             }
+            else
+            {
+                Console.WriteLine($"[UpsertEntity] Root definition '{dto.ID}' already exists. Skipping core allocation, moving straight to component alignment...");
+            }
 
-            // Pipeline component definitions generation (Inner factory overwrites or inserts completely fresh components dynamically)
+            // Pipeline component definitions generation
+            Console.WriteLine($"[UpsertEntity] Handing off components to DesignerComponentFactory...");
             foreach (var componentDto in dto.Components)
             {
                 await designerComponentFactory.UpsertAndSaveAsync(componentDto, dto.Type, dto.ID);
             }
 
-            await relationalUoW.SaveChangesAsync();
+            Console.WriteLine($"[UpsertEntity] Invoking Unit of Work SaveChangesAsync()...");
+            int rowsAffected = await relationalUoW.SaveChangesAsync();
+            Console.WriteLine($"[UpsertEntity] Save complete! Database reported rows affected: {rowsAffected}");
+            Console.WriteLine("[UpsertEntity] ==================================================\n");
         }
 
         private void ValidateRequiredComponents(

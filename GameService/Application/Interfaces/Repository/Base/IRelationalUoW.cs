@@ -5,7 +5,7 @@
         T GetRepository<T>() where T : IRelationalRepository;
         Task BeginTransactionAsync();
         Task<int> CommitAsync();
-        Task SaveChangesAsync();
+        Task<int> SaveChangesAsync();
     }
 
     public interface IRelationalRepository

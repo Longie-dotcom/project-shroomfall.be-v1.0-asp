@@ -76,11 +76,11 @@ namespace Infrastructure.Repository.Base
             }
         }
 
-        public async Task SaveChangesAsync()
+        public async Task<int> SaveChangesAsync()
         {
             try
             {
-                await context.SaveChangesAsync();
+                return await context.SaveChangesAsync();
             }
             catch (Exception ex)
             {
