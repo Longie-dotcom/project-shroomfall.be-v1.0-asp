@@ -25,6 +25,15 @@ namespace Infrastructure.Repository.Relational
                 .ToListAsync();
         }
 
+        public override async Task<CharacteristicDefinition?> GetByEntityIdAsync(
+            string entityId)
+        {
+            return await dbSet
+                .Include(l => l.AttributeValues)
+                    .ThenInclude(a => a.AttributeGrowthValues)
+                .FirstOrDefaultAsync(c => c.EntityDefinitionID == entityId);
+        }
+
         /// <summary>
         /// Explicitly inserts a collection of Level 1 child attributes into the database.
         /// </summary>

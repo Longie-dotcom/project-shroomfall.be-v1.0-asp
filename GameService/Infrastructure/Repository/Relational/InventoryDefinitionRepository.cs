@@ -17,6 +17,14 @@ namespace Infrastructure.Repository.Relational
         public InventoryDefinitionRepository(RelationalDB context) : base(context) { }
 
         #region Methods
+        public override async Task<InventoryDefinition?> GetByEntityIdAsync(
+            string entityId)
+        {
+            return await dbSet
+                .Include(l => l.DefaultItems)
+                .FirstOrDefaultAsync(i => i.EntityDefinitionID == entityId);
+        }
+
         public override async Task<IEnumerable<InventoryDefinition>> GetAllAsync()
         {
             return await dbSet
