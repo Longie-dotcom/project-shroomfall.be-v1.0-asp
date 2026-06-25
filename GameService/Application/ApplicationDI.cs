@@ -97,10 +97,10 @@ namespace Application
             // ─────────────────────────────
             // PERSISTENCE
             // ─────────────────────────────
-            services.AddSingleton<EntityPersistence>();
-            services.AddSingleton<RoomConnectionPersistence>();
-            services.AddSingleton<RoomPersistence>();
-            services.AddSingleton<SnapshotPersistence>();
+            services.AddScoped<EntityPersistence>();
+            services.AddScoped<RoomConnectionPersistence>();
+            services.AddScoped<RoomPersistence>();
+            services.AddScoped<SnapshotPersistence>();
 
             // ─────────────────────────────
             // SERVICES
@@ -111,10 +111,10 @@ namespace Application
             services.AddSingleton<EffectService>();
 
             // Design service
-            services.AddSingleton<ComponentDiscoveryRegistry>();
-            services.AddSingleton<DefinitionService>();
-            services.AddSingleton<DesignerComponentFactory>();
-            services.AddSingleton<LocalizationEntryFactory>();
+            services.AddScoped<ComponentDiscoveryRegistry>();
+            services.AddScoped<DefinitionService>();
+            services.AddScoped<DesignerComponentFactory>();
+            services.AddScoped<LocalizationEntryFactory>();
 
             // Entity service
             services.AddSingleton<AIService>();

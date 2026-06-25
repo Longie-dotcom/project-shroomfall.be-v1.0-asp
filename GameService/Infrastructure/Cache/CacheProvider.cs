@@ -9,6 +9,7 @@ using Application.Interfaces.Repository.Relational;
 using Application.Interfaces.Utility;
 using Domain.Shared.DomainException;
 using Domain.Shared.ResponseCode;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Infrastructure.Cache
 {
@@ -16,8 +17,7 @@ namespace Infrastructure.Cache
     {
         #region Attributes
         private readonly ITelemetryQueue telemetryQueue;
-
-        private readonly IRelationalUoW relationalUoW;
+        private readonly IServiceScopeFactory serviceScopeFactory;
 
         private readonly IAICache aiCache;
         private readonly IAppearanceCache appearanceCache;
@@ -58,8 +58,7 @@ namespace Infrastructure.Cache
 
         public CacheProvider(
             ITelemetryQueue telemetryQueue,
-
-            IRelationalUoW relationalUoW,
+            IServiceScopeFactory serviceScopeFactory,
 
             IAICache aiCache,
             IAppearanceCache appearanceCache,
@@ -79,8 +78,7 @@ namespace Infrastructure.Cache
             IRoomCache roomCache)
         {
             this.telemetryQueue = telemetryQueue;
-
-            this.relationalUoW = relationalUoW;
+            this.serviceScopeFactory = serviceScopeFactory;
 
             this.aiCache = aiCache;
             this.appearanceCache = appearanceCache;
@@ -105,41 +103,46 @@ namespace Infrastructure.Cache
         {
             try
             {
-                // Resolve all repositories on demand from the Unit of Work
-                var aiRepository = relationalUoW.GetRepository<IAIDefinitionRepository>();
-                var appearanceRepository = relationalUoW.GetRepository<IAppearanceDefinitionRepository>();
-                var collisionRepository = relationalUoW.GetRepository<ICollisionDefinitionRepository>();
-                var characteristicRepository = relationalUoW.GetRepository<ICharacteristicDefinitionRepository>();
-                var interactableRepository = relationalUoW.GetRepository<IInteractableDefinitionRepository>();
-                var inventoryRepository = relationalUoW.GetRepository<IInventoryDefinitionRepository>();
-                var lifetimeRepository = relationalUoW.GetRepository<ILifetimeDefinitionRepository>();
-                var portalRepository = relationalUoW.GetRepository<IPortalDefinitionRepository>();
-                var projectileRepository = relationalUoW.GetRepository<IProjectileDefinitionRepository>();
-                var triggeredEffectRepository = relationalUoW.GetRepository<ITriggeredEffectDefinitionRepository>();
-                var entityRepository = relationalUoW.GetRepository<IEntityDefinitionRepository>();
-                var localeRepository = relationalUoW.GetRepository<ILocaleRepository>();
-                var effectRepository = relationalUoW.GetRepository<IEffectDefinitionRepository>();
-                var itemRepository = relationalUoW.GetRepository<IItemDefinitionRepository>();
-                var roomConnectionRepository = relationalUoW.GetRepository<IRoomConnectionRepository>();
-                var roomRepository = relationalUoW.GetRepository<IRoomDefinitionRepository>();
+                using (var scope = serviceScopeFactory.CreateScope())
+                {
+                    var relationalUoW = scope.ServiceProvider.GetRequiredService<IRelationalUoW>();
 
-                // Hydrate caches
-                aiCache.Load((await aiRepository.GetAllAsync()).ToList());
-                appearanceCache.Load((await appearanceRepository.GetAllAsync()).ToList());
-                collisionCache.Load((await collisionRepository.GetAllAsync()).ToList());
-                characteristicCache.Load((await characteristicRepository.GetAllAsync()).ToList());
-                interactableCache.Load((await interactableRepository.GetAllAsync()).ToList());
-                inventoryCache.Load((await inventoryRepository.GetAllAsync()).ToList());
-                lifetimeCache.Load((await lifetimeRepository.GetAllAsync()).ToList());
-                portalCache.Load((await portalRepository.GetAllAsync()).ToList());
-                projectileCache.Load((await projectileRepository.GetAllAsync()).ToList());
-                triggeredEffectCache.Load((await triggeredEffectRepository.GetAllAsync()).ToList());
-                entityCache.Load((await entityRepository.GetAllAsync()).ToList());
-                localeCache.Load((await localeRepository.GetAllAsync()).ToList());
-                effectCache.Load((await effectRepository.GetAllAsync()).ToList());
-                itemCache.Load((await itemRepository.GetAllAsync()).ToList());
-                roomConnectionCache.Load((await roomConnectionRepository.GetAllAsync()).ToList());
-                roomCache.Load((await roomRepository.GetAllAsync()).ToList());
+                    // Resolve all repositories on demand from the Unit of Work
+                    var aiRepository = relationalUoW.GetRepository<IAIDefinitionRepository>();
+                    var appearanceRepository = relationalUoW.GetRepository<IAppearanceDefinitionRepository>();
+                    var collisionRepository = relationalUoW.GetRepository<ICollisionDefinitionRepository>();
+                    var characteristicRepository = relationalUoW.GetRepository<ICharacteristicDefinitionRepository>();
+                    var interactableRepository = relationalUoW.GetRepository<IInteractableDefinitionRepository>();
+                    var inventoryRepository = relationalUoW.GetRepository<IInventoryDefinitionRepository>();
+                    var lifetimeRepository = relationalUoW.GetRepository<ILifetimeDefinitionRepository>();
+                    var portalRepository = relationalUoW.GetRepository<IPortalDefinitionRepository>();
+                    var projectileRepository = relationalUoW.GetRepository<IProjectileDefinitionRepository>();
+                    var triggeredEffectRepository = relationalUoW.GetRepository<ITriggeredEffectDefinitionRepository>();
+                    var entityRepository = relationalUoW.GetRepository<IEntityDefinitionRepository>();
+                    var localeRepository = relationalUoW.GetRepository<ILocaleRepository>();
+                    var effectRepository = relationalUoW.GetRepository<IEffectDefinitionRepository>();
+                    var itemRepository = relationalUoW.GetRepository<IItemDefinitionRepository>();
+                    var roomConnectionRepository = relationalUoW.GetRepository<IRoomConnectionRepository>();
+                    var roomRepository = relationalUoW.GetRepository<IRoomDefinitionRepository>();
+
+                    // Hydrate caches
+                    aiCache.Load((await aiRepository.GetAllAsync()).ToList());
+                    appearanceCache.Load((await appearanceRepository.GetAllAsync()).ToList());
+                    collisionCache.Load((await collisionRepository.GetAllAsync()).ToList());
+                    characteristicCache.Load((await characteristicRepository.GetAllAsync()).ToList());
+                    interactableCache.Load((await interactableRepository.GetAllAsync()).ToList());
+                    inventoryCache.Load((await inventoryRepository.GetAllAsync()).ToList());
+                    lifetimeCache.Load((await lifetimeRepository.GetAllAsync()).ToList());
+                    portalCache.Load((await portalRepository.GetAllAsync()).ToList());
+                    projectileCache.Load((await projectileRepository.GetAllAsync()).ToList());
+                    triggeredEffectCache.Load((await triggeredEffectRepository.GetAllAsync()).ToList());
+                    entityCache.Load((await entityRepository.GetAllAsync()).ToList());
+                    localeCache.Load((await localeRepository.GetAllAsync()).ToList());
+                    effectCache.Load((await effectRepository.GetAllAsync()).ToList());
+                    itemCache.Load((await itemRepository.GetAllAsync()).ToList());
+                    roomConnectionCache.Load((await roomConnectionRepository.GetAllAsync()).ToList());
+                    roomCache.Load((await roomRepository.GetAllAsync()).ToList());
+                }
 
                 telemetryQueue.EnqueueAlert(
                     InfrastructureCode.CacheProviderCode.LoadSuccess,
