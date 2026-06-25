@@ -52,13 +52,41 @@ namespace Application.Mapper
             // Entity Domain
             CreateMap<EntityPresentationDefinition, EntityPresentationDefinitionDTO>();
             CreateMap<EntityDefinition, EntityDefinitionDTO>();
-
+            CreateMap<EntityDefinition, EntityDefinitionDetailDTO>();
             CreateMap<ComponentDefinition, ComponentDefinitionDTO>()
+                .Include<AIDefinition, AIDefinitionDTO>()
+                .Include<AppearanceDefinition, AppearanceDefinitionDTO>()
+                .Include<CharacteristicDefinition, CharacteristicDefinitionDTO>()
+                .Include<CollisionDefinition, CollisionDefinitionDTO>()
+                .Include<InteractableDefinition, InteractableDefinitionDTO>()
+                .Include<InventoryDefinition, InventoryDefinitionDTO>()
+                .Include<LifetimeDefinition, LifetimeDefinitionDTO>()
                 .Include<PortalDefinition, PortalDefinitionDTO>()
-                .Include<InteractableDefinition, InteractableDefinitionDTO>();
+                .Include<ProjectileDefinition, ProjectileDefinitionDTO>()
+                .Include<TriggeredEffectDefinition, TriggeredEffectDefinitionDTO>();
+
+            CreateMap<AIDefinition, AIDefinitionDTO>();
+
+            CreateMap<AppearanceDefinition, AppearanceDefinitionDTO>();
+
+            CreateMap<CharacteristicDefinition, CharacteristicDefinitionDTO>();
+            CreateMap<AttributeValue, AttributeValueDTO>();
+            CreateMap<AttributeGrowthValue, AttributeGrowthValueDTO>();
+
+            CreateMap<CollisionDefinition, CollisionDefinitionDTO>();
+
+            CreateMap<InteractableDefinition, InteractableDefinitionDTO>();
+
+            CreateMap<InventoryDefinition, InventoryDefinitionDTO>();
+            CreateMap<InventoryEntry, InventoryEntryDTO>();
+
+            CreateMap<LifetimeDefinition, LifetimeDefinitionDTO>();
 
             CreateMap<PortalDefinition, PortalDefinitionDTO>();
-            CreateMap<InteractableDefinition, InteractableDefinitionDTO>();
+
+            CreateMap<ProjectileDefinition, ProjectileDefinitionDTO>();
+
+            CreateMap<TriggeredEffectDefinition, TriggeredEffectDefinitionDTO>();
 
             // Meta Domain
             CreateMap<AttributeDefinition, AttributeDefinitionDTO>();
