@@ -2,6 +2,7 @@
 using Application.Interfaces.Realtime.Events;
 using Application.Interfaces.Realtime.Events.Game;
 using Contract.Enum.MetaDomain.Effect;
+using Domain.Definition.EntityDomain.Component;
 using Domain.Definition.MetaDomain;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
@@ -37,19 +38,16 @@ namespace Application.Services.AttributeService
             
             foreach (var attrDef in AttributeDefinitions.AllList())
             {
-                // Skip if it is not a Vital value
                 if (attrDef.DomainType != DomainType.Vital)
                     continue;
 
-                var attrValue = cacheProvider.Characteristic.GetAttributeValue(
-                    characteristic.DefinitionID,
-                    characteristic.CurrentLevel, 
-                    attrDef.Type);
+                var scaledAttr = GetScaledAttribute(characteristic, attrDef.Type);
+                if (scaledAttr == null) continue;
 
-                if (attrValue == null)
-                    continue;
-
-                characteristic.SetVital(attrDef.Type, attrValue.BaseValue);
+                var (config, maxCapacity) = scaledAttr.Value;
+                maxCapacity = Math.Clamp(maxCapacity, config.Min, config.Max);
+                
+                characteristic.SetVital(attrDef.Type, maxCapacity);
             }
         }
 
@@ -96,12 +94,8 @@ namespace Application.Services.AttributeService
             var transform = entity.GetComponent<TransformInstance>();
             if (transform == null) return;
 
-            var attrValue = cacheProvider.Characteristic.GetAttributeValue(
-                characteristic.DefinitionID,
-                characteristic.CurrentLevel,
-                type);
-            if (attrValue == null)
-                return;
+            var scaledAttr = GetScaledAttribute(characteristic, type);
+            if (scaledAttr == null) return;
 
             var attrDef = AttributeDefinitions.Get(type);
             if (attrDef.DomainType != DomainType.Vital)
@@ -114,8 +108,9 @@ namespace Application.Services.AttributeService
                 finalDelta = -finalDelta; // Re-apply the negative
             }
 
+            var (config, dynamicCeiling) = scaledAttr.Value;
             float current = characteristic.GetVital(type);
-            float next = Math.Clamp(current + finalDelta, attrValue.Min, attrValue.Max);
+            float next = Math.Clamp(current + finalDelta, config.Min, dynamicCeiling);
 
             characteristic.SetVital(type, next);
 
@@ -169,12 +164,8 @@ namespace Application.Services.AttributeService
             {
                 if (attrDef.DomainType != DomainType.Core) continue;
 
-                var attrValue = cacheProvider.Characteristic.GetAttributeValue(
-                    characteristic.DefinitionID,
-                    characteristic.CurrentLevel,
-                    attrDef.Type);
-
-                if (attrValue == null) continue;
+                var scaledAttr = GetScaledAttribute(characteristic, attrDef.Type);
+                if (scaledAttr == null) continue;
 
                 float flat = 0f;
                 float percent = 0f;
@@ -193,11 +184,27 @@ namespace Application.Services.AttributeService
                     }
                 }
 
-                float result = (attrValue.BaseValue + flat) * (1f + percent) * multiplier;
-                result = Math.Clamp(result, attrValue.Min, attrValue.Max);
+                var (config, scaledBaseValue) = scaledAttr.Value;
+                float result = (scaledBaseValue + flat) * (1f + percent) * multiplier;
+                result = Math.Clamp(result, config.Min, config.Max);
 
                 characteristic.SetCore(attrDef.Type, result);
             }
+        }
+
+        private (AttributeValue Config, float ScaledValue)? GetScaledAttribute(
+            CharacteristicInstance characteristic,
+            AttributeType type)
+        {
+            var attributePair = cacheProvider.Characteristic.GetAttributeValue(
+                characteristic.DefinitionID,
+                characteristic.CurrentLevel,
+                type);
+
+            if (attributePair == null) return null;
+
+            var (attribute, growth) = attributePair.Value;
+            return (attribute, attribute.BaseValue + growth.GrowthValue);
         }
         #endregion
     }

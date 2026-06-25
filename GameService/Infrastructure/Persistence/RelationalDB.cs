@@ -221,8 +221,6 @@ namespace Infrastructure.Persistence
                     .IsRequired();
                 entity.Property(x => x.BaseValue)
                     .IsRequired();
-                entity.Property(x => x.Level)
-                    .IsRequired();
                 entity.Property(x => x.Min)
                     .IsRequired();
                 entity.Property(x => x.Max)

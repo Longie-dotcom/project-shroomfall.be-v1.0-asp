@@ -12,7 +12,7 @@ namespace Application.Interfaces.Cache.EntityDomain.Component
             Guid id);
         CharacteristicDefinition? GetByEntity(
             string entityDefinitionId);
-        AttributeValue? GetAttributeValue(
+        (AttributeValue Attribute, AttributeGrowthValue Growth)? GetAttributeValue(
             Guid characteristicId, 
             int level, 
             AttributeType type);

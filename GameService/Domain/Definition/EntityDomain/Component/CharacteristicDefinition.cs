@@ -29,7 +29,6 @@ namespace Domain.Definition.EntityDomain.Component
         public Guid ID { get; private set; }
         public AttributeType Type { get; private set; }
         public float BaseValue { get; private set; } // base value at this level
-        public int Level { get; private set; } // progression control
         public float Min { get; private set; }
         public float Max { get; private set; }
 
@@ -44,7 +43,6 @@ namespace Domain.Definition.EntityDomain.Component
             Guid id,
             AttributeType type,
             float baseValue,
-            int level,
             float min,
             float max,
             Guid characteristicDefinitionId)
@@ -52,7 +50,6 @@ namespace Domain.Definition.EntityDomain.Component
             ID = id;
             Type = type;
             BaseValue = baseValue;
-            Level = level;
             Min = min;
             Max = max;
             CharacteristicDefinitionID = characteristicDefinitionId;

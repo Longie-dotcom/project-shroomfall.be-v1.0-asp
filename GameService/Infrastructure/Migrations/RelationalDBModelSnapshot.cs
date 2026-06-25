@@ -145,9 +145,6 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("CharacteristicDefinitionID")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("Level")
-                        .HasColumnType("int");
-
                     b.Property<float>("Max")
                         .HasColumnType("real");
 

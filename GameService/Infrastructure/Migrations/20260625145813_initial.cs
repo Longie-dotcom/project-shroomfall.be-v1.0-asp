@@ -293,7 +293,6 @@ namespace Infrastructure.Migrations
                     ID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Type = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     BaseValue = table.Column<float>(type: "real", nullable: false),
-                    Level = table.Column<int>(type: "int", nullable: false),
                     Min = table.Column<float>(type: "real", nullable: false),
                     Max = table.Column<float>(type: "real", nullable: false),
                     CharacteristicDefinitionID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)

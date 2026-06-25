@@ -194,7 +194,6 @@ namespace Application.Services.DesignService
                     attrId,
                     attrType,
                     valDto.BaseValue,
-                    valDto.Level,
                     valDto.Min,
                     valDto.Max,
                     characteristicId

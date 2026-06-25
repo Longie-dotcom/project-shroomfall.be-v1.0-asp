@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(RelationalDB))]
-    [Migration("20260625125955_initial")]
+    [Migration("20260625145813_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -147,9 +147,6 @@ namespace Infrastructure.Migrations
 
                     b.Property<Guid>("CharacteristicDefinitionID")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Level")
-                        .HasColumnType("int");
 
                     b.Property<float>("Max")
                         .HasColumnType("real");

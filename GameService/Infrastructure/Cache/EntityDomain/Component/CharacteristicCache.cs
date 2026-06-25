@@ -11,7 +11,7 @@ namespace Infrastructure.Cache.EntityDomain.Component
         #region Attributes
         private Dictionary<Guid, CharacteristicDefinition> byId = new();
         private Dictionary<string, CharacteristicDefinition> byEntityId = new();
-        private Dictionary<(Guid, AttributeType, int), AttributeValue> attributeLookup = new();
+        private Dictionary<(Guid CharacteristicId, AttributeType Type, int Level), (AttributeValue Attribute, AttributeGrowthValue Growth)> attributeLookup = new();
         #endregion
 
         #region Properties
@@ -40,7 +40,10 @@ namespace Infrastructure.Cache.EntityDomain.Component
 
                 foreach (var attr in item.AttributeValues)
                 {
-                    attributeLookup[(item.ID, attr.Type, attr.Level)] = attr;
+                    foreach (var growth in attr.AttributeGrowthValues)
+                    {
+                        attributeLookup[(item.ID, attr.Type, growth.Level)] = (attr, growth);
+                    }
                 }
             }
         }
@@ -64,7 +67,7 @@ namespace Infrastructure.Cache.EntityDomain.Component
             return value;
         }
 
-        public AttributeValue? GetAttributeValue(
+        public (AttributeValue Attribute, AttributeGrowthValue Growth)? GetAttributeValue(
             Guid characteristicId,
             int level,
             AttributeType type)
