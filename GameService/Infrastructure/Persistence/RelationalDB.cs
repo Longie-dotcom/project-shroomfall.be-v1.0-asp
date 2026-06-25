@@ -114,42 +114,11 @@ namespace Infrastructure.Persistence
                     skin.Property(x => x.V)
                         .IsRequired();
                 });
-                entity.Property(x => x.HairID)
-                    .IsRequired(false);
-                entity.Property(x => x.EyesID)
-                    .IsRequired(false);
-                entity.Property(x => x.ShirtID)
-                    .IsRequired(false);
-                entity.Property(x => x.PantID)
-                    .IsRequired(false);
-                entity.OwnsOne(x => x.HairColor, hair =>
-                {
-                    hair.Property(x => x.H)
-                        .HasDefaultValue(0.0f);
-                    hair.Property(x => x.S)
-                        .HasDefaultValue(0.0f);
-                    hair.Property(x => x.V)
-                        .HasDefaultValue(0.0f);
-                });
-
-                entity.OwnsOne(x => x.PantColor, pant =>
-                {
-                    pant.Property(x => x.H)
-                        .HasDefaultValue(0.0f);
-                    pant.Property(x => x.S)
-                        .HasDefaultValue(0.0f);
-                    pant.Property(x => x.V)
-                        .HasDefaultValue(0.0f);
-                });
 
                 // ─────────────────────────────
                 // Indexes
                 // ─────────────────────────────
                 entity.HasIndex(x => x.SkinID);
-                entity.HasIndex(x => x.HairID);
-                entity.HasIndex(x => x.EyesID);
-                entity.HasIndex(x => x.ShirtID);
-                entity.HasIndex(x => x.PantID);
                 entity.HasIndex(x => x.EntityDefinitionID).IsUnique();
             });
 

@@ -31,78 +31,43 @@ namespace Application.Services.DesignService
             EntityType entityType,
             string entityDefinitionId)
         {
-            Console.WriteLine($"  [Factory] Routing Component Type: '{dto.ComponentType}' for Entity: '{entityDefinitionId}'");
-
-            try
+            // Route processing steps explicitly via the string contract, matching ComponentStringToDomainMapping philosophy
+            switch (dto.ComponentType)
             {
-                switch (dto.ComponentType)
-                {
-                    case nameof(AIDefinitionDTO):
-                        var aiDto = (AIDefinitionDTO)dto;
-                        Console.WriteLine($"    [AI Payload] IsAI: {aiDto.IsAIControlled}, Leash: {aiDto.LeashDistance}, Aggro: {aiDto.AggroRadius}");
-                        await UpsertAIAsync(aiDto, entityDefinitionId);
-                        break;
-
-                    case nameof(AppearanceDefinitionDTO):
-                        var appDto = (AppearanceDefinitionDTO)dto;
-                        Console.WriteLine($"    [Appearance Payload] SkinID: '{appDto.SkinID}', HairID: '{appDto.HairID}'");
-                        await UpsertAppearanceAsync(appDto, entityDefinitionId);
-                        break;
-
-                    case nameof(CollisionDefinitionDTO):
-                        var colDto = (CollisionDefinitionDTO)dto;
-                        Console.WriteLine($"    [Collision Payload] Shape: {colDto.ShapeType}, Size: {colDto.Width}x{colDto.Height}, Radius: {colDto.Radius}");
-                        await UpsertCollisionAsync(colDto, entityDefinitionId, entityType);
-                        break;
-
-                    case nameof(CharacteristicDefinitionDTO):
-                        Console.WriteLine($"    [Characteristic Payload] Forwarding sub-attributes processing collection loop...");
-                        await UpsertCharacteristicAsync((CharacteristicDefinitionDTO)dto, entityDefinitionId);
-                        break;
-
-                    case nameof(InteractableDefinitionDTO):
-                        await UpsertInteractableAsync((InteractableDefinitionDTO)dto, entityDefinitionId);
-                        break;
-
-                    case nameof(InventoryDefinitionDTO):
-                        var invDto = (InventoryDefinitionDTO)dto;
-                        Console.WriteLine($"    [Inventory Payload] Slot Count Allocated: {invDto.SlotCount}");
-                        await UpsertInventoryAsync(invDto, entityDefinitionId);
-                        break;
-
-                    case nameof(LifetimeDefinitionDTO):
-                        await UpsertLifeTimeAsync((LifetimeDefinitionDTO)dto, entityDefinitionId);
-                        break;
-
-                    case nameof(PortalDefinitionDTO):
-                        await UpsertPortalAsync((PortalDefinitionDTO)dto, entityDefinitionId);
-                        break;
-
-                    case nameof(ProjectileDefinitionDTO):
-                        await UpsertProjectileAsync((ProjectileDefinitionDTO)dto, entityDefinitionId);
-                        break;
-
-                    case nameof(TriggeredEffectDefinitionDTO):
-                        await UpsertTriggeredEffectAsync((TriggeredEffectDefinitionDTO)dto, entityDefinitionId);
-                        break;
-
-                    default:
-                        Console.WriteLine($"    [Factory] [WARNING] Unrecognized token key encountered: '{dto.ComponentType}'");
-                        throw new InternalException(
-                            ApplicationCode.DesignHandlerCode.ComponentDTOMappingFailed,
-                            $"Component payload identifier contract '{dto.ComponentType}' is unrecognized by the execution pipeline factory.");
-                }
-                Console.WriteLine($"    [Factory] [SUCCESS] Target save pipeline completed cleanly.");
-            }
-            catch (InvalidCastException castEx)
-            {
-                Console.WriteLine($"    [Factory] [CRITICAL CAST ERROR] Polymorphic failure on '{dto.ComponentType}'. Type cannot be cast directly to its concrete child DTO class. Message: {castEx.Message}");
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"    [Factory] [ERROR] Internal exception caught inside factory routing execution: {ex.Message}");
-                throw;
+                case nameof(AIDefinitionDTO):
+                    await UpsertAIAsync((AIDefinitionDTO)dto, entityDefinitionId);
+                    break;
+                case nameof(AppearanceDefinitionDTO):
+                    await UpsertAppearanceAsync((AppearanceDefinitionDTO)dto, entityDefinitionId);
+                    break;
+                case nameof(CollisionDefinitionDTO):
+                    await UpsertCollisionAsync((CollisionDefinitionDTO)dto, entityDefinitionId, entityType);
+                    break;
+                case nameof(CharacteristicDefinitionDTO):
+                    await UpsertCharacteristicAsync((CharacteristicDefinitionDTO)dto, entityDefinitionId);
+                    break;
+                case nameof(InteractableDefinitionDTO):
+                    await UpsertInteractableAsync((InteractableDefinitionDTO)dto, entityDefinitionId);
+                    break;
+                case nameof(InventoryDefinitionDTO):
+                    await UpsertInventoryAsync((InventoryDefinitionDTO)dto, entityDefinitionId);
+                    break;
+                case nameof(LifetimeDefinitionDTO):
+                    await UpsertLifeTimeAsync((LifetimeDefinitionDTO)dto, entityDefinitionId);
+                    break;
+                case nameof(PortalDefinitionDTO):
+                    await UpsertPortalAsync((PortalDefinitionDTO)dto, entityDefinitionId);
+                    break;
+                case nameof(ProjectileDefinitionDTO):
+                    await UpsertProjectileAsync((ProjectileDefinitionDTO)dto, entityDefinitionId);
+                    break;
+                case nameof(TriggeredEffectDefinitionDTO):
+                    await UpsertTriggeredEffectAsync((TriggeredEffectDefinitionDTO)dto, entityDefinitionId);
+                    break;
+                default:
+                    throw new InternalException(
+                        ApplicationCode.DesignHandlerCode.ComponentDTOMappingFailed,
+                        $"Component payload identifier contract '{dto.ComponentType}' is unrecognized by the execution pipeline factory.");
             }
         }
 
@@ -124,21 +89,11 @@ namespace Application.Services.DesignService
         private async Task UpsertAppearanceAsync(
             AppearanceDefinitionDTO dto, string entityDefinitionId)
         {
-            var skinColor = new HSV(dto.SkinColor.H, dto.SkinColor.S, dto.SkinColor.V);
-            var hairColor = dto.HairColor != null ? new HSV(dto.HairColor.H, dto.HairColor.S, dto.HairColor.V) : new HSV();
-            var pantColor = dto.PantColor != null ? new HSV(dto.PantColor.H, dto.PantColor.S, dto.PantColor.V) : new HSV();
-
             var component = new AppearanceDefinition(
                 Guid.NewGuid(),
                 entityDefinitionId,
                 dto.SkinID,
-                skinColor,
-                dto.HairID,
-                dto.EyesID,
-                dto.ShirtID,
-                dto.PantID,
-                hairColor,
-                pantColor
+                new HSV(dto.SkinColor.H, dto.SkinColor.S, dto.SkinColor.V)
             );
 
             await relationalUoW.GetRepository<IAppearanceDefinitionRepository>().UpsertAsync(component);

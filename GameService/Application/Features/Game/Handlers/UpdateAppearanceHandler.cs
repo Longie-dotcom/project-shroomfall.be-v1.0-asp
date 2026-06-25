@@ -74,13 +74,7 @@ namespace Application.Features.Game.Handlers
             // Update appearance
             appearance.UpdateAppearance(
                 dto.SkinID,
-                new HSV(dto.SkinColor.H, dto.SkinColor.S, dto.SkinColor.V),
-                dto.HairID,
-                dto.EyesID,
-                dto.ShirtID,
-                dto.PantID,
-                new HSV(dto.HairColor.H, dto.HairColor.S, dto.HairColor.V),
-                new HSV(dto.PantColor.H, dto.PantColor.S, dto.PantColor.V)
+                new HSV(dto.SkinColor.H, dto.SkinColor.S, dto.SkinColor.V)
             );
 
             // Publish changes

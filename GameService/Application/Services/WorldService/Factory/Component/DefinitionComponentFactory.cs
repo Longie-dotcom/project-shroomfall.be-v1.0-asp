@@ -64,13 +64,7 @@ namespace Application.Services.WorldService.Factory.Component
             return new AppearanceInstance(
                 def.ID,
                 def.SkinID,
-                def.SkinColor,
-                def.HairID,
-                def.EyesID,
-                def.ShirtID,
-                def.PantID,
-                def.HairColor,
-                def.PantColor);
+                def.SkinColor);
         }
 
         private CollisionInstance CreateCollision(

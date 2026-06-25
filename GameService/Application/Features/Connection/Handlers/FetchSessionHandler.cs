@@ -5,7 +5,6 @@ using Application.Interfaces.Repository.NonRelational;
 using Contract.DTO.Common;
 using Contract.DTO.Connection;
 using Contract.DTO.Domain.Runtime;
-using Domain.Common;
 using Domain.Snapshot.EntityDomain.Component;
 
 namespace Application.Features.Connection.Handlers
@@ -59,25 +58,12 @@ namespace Application.Features.Connection.Handlers
             return new AppearanceInstanceDTO
             {
                 SkinID = appearance.SkinID,
-                HairID = appearance.HairID ?? string.Empty,
-                EyesID = appearance.EyesID ?? string.Empty,
-                ShirtID = appearance.ShirtID ?? string.Empty,
-                PantID = appearance.PantID ?? string.Empty,
-                SkinColor = MapHSVDTO(appearance.HairColor),
-                HairColor = MapHSVDTO(appearance.HairColor),
-                PantColor = MapHSVDTO(appearance.PantColor)
-            };
-        }
-
-        private HSVDTO MapHSVDTO(HSV? hsv)
-        {
-            if (hsv == null) return new HSVDTO();
-
-            return new HSVDTO
-            {
-                H = hsv.H,
-                S = hsv.S,
-                V = hsv.V
+                SkinColor = new HSVDTO
+                {
+                    H = appearance.SkinColor.H,
+                    S = appearance.SkinColor.S,
+                    V = appearance.SkinColor.V
+                },
             };
         }
         #endregion

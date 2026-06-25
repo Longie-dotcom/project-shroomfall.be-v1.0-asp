@@ -90,13 +90,7 @@ namespace Application.Services.WorldService.Factory.Component
             return new AppearanceInstance(
                 snapshot.DefinitionID,
                 snapshot.SkinID,
-                snapshot.SkinColor,
-                snapshot.HairID,
-                snapshot.EyesID,
-                snapshot.ShirtID,
-                snapshot.PantID,
-                snapshot.HairColor,
-                snapshot.PantColor
+                snapshot.SkinColor
             );
         }
 
