@@ -39,6 +39,8 @@
 
             public static string MandatorySchemaElementsMissing = Format("mandatory-schema-elements-missing");
             public static string ComponentSignatureMappingFailed = Format("component-signature-mapping-failed");
+            public static string ComponentDTOMappingFailed = Format("component-dto-mapping-failed");
+            public static string ComponentSignatureNotFound = Format("component-signature-not-found");
             public static string EntityDefinitionNotFound = Format("entity-definition-not-found");
         }
 

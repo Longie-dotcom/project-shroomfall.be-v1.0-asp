@@ -62,7 +62,7 @@ namespace Application.Services.DesignService
                     break;
                 default:
                     throw new InternalException(
-                        ApplicationCode.DesignHandlerCode.ComponentSignatureMappingFailed,
+                        ApplicationCode.DesignHandlerCode.ComponentDTOMappingFailed,
                         $"Component DTO type '{dto.GetType().Name}' is not supported by the designer factory.");
             }
         }

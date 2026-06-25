@@ -20,18 +20,18 @@ namespace Application.Features.Design.Handlers
         private readonly LocalizationEntryFactory localizationEntryFactory;
         private readonly DesignerComponentFactory designerComponentFactory;
 
-        private static readonly Dictionary<Type, Type> DtoToDomainMapping = new()
+        private static readonly Dictionary<string, Type> ComponentStringToDomainMapping = new(StringComparer.OrdinalIgnoreCase)
         {
-            { typeof(AIDefinitionDTO), typeof(AIDefinition) },
-            { typeof(AppearanceDefinitionDTO), typeof(AppearanceDefinition) },
-            { typeof(CollisionDefinitionDTO), typeof(CollisionDefinition) },
-            { typeof(CharacteristicDefinitionDTO), typeof(CharacteristicDefinition) },
-            { typeof(InteractableDefinitionDTO), typeof(InteractableDefinition) },
-            { typeof(InventoryDefinitionDTO), typeof(InventoryDefinition) },
-            { typeof(LifetimeDefinitionDTO), typeof(LifetimeDefinition) },
-            { typeof(PortalDefinitionDTO), typeof(PortalDefinition) },
-            { typeof(ProjectileDefinitionDTO), typeof(ProjectileDefinition) },
-            { typeof(TriggeredEffectDefinitionDTO), typeof(TriggeredEffectDefinition) }
+            { nameof(AIDefinitionDTO), typeof(AIDefinition) },
+            { nameof(AppearanceDefinitionDTO), typeof(AppearanceDefinition) },
+            { nameof(CollisionDefinitionDTO), typeof(CollisionDefinition) },
+            { nameof(CharacteristicDefinitionDTO), typeof(CharacteristicDefinition) },
+            { nameof(InteractableDefinitionDTO), typeof(InteractableDefinition) },
+            { nameof(InventoryDefinitionDTO), typeof(InventoryDefinition) },
+            { nameof(LifetimeDefinitionDTO), typeof(LifetimeDefinition) },
+            { nameof(PortalDefinitionDTO), typeof(PortalDefinition) },
+            { nameof(ProjectileDefinitionDTO), typeof(ProjectileDefinition) },
+            { nameof(TriggeredEffectDefinitionDTO), typeof(TriggeredEffectDefinition) }
         };
         #endregion
 
@@ -98,17 +98,23 @@ namespace Application.Features.Design.Handlers
             }
         }
 
-        private Type MapDtoToDomainType(
-            ComponentDefinitionDTO dto)
+        private Type MapDtoToDomainType(ComponentDefinitionDTO dto)
         {
-            if (DtoToDomainMapping.TryGetValue(dto.GetType(), out var domainType))
+            if (string.IsNullOrWhiteSpace(dto.ComponentType))
+            {
+                throw new InternalException(
+                    ApplicationCode.DesignHandlerCode.ComponentSignatureNotFound,
+                    "Component Definition DTO is missing its string identifier ComponentType.");
+            }
+
+            if (ComponentStringToDomainMapping.TryGetValue(dto.ComponentType, out var domainType))
             {
                 return domainType;
             }
 
             throw new InternalException(
                 ApplicationCode.DesignHandlerCode.ComponentSignatureMappingFailed,
-                $"Component metadata contract '{dto.GetType().Name}' cannot be translated to a target domain signature.");
+                $"Component metadata contract '{dto.ComponentType}' cannot be translated to a target domain signature.");
         }
         #endregion
     }
