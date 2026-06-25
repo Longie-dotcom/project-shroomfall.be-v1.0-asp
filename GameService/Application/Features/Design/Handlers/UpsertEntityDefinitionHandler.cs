@@ -73,7 +73,7 @@ namespace Application.Features.Design.Handlers
             // Pipeline component definitions generation (Inner factory overwrites or inserts completely fresh components dynamically)
             foreach (var componentDto in dto.Components)
             {
-                await designerComponentFactory.UpsertAndSaveAsync(componentDto, dto.ID);
+                await designerComponentFactory.UpsertAndSaveAsync(componentDto, dto.Type, dto.ID);
             }
 
             await relationalUoW.SaveChangesAsync();

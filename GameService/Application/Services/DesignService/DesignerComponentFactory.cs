@@ -1,8 +1,10 @@
 ﻿using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
 using Contract.DTO.Domain.Definition;
+using Contract.Enum.EntityDomain;
 using Domain.Common;
 using Domain.Definition.EntityDomain.Component;
+using Domain.Shared;
 using Domain.Shared.DomainException;
 using Domain.Shared.ResponseCode;
 
@@ -26,44 +28,46 @@ namespace Application.Services.DesignService
         #region Methods
         public async Task UpsertAndSaveAsync(
             ComponentDefinitionDTO dto,
+            EntityType entityType,
             string entityDefinitionId)
         {
-            switch (dto)
+            // Route processing steps explicitly via the string contract, matching ComponentStringToDomainMapping philosophy
+            switch (dto.ComponentType)
             {
-                case AIDefinitionDTO ai:
-                    await UpsertAIAsync(ai, entityDefinitionId);
+                case nameof(AIDefinitionDTO):
+                    await UpsertAIAsync((AIDefinitionDTO)dto, entityDefinitionId);
                     break;
-                case AppearanceDefinitionDTO appearance:
-                    await UpsertAppearanceAsync(appearance, entityDefinitionId);
+                case nameof(AppearanceDefinitionDTO):
+                    await UpsertAppearanceAsync((AppearanceDefinitionDTO)dto, entityDefinitionId);
                     break;
-                case CollisionDefinitionDTO collision:
-                    await UpsertCollisionAsync(collision, entityDefinitionId);
+                case nameof(CollisionDefinitionDTO):
+                    await UpsertCollisionAsync((CollisionDefinitionDTO)dto, entityDefinitionId, entityType);
                     break;
-                case CharacteristicDefinitionDTO characteristic:
-                    await UpsertCharacteristicAsync(characteristic, entityDefinitionId);
+                case nameof(CharacteristicDefinitionDTO):
+                    await UpsertCharacteristicAsync((CharacteristicDefinitionDTO)dto, entityDefinitionId);
                     break;
-                case InteractableDefinitionDTO interactable:
-                    await UpsertInteractableAsync(interactable, entityDefinitionId);
+                case nameof(InteractableDefinitionDTO):
+                    await UpsertInteractableAsync((InteractableDefinitionDTO)dto, entityDefinitionId);
                     break;
-                case InventoryDefinitionDTO inventory:
-                    await UpsertInventoryAsync(inventory, entityDefinitionId);
+                case nameof(InventoryDefinitionDTO):
+                    await UpsertInventoryAsync((InventoryDefinitionDTO)dto, entityDefinitionId);
                     break;
-                case LifetimeDefinitionDTO lifetime:
-                    await UpsertLifeTimeAsync(lifetime, entityDefinitionId);
+                case nameof(LifetimeDefinitionDTO):
+                    await UpsertLifeTimeAsync((LifetimeDefinitionDTO)dto, entityDefinitionId);
                     break;
-                case PortalDefinitionDTO portal:
-                    await UpsertPortalAsync(portal, entityDefinitionId);
+                case nameof(PortalDefinitionDTO):
+                    await UpsertPortalAsync((PortalDefinitionDTO)dto, entityDefinitionId);
                     break;
-                case ProjectileDefinitionDTO projectile:
-                    await UpsertProjectileAsync(projectile, entityDefinitionId);
+                case nameof(ProjectileDefinitionDTO):
+                    await UpsertProjectileAsync((ProjectileDefinitionDTO)dto, entityDefinitionId);
                     break;
-                case TriggeredEffectDefinitionDTO triggeredEffect:
-                    await UpsertTriggeredEffectAsync(triggeredEffect, entityDefinitionId);
+                case nameof(TriggeredEffectDefinitionDTO):
+                    await UpsertTriggeredEffectAsync((TriggeredEffectDefinitionDTO)dto, entityDefinitionId);
                     break;
                 default:
                     throw new InternalException(
                         ApplicationCode.DesignHandlerCode.ComponentDTOMappingFailed,
-                        $"Component DTO type '{dto.GetType().Name}' is not supported by the designer factory.");
+                        $"Component payload identifier contract '{dto.ComponentType}' is unrecognized by the execution pipeline factory.");
             }
         }
 
@@ -106,8 +110,56 @@ namespace Application.Services.DesignService
         }
 
         private async Task UpsertCollisionAsync(
-            CollisionDefinitionDTO dto, string entityDefinitionId)
+            CollisionDefinitionDTO dto,
+            string entityDefinitionId,
+            EntityType entityType)
         {
+            var finalLayer = dto.Layer;
+            var finalMask = dto.Mask;
+
+            // Fallback Preset Engine: If frontend passes 0/None, infer correct defaults from the concrete EntityType
+            if (finalLayer == CollisionLayer.None || finalMask == CollisionLayer.None)
+            {
+                switch (entityType)
+                {
+                    case EntityType.Player:
+                        finalLayer = CollisionLayer.Player;
+                        finalMask = CollisionPresets.PlayerMask;
+                        break;
+
+                    case EntityType.Creature:
+                        finalLayer = CollisionLayer.Enemy;
+                        finalMask = CollisionPresets.EnemyMask;
+                        break;
+
+                    case EntityType.WorldObject:
+                        finalLayer = CollisionLayer.Wall;
+                        finalMask = CollisionPresets.WallMask;
+                        break;
+
+                    case EntityType.Projectile:
+                        // Defaulting to Player-sourced projectiles; game rules can override manually via frontend
+                        finalLayer = CollisionLayer.PlayerProjectile;
+                        finalMask = CollisionPresets.PlayerProjectileMask;
+                        break;
+
+                    case EntityType.AreaEffect:
+                    case EntityType.Portal:
+                        finalLayer = CollisionLayer.TriggerZone;
+                        finalMask = CollisionPresets.TriggerZoneMask;
+                        break;
+
+                    case EntityType.Item:
+                        finalLayer = CollisionLayer.Collectible;
+                        finalMask = CollisionPresets.CollectibleMask;
+                        break;
+
+                    default:
+                        // No mapping found: maintain structural values as passed from client
+                        break;
+                }
+            }
+
             var component = new CollisionDefinition(
                 Guid.NewGuid(),
                 entityDefinitionId,
@@ -116,8 +168,8 @@ namespace Application.Services.DesignService
                 dto.Height,
                 dto.Radius,
                 dto.IsBlocking,
-                dto.Layer,
-                dto.Mask,
+                finalLayer,
+                finalMask,
                 dto.OffsetX,
                 dto.OffsetY
             );
