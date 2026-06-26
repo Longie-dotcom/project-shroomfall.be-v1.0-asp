@@ -63,15 +63,20 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      # 1. Reset MSSQL Database Schema securely using your existing Railway keys
+      # 1. Reset MSSQL Database Schema by splitting the connection string
       - name: Reset Database Schema
         if: ${{ needs.build.outputs.reset_db == 'true' }}
         run: |
           npm install -g sql-cli
           
-          # railway run maps your database port to localhost on the runner machine
+          # railway run injects your SQL_CONNECTION_STRING automatically
           railway run --service server.railway.internal bash -c '
-            mssql -s 127.0.0.1 -u sa -p "$SA_PASSWORD" -d master -q "
+            # Split and extract your exact variables using pattern matching
+            DB_USER=$(echo "$SQL_CONNECTION_STRING" | grep -oP "User Id=\K[^;]+")
+            DB_PASS=$(echo "$SQL_CONNECTION_STRING" | grep -oP "Password=\K[^;]+")
+            
+            # Connect via local tunnel loopback (127.0.0.1) using the split parameters
+            mssql -s 127.0.0.1 -u "$DB_USER" -p "$DB_PASS" -d master -q "
               IF EXISTS (SELECT name FROM sys.databases WHERE name = '\''GameServiceDB'\'')
               BEGIN
                   ALTER DATABASE [GameServiceDB] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
