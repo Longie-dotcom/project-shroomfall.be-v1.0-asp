@@ -63,13 +63,28 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      # 1. Reset Database (Using SQL instead of tearing down the Railway service)
-      # Note: Adjust the command below based on your specific DB engine (Postgres used as example)
+      # 1. Reset MSSQL Database Schema securely using your existing Railway keys
       - name: Reset Database Schema
         if: ${{ needs.build.outputs.reset_db == 'true' }}
-        run: psql $DATABASE_URL -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+        run: |
+          npm install -g sql-cli
+          
+          # railway run pulls your SQL_CONNECTION_STRING automatically.
+          # We just swap the DB target to 'master' in memory so SQL Server allows the drop.
+          railway run bash -c '
+            MASTER_CONN=$(echo $SQL_CONNECTION_STRING | sed "s/Database=GameServiceDB/Database=master/g")
+            
+            mssql -c "$MASTER_CONN" -q "
+              IF EXISTS (SELECT name FROM sys.databases WHERE name = '\''GameServiceDB'\'')
+              BEGIN
+                  ALTER DATABASE [GameServiceDB] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+                  DROP DATABASE [GameServiceDB];
+              END
+              CREATE DATABASE [GameServiceDB];
+            "
+          ' --service server.railway.internal
         env:
-          DATABASE_URL: ${{ secrets.RAILWAY_DATABASE_URL }}
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
         # 2. Tell Railway to rebuild and redeploy the current service
       - name: Redeploy Game Service
