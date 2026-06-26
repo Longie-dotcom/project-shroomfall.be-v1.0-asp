@@ -60,19 +60,22 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      - name: Authenticate Railway
-        run: railway login --token ${{ secrets.RAILWAY_TOKEN }}
+      - name: Check Railway authentication
+        run: railway whoami
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
       - name: Link Railway Project
         run: railway link --project ${{ secrets.RAILWAY_PROJECT_ID }}
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
-      - name: Deploy Game Service to Railway
+      - name: Deploy Game Service
         run: railway up --service gamems
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
-      - name: Deploy Studio FE to Railway
+      - name: Deploy Studio FE
         run: railway up --service studio-fe
-
-      - name: Run DB Migration Safety Check
-        run: |
-          echo "Migrations are handled inside the app with retry policy"
-          echo "No DB destroy/recreate allowed on Railway"
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
