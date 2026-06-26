@@ -69,10 +69,9 @@ jobs:
         run: |
           npm install -g sql-cli
           
-          # railway run pulls SA_PASSWORD automatically. 
-          # We explicitly connect to the 'master' database using individual flags.
+          # railway run maps your database port to localhost on the runner machine
           railway run --service server.railway.internal bash -c '
-            mssql -s server.railway.internal -u sa -p "$SA_PASSWORD" -d master -q "
+            mssql -s 127.0.0.1 -u sa -p "$SA_PASSWORD" -d master -q "
               IF EXISTS (SELECT name FROM sys.databases WHERE name = '\''GameServiceDB'\'')
               BEGIN
                   ALTER DATABASE [GameServiceDB] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
