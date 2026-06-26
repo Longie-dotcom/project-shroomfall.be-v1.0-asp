@@ -73,7 +73,7 @@ jobs:
 
         # 2. Tell Railway to rebuild and redeploy the current service
       - name: Redeploy Game Service
-        run: railway redeploy --service gamems-api --yes
+        run: railway redeploy --service gamems-api.railway.internal --yes
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
