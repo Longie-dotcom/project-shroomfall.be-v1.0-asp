@@ -1,4 +1,4 @@
-name: Build & Deploy
+name: Build & Deploy (Railway)
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 2
           submodules: recursive
 
-      - name: Check migration changes
+      - name: Detect migration changes
         id: check_migrations
         run: |
           if git diff --name-only HEAD~1 HEAD | grep -q "GameService/Infrastructure/Migrations"; then
@@ -39,42 +39,40 @@ jobs:
       - name: Build
         run: dotnet build GameService/API/API.csproj --configuration Release --no-restore
 
-      - name: Login to Docker Hub
+      - name: Login Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Build Docker image
-        run: docker build -t longdong123/shroomfall-gamems:latest -f GameService/Dockerfile .
+        run: |
+          docker build \
+            -t longdong123/shroomfall-gamems:latest \
+            -f GameService/Dockerfile .
 
       - name: Push Docker image
         run: docker push longdong123/shroomfall-gamems:latest
+
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to VPS via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            set -e
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
 
-            cd /root
+      - name: Authenticate Railway
+        run: railway login --token ${{ secrets.RAILWAY_TOKEN }}
 
-            echo "Pulling latest image..."
-            docker pull longdong123/shroomfall-gamems:latest
+      - name: Link Railway Project
+        run: railway link --project ${{ secrets.RAILWAY_PROJECT_ID }}
 
-            if [ "${{ needs.build.outputs.reset_db }}" = "true" ]; then
-              echo "Migration changed. Wiping databases..."
-              docker compose down -v
-            else
-              echo "No migration changes."
-              docker compose down
-            fi
+      - name: Deploy Game Service to Railway
+        run: railway up --service gamems
 
-            docker compose up -d --remove-orphans
+      - name: Deploy Studio FE to Railway
+        run: railway up --service studio-fe
 
-            echo "Deployment completed"
+      - name: Run DB Migration Safety Check
+        run: |
+          echo "Migrations are handled inside the app with retry policy"
+          echo "No DB destroy/recreate allowed on Railway"

@@ -3,7 +3,7 @@ version: "3.9"
 services:
   gamems:
     image: longdong123/shroomfall-gamems:latest
-    container_name: gamems
+    container_name: gamems-api
     ports:
       - "5000:8080"
     depends_on:
@@ -11,6 +11,16 @@ services:
       - mongodb
     env_file:
       - .env
+
+  studio-fe:
+    image: longdong123/shroomfall-studio-fe:latest
+    ports:
+      - "80:80"
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - gamems
 
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
