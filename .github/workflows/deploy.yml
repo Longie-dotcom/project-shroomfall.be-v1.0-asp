@@ -56,32 +56,32 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
 
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install Railway CLI
-      run: npm install -g @railway/cli
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
 
-    # 1. WIPE PATH: Set variable to true (triggers deploy), then immediately turn it off for the future
-    - name: Redeploy Game Service with DB Wipe
-      if: ${{ needs.build.outputs.reset_db == 'true' }}
-      run: |
-        # This saves WIPE_DB=true and instantly triggers the wipe deployment
-        railway variables set WIPE_DB=true --service gamems-api.railway.internal
-        
-        # Wait 15 seconds to ensure Railway snapshots the "true" variable for the active deployment...
-        sleep 15
+      # 1. WIPE PATH: Set variable to true (triggers deploy), then immediately turn it off for the future
+      - name: Redeploy Game Service with DB Wipe
+        if: ${{ needs.build.outputs.reset_db == 'true' }}
+        run: |
+          # This saves WIPE_DB=true and instantly triggers the wipe deployment
+          railway variables set WIPE_DB=true --service gamems-api.railway.internal
           
-        # ...then safely flip it back to "false" so future crashes or normal deploys don't wipe the DB!
-        railway variables set WIPE_DB=false --service gamems-api.railway.internal --skip-deploys
-      env:
-        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          # Wait 15 seconds to ensure Railway snapshots the "true" variable for the active deployment...
+          sleep 15
+            
+          # ...then safely flip it back to "false" so future crashes or normal deploys don't wipe the DB!
+          railway variables set WIPE_DB=false --service gamems-api.railway.internal --skip-deploys
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
-      # 2. NORMAL PATH: Only runs if a database reset was NOT requested
-    - name: Redeploy Game Service (Normal)
-      if: ${{ needs.build.outputs.reset_db != 'true' }}
-      run: railway redeploy --service gamems-api.railway.internal --yes
-      env:
-        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        # 2. NORMAL PATH: Only runs if a database reset was NOT requested
+      - name: Redeploy Game Service (Normal)
+        if: ${{ needs.build.outputs.reset_db != 'true' }}
+        run: railway redeploy --service gamems-api.railway.internal --yes
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
