@@ -69,9 +69,8 @@ jobs:
         run: |
           npm install -g sql-cli
           
-          # railway run pulls your SQL_CONNECTION_STRING automatically.
-          # We just swap the DB target to 'master' in memory so SQL Server allows the drop.
-          railway run bash -c '
+          # Fix: Place the --service flag immediately after 'railway run'
+          railway run --service server.railway.internal bash -c '
             MASTER_CONN=$(echo $SQL_CONNECTION_STRING | sed "s/Database=GameServiceDB/Database=master/g")
             
             mssql -c "$MASTER_CONN" -q "
@@ -82,7 +81,7 @@ jobs:
               END
               CREATE DATABASE [GameServiceDB];
             "
-          ' --service server.railway.internal
+          '
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
