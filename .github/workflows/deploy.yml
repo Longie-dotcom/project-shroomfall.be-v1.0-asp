@@ -70,15 +70,15 @@ jobs:
           env:
             RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
-        # 2. Instantly spin up a fresh SQL Server instance with the same name
+        # 2. Instantly spin up a fresh SQL Server instance (Fixed CLI creation flags)
         - name: Recreate Fresh SQL Server
           if: ${{ needs.build.outputs.reset_db == 'true' }}
-          run: railway service:create --name server.railway.internal
+          run: railway service:create --name "server.railway.internal"
           env:
             RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
-        # 3. Deploy your updated backend (Ensure context.Database.Migrate() is in Program.cs)
+        # 3. Deploy your updated backend (Explicitly pointing to your Dockerfile to bypass Railpack)
         - name: Deploy Game Service
-          run: railway up --service gamems-api.railway.internal
+          run: railway up --service gamems-api.railway.internal --dockerfile GameService/Dockerfile
           env:
             RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
