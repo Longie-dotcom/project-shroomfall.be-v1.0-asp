@@ -53,32 +53,27 @@ jobs:
 
 
   deploy:
-      needs: build
-      runs-on: ubuntu-latest
+    needs: build
+    runs-on: ubuntu-latest
 
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-        - name: Install Railway CLI
-          run: npm install -g @railway/cli
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
 
-        # 1. Nuke the old SQL database container if migrations changed
-        - name: Delete Old SQL Server
-          if: ${{ needs.build.outputs.reset_db == 'true' }}
-          run: railway service:delete --service server.railway.internal --agree
-          env:
-            RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      # 1. Reset Database (Using SQL instead of tearing down the Railway service)
+      # Note: Adjust the command below based on your specific DB engine (Postgres used as example)
+      - name: Reset Database Schema
+        if: ${{ needs.build.outputs.reset_db == 'true' }}
+        run: psql $DATABASE_URL -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+        env:
+          DATABASE_URL: ${{ secrets.RAILWAY_DATABASE_URL }}
 
-        # 2. Instantly spin up a fresh SQL Server instance
-        - name: Recreate Fresh SQL Server
-          if: ${{ needs.build.outputs.reset_db == 'true' }}
-          run: railway service:create --name "server.railway.internal"
-          env:
-            RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        # 2. Tell Railway to rebuild and redeploy the current service
+      - name: Redeploy Game Service
+        run: railway redeploy --service gamems-api --yes
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
-        # 3. Tell Railway to rebuild and redeploy the current service using its saved settings
-        - name: Redeploy Game Service
-          run: railway service:redeploy --service gamems-api.railway.internal --agree
-          env:
-            RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
