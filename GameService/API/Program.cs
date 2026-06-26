@@ -116,13 +116,28 @@ namespace API
                 var db = scope.ServiceProvider.GetRequiredService<RelationalDB>();
                 var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
+                // 1. Check for the wipe flag BEFORE attempting any migrations
+                if (Environment.GetEnvironmentVariable("WIPE_DB") == "true")
+                {
+                    logger.LogWarning("WIPE_DB flag detected! Dropping the database entirely...");
+
+                    // This completely wipes the database schema and data
+                    db.Database.EnsureDeleted();
+
+                    logger.LogInformation("Database dropped successfully. Proceeding to rebuild via migrations...");
+                }
+
                 var retries = 5;
                 while (retries > 0)
                 {
                     try
                     {
                         logger.LogInformation("Applying database migrations...");
+
+                        // 2. This will now recreate the DB from scratch (if we just dropped it) 
+                        // and apply all your migration files cleanly.
                         db.Database.Migrate();
+
                         logger.LogInformation("Database migration completed.");
                         break;
                     }
