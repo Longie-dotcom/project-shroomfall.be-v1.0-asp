@@ -77,8 +77,8 @@ jobs:
           env:
             RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
-        # 3. Deploy your backend using the GameService folder context
-        - name: Deploy Game Service
-          run: railway up --service gamems-api.railway.internal GameService
+        # 3. Tell Railway to rebuild and redeploy the current service using its saved settings
+        - name: Redeploy Game Service
+          run: railway service:redeploy --service gamems-api.railway.internal --agree
           env:
             RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
