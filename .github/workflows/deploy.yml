@@ -66,25 +66,19 @@ jobs:
         # 1. Nuke the old SQL database container if migrations changed
         - name: Delete Old SQL Server
           if: ${{ needs.build.outputs.reset_db == 'true' }}
-          run: railway service:delete --service server --agree
+          run: railway service:delete --service server.railway.internal --agree
           env:
             RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
         # 2. Instantly spin up a fresh SQL Server instance with the same name
         - name: Recreate Fresh SQL Server
           if: ${{ needs.build.outputs.reset_db == 'true' }}
-          run: railway service:create --name server
+          run: railway service:create --name server.railway.internal
           env:
             RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
         # 3. Deploy your updated backend (Ensure context.Database.Migrate() is in Program.cs)
         - name: Deploy Game Service
-          run: railway up --service gamems-api
-          env:
-            RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-
-        # 4. Deploy your frontend
-        - name: Deploy Studio FE
-          run: railway up --service studio-fe
+          run: railway up --service gamems-api.railway.internal
           env:
             RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
