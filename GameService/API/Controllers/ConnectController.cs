@@ -25,6 +25,17 @@ namespace API.Controllers
         }
 
         #region Methods
+        [HttpGet("ping")]
+        [AllowAnonymous]
+        public IActionResult Ping()
+        {
+            return Ok(new
+            {
+                status = "ok",
+                timestamp = DateTime.UtcNow
+            });
+        }
+
         [Authorize]
         [HttpGet("sessions")]
         public async Task<IActionResult> FetchSessions()
