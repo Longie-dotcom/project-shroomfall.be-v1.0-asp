@@ -63,41 +63,21 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      # 1. Reset MSSQL Database Schema using the Public Proxy Endpoint
-      - name: Reset Database Schema
+      # 1. Completely remove the active database deployment (wipes ephemeral container state)
+      - name: Tear Down Database Instance
         if: ${{ needs.build.outputs.reset_db == 'true' }}
-        run: |
-          npm install -g sql-cli
-          
-          # railway run injects your SQL_CONNECTION_STRING automatically
-          railway run --service server.railway.internal bash -c '
-            # Extract the raw host:port string (e.g., server.railway.internal:1433 or a public endpoint)
-            FULL_SERVER=$(echo "$SQL_CONNECTION_STRING" | grep -oP "Server=\K[^;]+")
-            
-            # Split host and port if a custom public port is specified (e.g., host,port or host:port)
-            DB_HOST=$(echo "$FULL_SERVER" | tr "," ":" | cut -d":" -f1)
-            DB_PORT=$(echo "$FULL_SERVER" | tr "," ":" | cut -d":" -f2)
-            
-            # If no custom port was parsed, default to standard MSSQL port
-            if [ -z "$DB_PORT" ]; then DB_PORT="1433"; fi
-            
-            DB_USER=$(echo "$SQL_CONNECTION_STRING" | grep -oP "User Id=\K[^;]+")
-            DB_PASS=$(echo "$SQL_CONNECTION_STRING" | grep -oP "Password=\K[^;]+")
-            
-            # Execute against the master database using the public endpoint parameters
-            mssql -s "$DB_HOST" -p "$DB_PORT" -u "$DB_USER" -p "$DB_PASS" -d master -q "
-              IF EXISTS (SELECT name FROM sys.databases WHERE name = '\''GameServiceDB'\'')
-              BEGIN
-                  ALTER DATABASE [GameServiceDB] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-                  DROP DATABASE [GameServiceDB];
-              END
-              CREATE DATABASE [GameServiceDB];
-            "
-          '
+        run: railway down --service server.railway.internal --yes
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
-        # 2. Tell Railway to rebuild and redeploy the current service
+      # 2. Re-deploy a fresh Database Instance from the base image
+      - name: Re-deploy Clean Database
+        if: ${{ needs.build.outputs.reset_db == 'true' }}
+        run: railway redeploy --service server.railway.internal --yes
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      # 3. Tell Railway to rebuild and redeploy the current service
       - name: Redeploy Game Service
         run: railway redeploy --service gamems-api.railway.internal --yes
         env:
