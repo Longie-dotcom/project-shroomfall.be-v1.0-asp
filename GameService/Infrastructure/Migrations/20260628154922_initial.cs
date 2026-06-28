@@ -362,7 +362,6 @@ namespace Infrastructure.Migrations
                     X = table.Column<int>(type: "int", nullable: false),
                     Y = table.Column<int>(type: "int", nullable: false),
                     Z = table.Column<int>(type: "int", nullable: false),
-                    TileID = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Type = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
@@ -521,11 +520,6 @@ namespace Infrastructure.Migrations
                 table: "Cells",
                 columns: new[] { "RoomDefinitionID", "X", "Y", "Z" },
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Cells_TileID",
-                table: "Cells",
-                column: "TileID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CharacteristicDefinitions_EntityDefinitionID",

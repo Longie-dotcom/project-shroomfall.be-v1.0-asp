@@ -628,17 +628,11 @@ namespace Infrastructure.Migrations
                     b.Property<int>("Z")
                         .HasColumnType("int");
 
-                    b.Property<string>("TileID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("RoomDefinitionID", "X", "Y", "Z");
-
-                    b.HasIndex("TileID");
 
                     b.HasIndex("RoomDefinitionID", "X", "Y", "Z")
                         .IsUnique();
