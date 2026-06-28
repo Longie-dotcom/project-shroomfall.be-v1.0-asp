@@ -116,7 +116,6 @@ namespace Domain.Definition.WorldDomain
 
         #region Properties
         public string RoomDefinitionID { get; private set; } = string.Empty;
-        public string TileID { get; private set; } = string.Empty;
         public CellType Type { get; private set; }
         public int X { get; private set; }
         public int Y { get; private set; }
@@ -129,14 +128,12 @@ namespace Domain.Definition.WorldDomain
 
         public Cell(
             string roomDefinitionId,
-            string tileId,
             CellType type,
             int x,
             int y,
             int z)
         {
             RoomDefinitionID = roomDefinitionId;
-            TileID = tileId;
             Type = type;
             X = x;
             Y = y;

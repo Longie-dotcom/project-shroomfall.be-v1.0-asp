@@ -884,8 +884,6 @@ namespace Infrastructure.Persistence
                 // ─────────────────────────────
                 // Properties
                 // ─────────────────────────────
-                entity.Property(x => x.TileID)
-                    .IsRequired();
                 entity.Property(x => x.Type)
                     .HasConversion<string>()
                     .IsRequired();
@@ -901,7 +899,6 @@ namespace Infrastructure.Persistence
                 // ─────────────────────────────
                 // Indexes
                 // ─────────────────────────────
-                entity.HasIndex(x => x.TileID);
                 entity.HasIndex(x => new { x.RoomDefinitionID, x.X, x.Y, x.Z })
                     .IsUnique();
             });
