@@ -1,21 +1,18 @@
 ﻿namespace Application.Features.Game.Commands
 {
-    public class TouchEntityCommand
+    public class BackHomeCommand
     {
         #region Attributes
         #endregion
 
         #region Properties
         public string UserID { get; }
-        public string TouchedEntityInstanceID { get; }
         #endregion
 
-        public TouchEntityCommand(
-            string userId, 
-            string touchedEntityInstanceId)
+        public BackHomeCommand(
+            string userId)
         {
             UserID = userId;
-            TouchedEntityInstanceID = touchedEntityInstanceId;
         }
 
         #region Methods

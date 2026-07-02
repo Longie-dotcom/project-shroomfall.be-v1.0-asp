@@ -1,5 +1,4 @@
-﻿using Application.Context;
-using Application.Features.Abstraction;
+﻿using Application.Features.Abstraction;
 using Application.Features.Connection.Commands;
 using Application.Interfaces.Realtime.Managers;
 using Application.Persistence;
@@ -16,7 +15,6 @@ namespace Application.Features.Connection.Handlers
         #region Attributes
         private readonly EntityPersistence entityPersistence;
         private readonly ResidencyService residencyService;
-        private readonly PlayerContext playerContext;
         private readonly ISessionManager sessionManager;
         private readonly EntitySpawnService entitySpawnService;
         private readonly IConnectionManager connectionManager;
@@ -29,7 +27,6 @@ namespace Application.Features.Connection.Handlers
         public UnloadSessionHandler(
             EntityPersistence entityPersistence,
             ResidencyService residencyService,
-            PlayerContext playerContext,
             ISessionManager sessionManager,
             EntitySpawnService entitySpawnService,
             IConnectionManager connectionManager,
@@ -37,7 +34,6 @@ namespace Application.Features.Connection.Handlers
         {
             this.entityPersistence = entityPersistence;
             this.residencyService = residencyService;
-            this.playerContext = playerContext;
             this.sessionManager = sessionManager;
             this.entitySpawnService = entitySpawnService;
             this.connectionManager = connectionManager;
@@ -48,11 +44,8 @@ namespace Application.Features.Connection.Handlers
         public async Task Handle(
             UnloadSessionCommand command)
         {
-            var userId = command.UserID;
-            var connectionId = command.ConnectionID;
-
             // Resolve live gameplay session first to know which room they are occupying
-            var playerInstanceId = sessionManager.Get(userId);
+            var playerInstanceId = sessionManager.Get(command.UserID);
             if (playerInstanceId == null)
                 return; // Session was already entirely cleaned up
 
@@ -70,17 +63,14 @@ namespace Application.Features.Connection.Handlers
                     ApplicationCode.ConnectionHandlerCode.UnloadSessionTransformMissing,
                     $"Player instance {playerInstanceId} is missing its TransformInstance component.");
 
-            // 2. UNCONDITIONAL PIPE CLEANUP
             // Sever this specific connection from SignalR updates and clear it from our tracking state
-            await connectionManager.Ungroup(connectionId, transform.RoomSpatialID);
-            connectionManager.Remove(userId, connectionId);
+            await connectionManager.Ungroup(command.ConnectionID, transform.RoomSpatialID);
+            connectionManager.Remove(command.UserID, command.ConnectionID);
 
-            // 3. CONDITIONAL GUARD
             // Now that the dead pipe is gone, check if they are still browsing on another window or device
-            if (connectionManager.HasConnections(userId))
+            if (connectionManager.HasConnections(command.UserID))
                 return; 
 
-            // 4. GHOST CLEANUP (Executed only when ALL connections are completely gone)
             // Freeze active engine loops first
             entitySpawnService.Deactivate(player);
 
@@ -88,22 +78,8 @@ namespace Application.Features.Connection.Handlers
             await entityPersistence.SaveManyAsync(new List<EntityInstance>() { player });
 
             // Clear tracking context variables and release the room residency lease
-            FinalizeGameplaySession(player, transform, userId);
-        }
-
-        private void FinalizeGameplaySession(
-            EntityInstance player,
-            TransformInstance transform,
-            string userId)
-        {
-            playerContext.LeaveRoom(transform.RoomSpatialID, player.ID);
-
-            if (playerContext.IsRoomEmpty(transform.RoomSpatialID))
-            {
-                residencyService.MarkRoomExited(transform.RoomSpatialID);
-            }
-
-            sessionManager.Remove(userId);
+            await residencyService.LeaveRoomAsync(transform.RoomSpatialID, player.ID);
+            sessionManager.Remove(command.UserID);
         }
         #endregion
     }

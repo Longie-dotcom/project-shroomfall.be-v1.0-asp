@@ -3,7 +3,6 @@ using Domain.Common;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
 using Domain.Runtime.WorldDomain.Spatial;
-using Domain.Runtime.WorldDomain.Topology;
 using Domain.Shared.DomainException;
 using Domain.Shared.ResponseCode;
 using System.Collections;
@@ -16,7 +15,6 @@ namespace Domain.Runtime.WorldDomain
         private readonly Dictionary<string, EntityInstance> entities;
         private readonly Dictionary<Type, IList> entityTypeIndex;
         private readonly SpatialIndex spatialIndex;
-        private readonly ConnectionTopology connectionTopology;
         #endregion
 
         #region Properties
@@ -27,7 +25,6 @@ namespace Domain.Runtime.WorldDomain
             entities = new Dictionary<string, EntityInstance>();
             entityTypeIndex = new Dictionary<Type, IList>();
             spatialIndex = new SpatialIndex();
-            connectionTopology = new ConnectionTopology();
         }
 
         #region Query
@@ -58,10 +55,10 @@ namespace Domain.Runtime.WorldDomain
             return spatialIndex.GetRoom(roomSpatialId);
         }
 
-        public RoomConnectionInstance? GetConnectionByEntityInstanceID(
-            string entityInstanceId)
+        public RoomSpatial? GetRoomByOwner(
+            string ownerEntityInstanceId)
         {
-            return connectionTopology.GetConnectionByEntityInstanceID(entityInstanceId);
+            return spatialIndex.GetRoomByOwner(ownerEntityInstanceId);
         }
         #endregion
 
@@ -165,18 +162,6 @@ namespace Domain.Runtime.WorldDomain
             string roomSpatialId)
         {
             spatialIndex.RemoveRoom(roomSpatialId);
-        }
-
-        public void AddConnection(
-            RoomConnectionInstance connection)
-        {
-            connectionTopology.AddConnection(connection);
-        }
-
-        public void RemoveConnection(
-            string connectionId)
-        {
-            connectionTopology.RemoveConnection(connectionId);
         }
         #endregion
 

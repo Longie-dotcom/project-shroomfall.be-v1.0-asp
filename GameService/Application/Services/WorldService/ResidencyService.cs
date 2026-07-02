@@ -1,5 +1,4 @@
-﻿using Application.Context;
-using Application.Interfaces.Realtime.Events;
+﻿using Application.Interfaces.Realtime.Events;
 using Application.Interfaces.Realtime.Events.Admin;
 using Application.Interfaces.Utility;
 using Application.Persistence;
@@ -10,18 +9,26 @@ using System.Collections.Concurrent;
 
 namespace Application.Services.WorldService
 {
-    public enum RoomResidencyState
+    internal enum RoomResidencyState
     {
         Cold,
         Warm,
         Hot
     }
 
-    public class RoomNode
+    internal enum RoomResidencyPolicy
+    {
+        Dynamic,
+        Permanent
+    }
+
+    internal class RoomNode
     {
         public string RoomSpatialID { get; set; } = string.Empty;
         public RoomResidencyState State { get; set; }
+        public RoomResidencyPolicy Policy { get; set; }
         public DateTime LastAccessUtc { get; set; }
+        public HashSet<string> ActivePlayerInstanceIds { get; } = new();
     }
 
     public class ResidencyService
@@ -56,24 +63,124 @@ namespace Application.Services.WorldService
         }
 
         #region Methods
-        public void TouchRoom(
-            string roomId)
+        public async Task JoinRoomAsync(
+            string roomId, 
+            string playerInstanceId)
         {
-            // Get or create room residency node
-            var node = GetOrCreate(roomId);
+            var roomLock = GetRoomLock(roomId);
+            await roomLock.WaitAsync();
+            try
+            {
+                var node = GetOrCreate(roomId);
+                var oldState = node.State;
 
-            // Refresh node lifetime
-            node.LastAccessUtc = DateTime.UtcNow;
+                // Thread-safely register player presence
+                node.ActivePlayerInstanceIds.Add(playerInstanceId);
+                node.LastAccessUtc = DateTime.UtcNow;
+
+                // Automate State Escalation: Elevate room state to Hot if it wasn't already
+                if (node.State != RoomResidencyState.Hot)
+                {
+                    node.State = RoomResidencyState.Hot;
+
+                    eventBus.Publish(new RoomResidencyChangedEvent(
+                        node.RoomSpatialID,
+                        oldState.ToString(),
+                        RoomResidencyState.Hot.ToString()));
+                }
+            }
+            finally
+            {
+                roomLock.Release();
+            }
         }
 
-        public void MarkRoomHot(
+        public async Task LeaveRoomAsync(
+            string roomId, 
+            string playerInstanceId)
+        {
+            var roomLock = GetRoomLock(roomId);
+            await roomLock.WaitAsync();
+            try
+            {
+                if (!nodes.TryGetValue(roomId, out var node))
+                    return;
+
+                // Thread-safely remove player presence
+                node.ActivePlayerInstanceIds.Remove(playerInstanceId);
+                node.LastAccessUtc = DateTime.UtcNow;
+
+                // Automate State Downgrade: If the room became completely empty, drop it to Warm
+                if (node.ActivePlayerInstanceIds.Count == 0 && node.State == RoomResidencyState.Hot)
+                {
+                    if (node.Policy == RoomResidencyPolicy.Permanent)
+                        return; // Permanent rooms ignore automatic dynamic downgrades
+
+                    node.State = RoomResidencyState.Warm;
+
+                    eventBus.Publish(new RoomResidencyChangedEvent(
+                        node.RoomSpatialID,
+                        RoomResidencyState.Hot.ToString(),
+                        RoomResidencyState.Warm.ToString()));
+                }
+            }
+            finally
+            {
+                roomLock.Release();
+            }
+        }
+
+        public async Task<RoomSnapshot> EnsureRoomLoaded(
+            string roomSpatialId)
+        {
+            var roomLock = GetRoomLock(roomSpatialId);
+            await roomLock.WaitAsync();
+
+            RoomNode node;
+            RoomSnapshot? snapshot;
+            var oldState = RoomResidencyState.Cold;
+
+            try
+            {
+                node = GetOrCreate(roomSpatialId);
+                oldState = node.State;
+
+                snapshot = TryGetRuntimeSnapshot(roomSpatialId);
+                if (snapshot != null)
+                    return snapshot;
+
+                snapshot = await snapshotPersistence.LoadRoomSnapshotAsync(roomSpatialId);
+                if (snapshot == null)
+                    throw new InternalException(
+                        ApplicationCode.ResidencyTickCode.RoomSnapshotNotFoundInPersistence,
+                        $"Residency synchronization failed. Cold state Room '{roomSpatialId}' contains no archived record state inside snapshot persistence layer.");
+
+                worldContext.Load(snapshot);
+
+                node.State = RoomResidencyState.Warm;
+                node.LastAccessUtc = DateTime.UtcNow;
+            }
+            finally
+            {
+                roomLock.Release();
+            }
+
+            eventBus.Publish(new RoomResidencyChangedEvent(
+                roomSpatialId,
+                oldState.ToString(),
+                RoomResidencyState.Warm.ToString()));
+
+            return snapshot;
+        }
+
+        public void MarkRoomPermanent(
             string roomId)
         {
-            // Get or create room residency node
             var node = GetOrCreate(roomId);
+
             var oldState = node.State;
 
-            // Mark as active/hot
+            node.Policy = RoomResidencyPolicy.Permanent;
             node.State = RoomResidencyState.Hot;
             node.LastAccessUtc = DateTime.UtcNow;
 
@@ -86,79 +193,21 @@ namespace Application.Services.WorldService
             }
         }
 
-        public void MarkRoomExited(
-            string roomId)
+        public RoomSnapshot RegisterRuntimeRoom(
+            RoomSnapshot snapshot)
         {
-            // Get or create room residency node
-            var node = GetOrCreate(roomId);
-            var oldState = node.State;
-
-            // Downgrade active room to warm state
-            if (node.State == RoomResidencyState.Hot)
-            {
-                node.State = RoomResidencyState.Warm;
-                node.LastAccessUtc = DateTime.UtcNow;
-
-                // Dispatch Real-time Event
-                eventBus.Publish(new RoomResidencyChangedEvent(
-                    node.RoomSpatialID,
-                    oldState.ToString(),
-                    RoomResidencyState.Warm.ToString()));
-            }
-            else
-            {
-                // Refresh node life time
-                node.LastAccessUtc = DateTime.UtcNow;
-            }
-        }
-
-        public async Task<RoomSnapshot> EnsureRoomLoaded(
-            string roomSpatialId)
-        {
-            var roomLock = GetRoomLock(roomSpatialId);
-            await roomLock.WaitAsync();
-
-            RoomNode node;
-            RoomSnapshot? snapshot;
-            bool needLoadFromPersistence = false;
-            var oldState = RoomResidencyState.Cold;
+            var roomLock = GetRoomLock(snapshot.Room.ID);
+            roomLock.Wait();
 
             try
             {
-                // Get or create node
-                node = GetOrCreate(roomSpatialId);
-                oldState = node.State;
+                var node = GetOrCreate(snapshot.Room.ID);
 
-                // Already loaded in runtime (Warm/Hot)
                 if (node.State != RoomResidencyState.Cold)
-                {
-                    node.LastAccessUtc = DateTime.UtcNow;
+                    return TryGetRuntimeSnapshot(snapshot.Room.ID)!;
 
-                    var room = worldContext.GetRoom(roomSpatialId);
-                    if (room == null)
-                        throw new InternalException(
-                            ApplicationCode.ResidencyTickCode.RoomSpatialNotFoundInRuntime,
-                            $"Residency synchronization failed. Room '{roomSpatialId}' is state marked '{node.State}' but could not be located inside runtime memory context.");
+                worldContext.Load(snapshot);
 
-                    return new RoomSnapshot
-                    {
-                        Room = room,
-                        Entities = worldContext
-                            .GetEntitiesByRoom(roomSpatialId)
-                            .ToList()
-                    };
-                }
-
-                // Mark intention to load (still inside lock)
-                needLoadFromPersistence = true;
-
-                snapshot = await snapshotPersistence.LoadRoomSnapshotAsync(roomSpatialId);
-                if (snapshot == null)
-                    throw new InternalException(
-                        ApplicationCode.ResidencyTickCode.RoomSnapshotNotFoundInPersistence,
-                        $"Residency synchronization failed. Cold state Room '{roomSpatialId}' contains no archived record state inside snapshot persistence layer.");
-
-                // Update state only (no world mutation yet)
                 node.State = RoomResidencyState.Warm;
                 node.LastAccessUtc = DateTime.UtcNow;
             }
@@ -167,17 +216,12 @@ namespace Application.Services.WorldService
                 roomLock.Release();
             }
 
-            if (needLoadFromPersistence && snapshot != null)
-            {
-                worldContext.Load(snapshot);
+            eventBus.Publish(new RoomResidencyChangedEvent(
+                snapshot.Room.ID,
+                RoomResidencyState.Cold.ToString(),
+                RoomResidencyState.Warm.ToString()));
 
-                eventBus.Publish(new RoomResidencyChangedEvent(
-                    roomSpatialId,
-                    oldState.ToString(),
-                    RoomResidencyState.Warm.ToString()));
-            }
-
-            return snapshot!;
+            return snapshot;
         }
 
         public async Task Tick(
@@ -194,6 +238,9 @@ namespace Application.Services.WorldService
 
                 foreach (var node in nodes.Values)
                 {
+                    if (node.Policy == RoomResidencyPolicy.Permanent)
+                        continue;
+
                     if (node.State == RoomResidencyState.Hot)
                         continue;
 
@@ -231,6 +278,31 @@ namespace Application.Services.WorldService
             }
         }
 
+        private RoomSnapshot? TryGetRuntimeSnapshot(
+            string roomSpatialId)
+        {
+            var node = GetOrCreate(roomSpatialId);
+
+            if (node.State == RoomResidencyState.Cold)
+                return null;
+
+            node.LastAccessUtc = DateTime.UtcNow;
+
+            var room = worldContext.GetRoom(roomSpatialId);
+            if (room == null)
+                throw new InternalException(
+                    ApplicationCode.ResidencyTickCode.RoomSpatialNotFoundInRuntime,
+                    $"Residency synchronization failed. Room '{roomSpatialId}' is state marked '{node.State}' but could not be located inside runtime memory context.");
+
+            return new RoomSnapshot
+            {
+                Room = room,
+                Entities = worldContext
+                    .GetEntitiesByRoom(roomSpatialId)
+                    .ToList()
+            };
+        }
+
         private async Task EvictToCold(
             RoomNode node)
         {
@@ -244,7 +316,10 @@ namespace Application.Services.WorldService
             try
             {
                 if (node.State == RoomResidencyState.Cold)
+                {
+                    roomLock.Release();
                     return;
+                }
 
                 shouldEvict = true;
                 node.State = RoomResidencyState.Cold;

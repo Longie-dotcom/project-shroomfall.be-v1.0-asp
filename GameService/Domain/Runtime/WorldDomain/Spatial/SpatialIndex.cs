@@ -87,6 +87,12 @@ namespace Domain.Runtime.WorldDomain.Spatial
                 ? roomSpatial
                 : null;
         }
+
+        public RoomSpatial? GetRoomByOwner(
+            string ownerId)
+        {
+            return rooms.Values.FirstOrDefault(r => r.OwnerID == ownerId);
+        }
         #endregion
     }
 }

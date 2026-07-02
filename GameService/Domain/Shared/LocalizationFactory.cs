@@ -56,6 +56,16 @@ namespace Domain.Shared
             };
         }
 
+        public static LocalizedText ForRoom(
+            string roomId)
+        {
+            return new LocalizedText
+            {
+                NameKey = $"room.{roomId.ToLowerShared()}.name",
+                DescriptionKey = $"room.{roomId.ToLowerShared()}.description"
+            };
+        }
+
         #region Helper Extension
         private static string ToLowerShared(
             this string input)

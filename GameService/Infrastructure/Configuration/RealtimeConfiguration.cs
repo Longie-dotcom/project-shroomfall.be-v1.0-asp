@@ -45,6 +45,7 @@ namespace Infrastructure.Configuration
             services.AddSingleton<IEventHandler, EntityVitalChangedHandler>();
             services.AddSingleton<IEventHandler, PlayerAppearanceChangedHandler>();
             services.AddSingleton<IEventHandler, PlayerCharacteristicSyncHandler>();
+            services.AddSingleton<IEventHandler, RoomSnapshotUpdatedHandler>();
 
             // Events
             services.AddSingleton<IEventBus, EventBus>();

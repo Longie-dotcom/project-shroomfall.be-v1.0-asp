@@ -53,18 +53,8 @@ namespace Application.Features.Design.Handlers
         {
             var dto = command.DTO;
 
-            Console.WriteLine($"\n[UpsertEntity] ==================================================");
-            Console.WriteLine($"[UpsertEntity] Initiating save request for Entity ID: '{dto.ID}'");
-            Console.WriteLine($"[UpsertEntity] Entity Type: {dto.Type}");
-            Console.WriteLine($"[UpsertEntity] Components Received in Payload Count: {dto.Components?.Count ?? 0}");
-
-            if (dto.Components != null)
-            {
-                for (int i = 0; i < dto.Components.Count; i++)
-                {
-                    Console.WriteLine($"  -> Component [{i}]: Type String Identifier = '{dto.Components[i].ComponentType}'");
-                }
-            }
+            if (dto.Components == null)
+                return;
 
             // Validate batch payload against target EntityType schemas baseline
             ValidateRequiredComponents(dto.Type, dto.Components);
@@ -74,7 +64,6 @@ namespace Application.Features.Design.Handlers
 
             if (existingEntity == null)
             {
-                Console.WriteLine($"[UpsertEntity] Root definition '{dto.ID}' is brand new. Provisioning core structural layout row...");
                 var localizedText = LocalizationFactory.ForEntity(dto.ID);
                 var presentation = new EntityPresentationDefinition(localizedText, dto.ID);
                 var entity = new EntityDefinition(dto.ID, dto.Type, presentation);
@@ -82,22 +71,14 @@ namespace Application.Features.Design.Handlers
                 await entityRepo.AddAsync(entity);
                 await localizationEntryFactory.PreSavePlaceholderKeysAsync(localizedText);
             }
-            else
-            {
-                Console.WriteLine($"[UpsertEntity] Root definition '{dto.ID}' already exists. Skipping core allocation, moving straight to component alignment...");
-            }
 
             // Pipeline component definitions generation
-            Console.WriteLine($"[UpsertEntity] Handing off components to DesignerComponentFactory...");
             foreach (var componentDto in dto.Components)
             {
                 await designerComponentFactory.UpsertAndSaveAsync(componentDto, dto.Type, dto.ID);
             }
 
-            Console.WriteLine($"[UpsertEntity] Invoking Unit of Work SaveChangesAsync()...");
             int rowsAffected = await relationalUoW.SaveChangesAsync();
-            Console.WriteLine($"[UpsertEntity] Save complete! Database reported rows affected: {rowsAffected}");
-            Console.WriteLine("[UpsertEntity] ==================================================\n");
         }
 
         private void ValidateRequiredComponents(

@@ -254,7 +254,7 @@ namespace Application.Services.WorldService.Factory
             entity.AddComponent(runtimeComponentFactory.CreateEffectContainer());
             entity.AddComponent(runtimeComponentFactory.CreateEquipment());
             entity.AddComponent(runtimeComponentFactory.CreateAction());
-            entity.AddComponent(runtimeComponentFactory.CreateOwnership(playerContext.UserID));
+            entity.AddComponent(runtimeComponentFactory.CreateOwnership(playerContext.UserID, playerContext.PersonalRoomID));
 
             characteristicService.InitializeVitals(entity);
             characteristicService.InitializeCores(entity);

@@ -77,6 +77,17 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "CombatRunDefinitions",
+                columns: table => new
+                {
+                    ID = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CombatRunDefinitions", x => x.ID);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "DefinitionVersionLogs",
                 columns: table => new
                 {
@@ -309,6 +320,25 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "CombatRunFloors",
+                columns: table => new
+                {
+                    Level = table.Column<int>(type: "int", nullable: false),
+                    CombatRunDefinitionID = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    RoomDefinitionID = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CombatRunFloors", x => new { x.CombatRunDefinitionID, x.Level });
+                    table.ForeignKey(
+                        name: "FK_CombatRunFloors_CombatRunDefinitions_CombatRunDefinitionID",
+                        column: x => x.CombatRunDefinitionID,
+                        principalTable: "CombatRunDefinitions",
+                        principalColumn: "ID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "InventoryEntries",
                 columns: table => new
                 {
@@ -414,45 +444,6 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "RoomConnections",
-                columns: table => new
-                {
-                    ID = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    SourceRoomID = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    SourceEntityID = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    DestinationRoomID = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    DestinationEntityID = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_RoomConnections", x => x.ID);
-                    table.ForeignKey(
-                        name: "FK_RoomConnections_EntityDefinitions_DestinationEntityID",
-                        column: x => x.DestinationEntityID,
-                        principalTable: "EntityDefinitions",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_RoomConnections_EntityDefinitions_SourceEntityID",
-                        column: x => x.SourceEntityID,
-                        principalTable: "EntityDefinitions",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_RoomConnections_RoomDefinitions_DestinationRoomID",
-                        column: x => x.DestinationRoomID,
-                        principalTable: "RoomDefinitions",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_RoomConnections_RoomDefinitions_SourceRoomID",
-                        column: x => x.SourceRoomID,
-                        principalTable: "RoomDefinitions",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "AttributeGrowthValues",
                 columns: table => new
                 {
@@ -542,6 +533,21 @@ namespace Infrastructure.Migrations
                 name: "IX_CollisionDefinitions_ShapeType",
                 table: "CollisionDefinitions",
                 column: "ShapeType");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CombatRunDefinitions_ID",
+                table: "CombatRunDefinitions",
+                column: "ID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CombatRunFloors_Level",
+                table: "CombatRunFloors",
+                column: "Level");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CombatRunFloors_RoomDefinitionID",
+                table: "CombatRunFloors",
+                column: "RoomDefinitionID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_DefinitionVersionLogs_CreatedAt",
@@ -666,27 +672,6 @@ namespace Infrastructure.Migrations
                 column: "Velocity");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RoomConnections_DestinationEntityID",
-                table: "RoomConnections",
-                column: "DestinationEntityID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_RoomConnections_DestinationRoomID_DestinationEntityID",
-                table: "RoomConnections",
-                columns: new[] { "DestinationRoomID", "DestinationEntityID" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_RoomConnections_SourceEntityID",
-                table: "RoomConnections",
-                column: "SourceEntityID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_RoomConnections_SourceRoomID_SourceEntityID",
-                table: "RoomConnections",
-                columns: new[] { "SourceRoomID", "SourceEntityID" },
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_TriggeredEffectDefinitions_EntityDefinitionID",
                 table: "TriggeredEffectDefinitions",
                 column: "EntityDefinitionID",
@@ -726,6 +711,9 @@ namespace Infrastructure.Migrations
                 name: "CollisionDefinitions");
 
             migrationBuilder.DropTable(
+                name: "CombatRunFloors");
+
+            migrationBuilder.DropTable(
                 name: "DefinitionVersionLogs");
 
             migrationBuilder.DropTable(
@@ -756,9 +744,6 @@ namespace Infrastructure.Migrations
                 name: "ProjectileDefinitions");
 
             migrationBuilder.DropTable(
-                name: "RoomConnections");
-
-            migrationBuilder.DropTable(
                 name: "TriggeredEffectDefinitions");
 
             migrationBuilder.DropTable(
@@ -768,16 +753,19 @@ namespace Infrastructure.Migrations
                 name: "AttributeValues");
 
             migrationBuilder.DropTable(
-                name: "InventoryDefinitions");
-
-            migrationBuilder.DropTable(
-                name: "Locales");
+                name: "CombatRunDefinitions");
 
             migrationBuilder.DropTable(
                 name: "EntityDefinitions");
 
             migrationBuilder.DropTable(
                 name: "RoomDefinitions");
+
+            migrationBuilder.DropTable(
+                name: "InventoryDefinitions");
+
+            migrationBuilder.DropTable(
+                name: "Locales");
 
             migrationBuilder.DropTable(
                 name: "CharacteristicDefinitions");

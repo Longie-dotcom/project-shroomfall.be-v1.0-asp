@@ -1,5 +1,4 @@
-﻿using Application.Context;
-using Application.Features.Abstraction;
+﻿using Application.Features.Abstraction;
 using Application.Features.Connection.Commands;
 using Application.Interfaces.Realtime.Managers;
 using Application.Persistence;
@@ -18,13 +17,9 @@ namespace Application.Features.Connection.Handlers
     {
         #region Attributes
         private readonly IMapper mapper;
-        private readonly CollisionService collisionService;
         private readonly EntityPersistence entityPersistence;
-        private readonly ResidencyService residencyService;
-        private readonly PlayerContext playerContext;
-        private readonly IConnectionManager connectionManager;
         private readonly ISessionManager sessionManager;
-        private readonly EntitySpawnService entitySpawnService;
+        private readonly RoomMigrationService roomMigrationService;
         #endregion
 
         #region Properties
@@ -32,22 +27,14 @@ namespace Application.Features.Connection.Handlers
 
         public LoadSessionHandler(
             IMapper mapper,
-            CollisionService collisionService,
             EntityPersistence entityPersistence,
-            ResidencyService residencyService,
-            PlayerContext playerContext,
-            IConnectionManager connectionManager,
             ISessionManager sessionManager,
-            EntitySpawnService entitySpawnService)
+            RoomMigrationService roomMigrationService)
         {
             this.mapper = mapper;
-            this.collisionService = collisionService;
             this.entityPersistence = entityPersistence;
-            this.residencyService = residencyService;
-            this.playerContext = playerContext;
-            this.connectionManager = connectionManager;
             this.sessionManager = sessionManager;
-            this.entitySpawnService = entitySpawnService;
+            this.roomMigrationService = roomMigrationService;
         }
 
         #region Methods
@@ -82,34 +69,13 @@ namespace Application.Features.Connection.Handlers
                     ApplicationCode.ConnectionHandlerCode.LoadSessionUnauthorizedPlayer,
                     $"Player session is unauthorized");
 
-            // Retrieve room definition
-            var transform = player.GetComponent<TransformInstance>();
-            if (transform == null)
-                throw new InternalException(
-                    ApplicationCode.ConnectionHandlerCode.LoadSessionTransformMissing,
-                    $"Player instance {player.ID} is missing TransformInstance component during session load");
+            // Migrate player safely using calculated blueprint rules
+            var snapshot = await roomMigrationService.EnterRoomAsync(
+                player: player,
+                destinationRoomId: ownership.PersonalRoomID,
+                isInitialLogin: true);
 
-            // Ensure room residency
-            var snapshot = await residencyService.EnsureRoomLoaded(transform.RoomSpatialID);
-            if (snapshot == null)
-                throw new InternalException(
-                    ApplicationCode.ConnectionHandlerCode.LoadSessionRoomNotFound,
-                    $"Room with spatial ID: {transform.RoomSpatialID} was not found during session load");
-
-            // Validate spawn
-            collisionService.SpawnAtNearestValidPosition(
-                entity: player,
-                roomDefinitionId: snapshot.Room.DefinitionID,
-                roomSpatialId: snapshot.Room.ID,
-                targetPosition: transform.Position,
-                targetLayerZ: transform.LayerZ,
-                null);
-
-            // Active the player
-            entitySpawnService.Activate(player);
-
-            // Mutate runtime
-            await ApplySessionRuleAsync(player, command.UserID);
+            sessionManager.Add(command.UserID, player.ID);
 
             // Rebuild save game snapshot
             var saveGame = BuildSaveGame(player, snapshot);
@@ -117,43 +83,15 @@ namespace Application.Features.Connection.Handlers
             return saveGame;
         }
 
-        private async Task ApplySessionRuleAsync(
-            EntityInstance player,
-            string userId)
-        {
-            var transform = player.GetComponent<TransformInstance>();
-            if (transform == null) return;
-
-            // Bind core simulation contexts
-            playerContext.JoinRoom(transform.RoomSpatialID, player.ID);
-            residencyService.MarkRoomHot(transform.RoomSpatialID);
-            sessionManager.Add(userId, player.ID);
-
-            // Fetch all connections pre-registered 
-            var activeConnections = connectionManager.Get(userId);
-
-            // Ensure the client didn't somehow bypass the socket connection step
-            if (activeConnections.Count == 0)
-                return;
-
-            // Batch-assign all active devices/tabs to this room stream
-            foreach (var connectionId in activeConnections)
-            {
-                await connectionManager.Group(connectionId, transform.RoomSpatialID);
-            }
-        }
-
         private SaveGameDTO BuildSaveGame(
             EntityInstance player,
-            RoomSnapshot snapshot)
+            RoomSnapshotDTO snapshot)
         {
             var saveGame = new SaveGameDTO()
             {
                 PlayerData = mapper.Map<EntityInstanceDTO>(player),
-                RoomData = mapper.Map<RoomRuntimeDTO>(snapshot.Room)
+                RoomData = snapshot.RoomData
             };
-
-            saveGame.RoomData.Entities = mapper.Map<List<EntityInstanceDTO>>(snapshot.Entities);
 
             return saveGame;
         }

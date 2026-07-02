@@ -30,9 +30,9 @@ namespace Application.Services.WorldService.Factory.Component
         }
 
         public OwnershipInstance CreateOwnership(
-            string userId)
+            string userId, string personalRoomId)
         {
-            return new OwnershipInstance(userId);
+            return new OwnershipInstance(userId, personalRoomId);
         }
 
         public TransformInstance CreateTransform(

@@ -28,20 +28,6 @@ namespace API.Controllers
 
         #region Methods
         [Authorize]
-        [HttpPost("topology/entity/{entityInstanceId}/travel")]
-        public async Task<IActionResult> TouchEntity(
-            string touchedEntityInstanceId)
-        {
-            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
-
-            var result = await dispatcher.Send<TouchEntityCommand, RoomSnapshotDTO>(
-                new TouchEntityCommand(userId, touchedEntityInstanceId)
-            );
-
-            return Ok(result);
-        }
-
-        [Authorize]
         [HttpPut("appearance")]
         public async Task<IActionResult> UpdateAppearance(
             [FromBody] UpdatePlayerAppearanceDTO dto)
@@ -81,6 +67,33 @@ namespace API.Controllers
             );
 
             return NoContent();
+        }
+
+        [Authorize]
+        [HttpPost("back-home")]
+        public async Task<IActionResult> BackHome()
+        {
+            var (userId, _, _) = ClaimReader.GetIdentity(User);
+
+            var snapshot = await dispatcher.Send<BackHomeCommand, RoomSnapshotDTO>(
+                new BackHomeCommand(userId)
+            );
+
+            return Ok(snapshot);
+        }
+
+        [Authorize]
+        [HttpPost("enter-hub/{hubRoomSpatialId}")]
+        public async Task<IActionResult> EnterHub(
+            [FromRoute] string hubRoomSpatialId)
+        {
+            var (userId, _, _) = ClaimReader.GetIdentity(User);
+
+            var snapshot = await dispatcher.Send<EnterHubCommand, RoomSnapshotDTO>(
+                new EnterHubCommand(userId, hubRoomSpatialId)
+            );
+
+            return Ok(snapshot);
         }
         #endregion
     }

@@ -33,7 +33,7 @@ namespace Infrastructure.Cache
         private readonly ILocaleCache localeCache;
         private readonly IEffectCache effectCache;
         private readonly IItemCache itemCache;
-        private readonly IRoomConnectionCache roomConnectionCache;
+        private readonly ICombatRunCache combatRunCache;
         private readonly IRoomCache roomCache;
         #endregion
 
@@ -52,7 +52,7 @@ namespace Infrastructure.Cache
         public ILocaleCache Locale => localeCache;
         public IEffectCache Effect => effectCache;
         public IItemCache Item => itemCache;
-        public IRoomConnectionCache RoomConnection => roomConnectionCache;
+        public ICombatRunCache CombatRun => combatRunCache;
         public IRoomCache Room => roomCache;
         #endregion
 
@@ -74,7 +74,7 @@ namespace Infrastructure.Cache
             ILocaleCache localeCache,
             IEffectCache effectCache,
             IItemCache itemCache,
-            IRoomConnectionCache roomConnectionCache,
+            ICombatRunCache combatRunCache,
             IRoomCache roomCache)
         {
             this.telemetryQueue = telemetryQueue;
@@ -94,7 +94,7 @@ namespace Infrastructure.Cache
             this.localeCache = localeCache;
             this.effectCache = effectCache;
             this.itemCache = itemCache;
-            this.roomConnectionCache = roomConnectionCache;
+            this.combatRunCache = combatRunCache;
             this.roomCache = roomCache;
         }
 
@@ -122,7 +122,7 @@ namespace Infrastructure.Cache
                     var localeRepository = relationalUoW.GetRepository<ILocaleRepository>();
                     var effectRepository = relationalUoW.GetRepository<IEffectDefinitionRepository>();
                     var itemRepository = relationalUoW.GetRepository<IItemDefinitionRepository>();
-                    var roomConnectionRepository = relationalUoW.GetRepository<IRoomConnectionRepository>();
+                    var combatRunRepository = relationalUoW.GetRepository<ICombatRunDefinitionRepository>();
                     var roomRepository = relationalUoW.GetRepository<IRoomDefinitionRepository>();
 
                     // Hydrate caches
@@ -140,7 +140,7 @@ namespace Infrastructure.Cache
                     localeCache.Load((await localeRepository.GetAllAsync()).ToList());
                     effectCache.Load((await effectRepository.GetAllAsync()).ToList());
                     itemCache.Load((await itemRepository.GetAllAsync()).ToList());
-                    roomConnectionCache.Load((await roomConnectionRepository.GetAllAsync()).ToList());
+                    combatRunCache.Load((await combatRunRepository.GetAllAsync()).ToList());
                     roomCache.Load((await roomRepository.GetAllAsync()).ToList());
                 }
 

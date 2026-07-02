@@ -26,7 +26,6 @@ namespace Infrastructure.Configuration
 
             // Snapshot repositories
             services.AddScoped<IEntitySnapshotRepository, EntitySnapshotRepository>();
-            services.AddScoped<IRoomConnectionSnapshotRepository, RoomConnectionSnapshotRepository>();
             services.AddScoped<IRoomSnapshotRepository, RoomSnapshotRepository>();
 
             // Entity domain
@@ -53,7 +52,7 @@ namespace Infrastructure.Configuration
             services.AddScoped<IItemDefinitionRepository, ItemDefinitionRepository>();
 
             // World domain
-            services.AddScoped<IRoomConnectionRepository, RoomConnectionRepository>();
+            services.AddScoped<ICombatRunDefinitionRepository, CombatRunDefinitionRepository>();
             services.AddScoped<IRoomDefinitionRepository, RoomDefinitionRepository>();
 
             // Global

@@ -13,8 +13,6 @@
             public static string UnloadTargetMissing = Format("unload-target-missing");
             public static string RoomUnloading = Format("room-unloading");
             public static string EntityRoomChanged = Format("entity-room-changed");
-            public static string ConnectionAddedSuccess = Format("connection-added-success");
-            public static string ConnectionRemovedSuccess = Format("connection-removed-success");
         }
         #endregion
 
@@ -29,8 +27,6 @@
             public static string LoadSessionPlayerNotFoundInPersistence = Format("load-session-player-not-found-in-persistence");
             public static string LoadSessionUnauthorizedPlayer = Format("load-session-unauthorized-player");
             public static string LoadSessionOwnershipMissing = Format("load-session-ownership-missing");
-            public static string LoadSessionTransformMissing = Format("load-session-transform-missing");
-            public static string LoadSessionRoomNotFound = Format("load-session-room-not-found");
         }
 
         public static class DesignHandlerCode
@@ -60,16 +56,12 @@
             public static string UpdateAppearanceTransformMissing = Format("update-appearance-transform-missing");
             public static string UnequipItemSessionNotFound = Format("unequip-item-session-not-found");
             public static string UnequipItemPlayerInstanceNotFound = Format("unequip-item-player-instance-not-found");
-            public static string TouchEntitySessionNotFound = Format("touch-entity-session-not-found");
-            public static string TouchEntityPlayerInstanceNotFound = Format("touch-entity-player-instance-not-found");
-            public static string TouchEntityTransformMissing = Format("touch-entity-transform-missing");
+            public static string EnterHubInvalidHubRoom = Format("enter-hub-invalid-hub-room");
             public static string EnterHubSessionNotFound = Format("enter-hub-session-not-found");
             public static string EnterHubPlayerInstanceNotFound = Format("enter-hub-player-instance-not-found");
-            public static string EnterHubTransformMissing = Format("enter-hub-transform-missing");
-            public static string EnterHubRoomNotFound = Format("enter-hub-room-not-found");
-            public static string EnterHubPlayerSpawnRuleMissing = Format("enter-hub-player-spawn-rule-missing");
-            public static string EnterHubRoomDefinitionNotFound = Format("enter-hub-room-definition-not-found");
-            public static string EnterHubRoomNoSpawnCellFound = Format("enter-hub-room-no-spawn-cell-found");
+            public static string BackHomeSessionNotFound = Format("back-home-session-not-found");
+            public static string BackHomePlayerInstanceNotFound = Format("back-home-player-instance-not-found");
+            public static string BackHomeOwnershipInstanceNotFound = Format("back-home-ownership-instance-not-found");
         }
 
         public static class IdentityHandlerCode
@@ -122,16 +114,6 @@
         }
 
         // World Service
-        public static class RoomConnectionInstanceFactoryCode
-        {
-            private static string Format(string problem) => Code("room-connection-instance-factory", problem);
-
-            public static string RehydrateDefinitionNotFound = Format("rehydrate-definition-not-found");
-            public static string RehydrateInvalidInstanceData = Format("rehydrate-invalid-instance-data");
-            public static string CreateDefinitionNotFound = Format("create-definition-not-found");
-            public static string CreateInvalidInstanceData = Format("create-invalid-instance-data");
-        }
-
         public static class RoomSpatialFactoryCode
         {
             private static string Format(string problem) => Code("room-spatial-factory", problem);
@@ -195,15 +177,22 @@
             public static string SpawnRuleMissing = Format("spawn-rule-missing");
         }
 
-        public static class TopologyServiceCode
+        public static class PartyServiceCode
         {
-            private static string Format(string problem) => Code("topology-service", problem);
+            private static string Format(string problem) => Code("party-service", problem);
 
-            public static string EntityNotFound = Format("entity-not-found");
-            public static string TransformComponentMissing = Format("transform-component-missing");
-            public static string CurrentRoomNotFound = Format("current-room-not-found");
-            public static string ConnectionDefinitionMissing = Format("connection-definition-missing");
-            public static string DestinationEntityMissing = Format("destination-entity-missing");
+            public static string RunAlreadyRegistered = Format("run-already-registered");
+            public static string PlayerAlreadyInRun = Format("player-already-in-run");
+        }
+
+        public static class RoomMigrationServiceCode
+        {
+            private static string Format(string problem) => Code("room-migration-service", problem);
+
+            public static string TransformMissing = Format("transform-missing");
+            public static string RoomDefinitionNotFound = Format("room-definition-not-found");
+            public static string PlayerSpawnRuleMissing = Format("player-spawn-rule-missing");
+            public static string SpawnCellNotFound = Format("spawn-cell-not-found");
         }
         #endregion
 

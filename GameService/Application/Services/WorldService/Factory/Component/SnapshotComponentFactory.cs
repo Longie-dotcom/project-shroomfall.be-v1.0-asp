@@ -205,7 +205,7 @@ namespace Application.Services.WorldService.Factory.Component
         private OwnershipInstance CreateOwnership(
             OwnershipSnapshot snapshot)
         {
-            return new OwnershipInstance(snapshot.UserID);
+            return new OwnershipInstance(snapshot.UserID, snapshot.PersonalRoomID);
         }
 
         private ProjectileInstance CreateProjectile(

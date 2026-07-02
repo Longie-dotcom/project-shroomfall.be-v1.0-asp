@@ -1,14 +1,12 @@
 ﻿using Application.Interfaces.Utility;
-using Application.Services.WorldService;
 using Domain.Abstraction.World;
 using Domain.Common;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
 using Domain.Runtime.WorldDomain.Spatial;
-using Domain.Runtime.WorldDomain.Topology;
 using Domain.Shared.ResponseCode;
 
-namespace Application.Context
+namespace Application.Services.WorldService
 {
     public class WorldContext
     {
@@ -59,12 +57,6 @@ namespace Application.Context
             return worldQuery.QuerySpatial(roomSpatialId, x, y, z);
         }
 
-        public RoomConnectionInstance? GetConnectionByEntityInstanceID(
-            string entityInstanceId)
-        {
-            return worldQuery.GetConnectionByEntityInstanceID(entityInstanceId);
-        }
-
         public List<EntityInstance> GetEntitiesByRoom(
             string roomSpatialId)
         {
@@ -72,6 +64,12 @@ namespace Application.Context
                 .GetEntities()
                 .Where(e => e.GetComponent<TransformInstance>()?.RoomSpatialID == roomSpatialId)
                 .ToList();
+        }
+
+        public RoomSpatial? GetRoomByOwner(
+            string ownerEntityInstanceId)
+        {
+            return worldQuery.GetRoomByOwner(ownerEntityInstanceId);
         }
         #endregion
 
@@ -173,30 +171,6 @@ namespace Application.Context
                 ApplicationCode.WorldContextCode.EntityRoomChanged,
                 $"Entity '{entityInstanceId}' changed room to room spatial: {newRoomSpatialId} on new position: ({newPosition.X}, {newPosition.Y}, {layerZ}",
                 TelemetrySeverity.Info);
-        }
-
-        public void AddConnection(
-            RoomConnectionInstance connection)
-        {
-            roomCommand.AddConnection(connection);
-
-            telemetryQueue.EnqueueAlert(
-                ApplicationCode.WorldContextCode.ConnectionAddedSuccess,
-                $"Established spatial connection '{connection.ID}' linking rooms in topology.",
-                TelemetrySeverity.Info);
-
-        }
-
-        public void RemoveConnection(
-            string connectionInstanceId)
-        {
-            roomCommand.RemoveConnection(connectionInstanceId);
-
-            telemetryQueue.EnqueueAlert(
-                ApplicationCode.WorldContextCode.ConnectionRemovedSuccess,
-                $"Removed spatial connection '{connectionInstanceId}' from topology.",
-                TelemetrySeverity.Info);
-
         }
         #endregion
     }

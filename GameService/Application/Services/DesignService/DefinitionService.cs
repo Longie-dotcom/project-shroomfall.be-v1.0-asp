@@ -29,7 +29,6 @@ namespace Application.Services.DesignService
             long version)
         {
             var allRooms = cacheProvider.Room.GetAll();
-            var allConnections = cacheProvider.RoomConnection.GetAll();
             var attributes = AttributeDefinitions.AllList()
                 .Select(x => mapper.Map<AttributeDefinitionDTO>(x))
                 .ToList();
@@ -41,7 +40,7 @@ namespace Application.Services.DesignService
             var cells = mapper.Map<List<CellDefinitionDTO>>(allRooms.SelectMany(r => r.Cells).ToList());
             var entitySpawnRules = mapper.Map<List<EntitySpawnRuleDefinitionDTO>>(allRooms.SelectMany(r => r.EntitySpawnRules).ToList());
             var rooms = mapper.Map<List<RoomDefinitionDTO>>(allRooms);
-            var roomConnections = mapper.Map<List<RoomConnectionDefinitionDTO>>(allConnections);
+            var combatRuns = mapper.Map<List<CombatRunDefinitionDTO>>(cacheProvider.CombatRun.GetAll());
             var locales = mapper.Map<List<LocaleDTO>>(cacheProvider.Locale.GetAll());
 
             return new DefinitionSnapshotDTO
@@ -56,7 +55,7 @@ namespace Application.Services.DesignService
                 Cells = cells,
                 EntitySpawnRules = entitySpawnRules,
                 Rooms = rooms,
-                RoomConnections = roomConnections,
+                CombatRuns = combatRuns,
                 Locales = locales
             };
         }

@@ -44,8 +44,8 @@ namespace Infrastructure.Configuration
             services.AddSingleton<IEntityCache, EntityCache>();
 
             // World 
+            services.AddSingleton<ICombatRunCache, CombatRunCache>();
             services.AddSingleton<IRoomCache, RoomCache>();
-            services.AddSingleton<IRoomConnectionCache, RoomConnectionCache>();
 
             // Localization
             services.AddSingleton<ILocaleCache, LocaleCache>();

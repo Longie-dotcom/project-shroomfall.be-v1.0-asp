@@ -75,15 +75,6 @@
             public static string RoomSpatialNotFoundOnEntityMoved = Format("room-spatial-not-found-on-entity-moved");
         }
 
-        public static class ConnectionTopologyCode
-        {
-            private static string Format(string problem) => Code("connection-topology", problem);
-
-            public static string DuplicateConnectionId = Format("duplicate-connection-id");
-            public static string SourceEntityAlreadyBound = Format("source-entity-already-bound");
-            public static string ConnectionNotFoundOnRemoved = Format("connection-not-found-on-removed");
-        }
-
         public static class WorldCode
         {
             private static string Format(string problem) => Code("world", problem);

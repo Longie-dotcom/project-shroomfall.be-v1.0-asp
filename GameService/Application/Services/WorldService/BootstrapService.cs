@@ -1,33 +1,40 @@
-﻿using Application.Context;
-using Application.Persistence;
+﻿using Contract;
 
 namespace Application.Services.WorldService
 {
     public class BootstrapService
     {
         #region Attributes
-        private readonly RoomConnectionPersistence roomConnectionPersistence;
-        private readonly WorldContext worldContext;
+        private readonly InitializationService initializationService;
+        private readonly ResidencyService residencyService;
         #endregion
 
         #region Properties
         #endregion
 
         public BootstrapService(
-            RoomConnectionPersistence roomConnectionPersistence,
-            WorldContext worldContext)
+            InitializationService initializationService,
+            ResidencyService residencyService)
         {
-            this.roomConnectionPersistence = roomConnectionPersistence;
-            this.worldContext = worldContext;
+            this.initializationService = initializationService;
+            this.residencyService = residencyService;
         }
 
         #region Methods
         public async Task LoadAsync()
         {
-            // Load existed connection topology
-            var connections = await roomConnectionPersistence.LoadAsync();
+            foreach (var hubId in Constraint.STATIC_HUB_ROOM_SPATIAL_IDS)
+            {
+                var snapshot = initializationService.InitializeRoom(
+                    hubId,
+                    hubId,
+                    null,
+                    null,
+                    null);
 
-            connections.ForEach(c => worldContext.AddConnection(c));
+                residencyService.RegisterRuntimeRoom(snapshot.room);
+                residencyService.MarkRoomPermanent(hubId);
+            }
         }
         #endregion
     }

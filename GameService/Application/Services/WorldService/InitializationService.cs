@@ -121,7 +121,7 @@ namespace Application.Services.WorldService
                     if (type == SpawnRuleType.Player && !string.IsNullOrEmpty(userId))
                     {
                         context = new PlayerEntityCreateContext(
-                            instanceId, activeEntityDefId, roomSpatialId, layerZ, pos, userId);
+                            instanceId, activeEntityDefId, roomSpatialId, layerZ, pos, userId, roomSpatialId);
                     }
                     else
                     {

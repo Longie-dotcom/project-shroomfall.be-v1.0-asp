@@ -22,6 +22,13 @@ namespace Infrastructure.Repository.NonRelational
         }
 
         #region Methods
+        public async Task<bool> ExistsAsync(
+            string roomSpatialId)
+        {
+            return await collection
+                .Find(x => x.ID == roomSpatialId)
+                .AnyAsync();
+        }
         #endregion
     }
 }

@@ -1,5 +1,4 @@
-﻿using Application.Context;
-using Application.Features;
+﻿using Application.Features;
 using Application.Features.Abstraction;
 using Application.Features.Connection.Commands;
 using Application.Features.Connection.Handlers;
@@ -42,12 +41,6 @@ namespace Application
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
             // ─────────────────────────────
-            // CONTEXT
-            // ─────────────────────────────
-            services.AddSingleton<PlayerContext>();
-            services.AddSingleton<WorldContext>();
-
-            // ─────────────────────────────
             // FEATURES
             // ─────────────────────────────
             // Core
@@ -70,12 +63,13 @@ namespace Application
             services.AddScoped<IHandler<UpsertEffectDefinitionCommand>, UpsertEffectDefinitionHandler>();
             services.AddScoped<IHandler<UpsertEntityDefinitionCommand>, UpsertEntityDefinitionHandler>();
             services.AddScoped<IHandler<UpsertItemDefinitionCommand>, UpsertItemDefinitionHandler>();
+            services.AddScoped<IHandler<UpsertRoomDefinitionCommand>, UpsertRoomDefinitionHandler>();
             services.AddScoped<IHandler<UserRefreshCommand, DefinitionSnapshotDTO?>, UserRefreshHandler>();
 
             // Game
+            services.AddScoped<IHandler<BackHomeCommand, RoomSnapshotDTO>, BackHomeHandler>();
             services.AddScoped<IHandler<EnterHubCommand, RoomSnapshotDTO>, EnterHubHandler>();
             services.AddScoped<IHandler<MoveCommand>, MoveHandler>();
-            services.AddScoped<IHandler<TouchEntityCommand, RoomSnapshotDTO>, TouchEntityHandler>();
             services.AddScoped<IHandler<UnequipItemCommand>, UnequipItemHandler>();
             services.AddScoped<IHandler<UpdateAppearanceCommand>, UpdateAppearanceHandler>();
             services.AddScoped<IHandler<UseItemCommand>, UseItemHandler>();
@@ -98,7 +92,6 @@ namespace Application
             // PERSISTENCE
             // ─────────────────────────────
             services.AddScoped<EntityPersistence>();
-            services.AddScoped<RoomConnectionPersistence>();
             services.AddScoped<RoomPersistence>();
             services.AddScoped<SnapshotPersistence>();
 
@@ -135,16 +128,16 @@ namespace Application
             services.AddSingleton<RuntimeComponentFactory>();
             services.AddSingleton<SnapshotComponentFactory>();
             services.AddSingleton<EntityInstanceFactory>();
-            services.AddSingleton<RoomConnectionInstanceFactory>();
             services.AddSingleton<RoomSpatialFactory>();
 
             services.AddSingleton<BootstrapService>();
             services.AddSingleton<CollisionService>();
             services.AddSingleton<EntitySpawnService>();
             services.AddSingleton<InitializationService>();
+            services.AddSingleton<PartyService>();
             services.AddSingleton<ResidencyService>();
             services.AddSingleton<RoomMigrationService>();
-            services.AddSingleton<TopologyService>();
+            services.AddSingleton<WorldContext>();
 
             // ─────────────────────────────
             // SYSTEMS

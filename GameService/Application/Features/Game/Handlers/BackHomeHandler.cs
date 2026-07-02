@@ -2,14 +2,14 @@
 using Application.Features.Game.Commands;
 using Application.Interfaces.Realtime.Managers;
 using Application.Services.WorldService;
-using Contract;
 using Contract.DTO.Connection;
+using Domain.Runtime.EntityDomain.Component;
 using Domain.Shared.DomainException;
 using Domain.Shared.ResponseCode;
 
 namespace Application.Features.Game.Handlers
 {
-    public class EnterHubHandler : IHandler<EnterHubCommand, RoomSnapshotDTO>
+    public class BackHomeHandler : IHandler<BackHomeCommand, RoomSnapshotDTO>
     {
         #region Attributes
         private readonly ISessionManager sessionManager;
@@ -20,7 +20,7 @@ namespace Application.Features.Game.Handlers
         #region Properties
         #endregion
 
-        public EnterHubHandler(
+        public BackHomeHandler(
             ISessionManager sessionManager,
             WorldContext worldContext,
             RoomMigrationService roomMigrationService)
@@ -32,32 +32,33 @@ namespace Application.Features.Game.Handlers
 
         #region Methods
         public async Task<RoomSnapshotDTO> Handle(
-            EnterHubCommand command)
+            BackHomeCommand command)
         {
-            // Validate hud ids
-            if (!Constraint.STATIC_HUB_ROOM_SPATIAL_IDS.Contains(command.HubRoomSpatialID))
-                throw new BadRequest(
-                    ApplicationCode.GameHandlerCode.EnterHubInvalidHubRoom,
-                    $"Hub room '{command.HubRoomSpatialID}' is not a registered static hub room.");
-
-            // Validate player session existence
+            // Validate player session
             var playerInstanceId = sessionManager.Get(command.UserID);
             if (playerInstanceId == null)
                 throw new InternalException(
-                    ApplicationCode.GameHandlerCode.EnterHubSessionNotFound,
-                    $"Session missing for user ID: {command.UserID}");
+                    ApplicationCode.GameHandlerCode.BackHomeSessionNotFound,
+                    $"Session missing for user '{command.UserID}'.");
 
-            // Validate player runtime existence
+            // Validate runtime player
             var player = worldContext.GetEntity(playerInstanceId);
             if (player == null)
                 throw new InternalException(
-                    ApplicationCode.GameHandlerCode.EnterHubPlayerInstanceNotFound,
-                    $"Player runtime instance missing for ID: {playerInstanceId}");
+                    ApplicationCode.GameHandlerCode.BackHomePlayerInstanceNotFound,
+                    $"Player runtime instance '{playerInstanceId}' not found.");
+
+            // Resolve owned personal room
+            var ownership = player.GetComponent<OwnershipInstance>();
+            if (ownership == null)
+                throw new InternalException(
+                    ApplicationCode.GameHandlerCode.BackHomeOwnershipInstanceNotFound,
+                    $"Player runtime instance '{playerInstanceId}' has no Ownership Instance.");
 
             // Migrate player safely using calculated blueprint rules
             return await roomMigrationService.EnterRoomAsync(
                 player: player,
-                destinationRoomId: command.HubRoomSpatialID);
+                destinationRoomId: ownership.PersonalRoomID);
         }
         #endregion
     }

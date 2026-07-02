@@ -107,7 +107,7 @@ namespace Application.Services.DesignService
             var finalLayer = dto.Layer;
             var finalMask = dto.Mask;
 
-            // Fallback Preset Engine: If frontend passes 0/None, infer correct defaults from the concrete EntityType
+            // Fallback Preset Engine: If 0/None, infer correct defaults from the concrete EntityType
             if (finalLayer == CollisionLayer.None || finalMask == CollisionLayer.None)
             {
                 switch (entityType)

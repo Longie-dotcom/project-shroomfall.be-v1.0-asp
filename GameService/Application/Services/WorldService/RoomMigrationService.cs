@@ -1,70 +1,134 @@
-﻿using Application.Context;
+﻿using Application.Interfaces.Cache;
 using Application.Interfaces.Realtime.Managers;
+using AutoMapper;
+using Contract.DTO.Connection;
+using Contract.DTO.Domain.Runtime;
+using Contract.Enum.WorldDomain;
 using Domain.Common;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
+using Domain.Runtime.WorldDomain.Spatial;
+using Domain.Shared.DomainException;
+using Domain.Shared.ResponseCode;
 
 namespace Application.Services.WorldService
 {
     public class RoomMigrationService
     {
         #region Attributes
+        private readonly IMapper mapper;
         private readonly ResidencyService residencyService;
-        private readonly PlayerContext playerContext;
         private readonly EntitySpawnService entitySpawnService;
         private readonly IConnectionManager connectionManager;
+        private readonly ICacheProvider cacheProvider;
         #endregion
 
         public RoomMigrationService(
+            IMapper mapper,
             ResidencyService residencyService,
-            PlayerContext playerContext,
             EntitySpawnService entitySpawnService,
-            IConnectionManager connectionManager)
+            IConnectionManager connectionManager,
+            ICacheProvider cacheProvider)
         {
+            this.mapper = mapper;
             this.residencyService = residencyService;
-            this.playerContext = playerContext;
             this.entitySpawnService = entitySpawnService;
             this.connectionManager = connectionManager;
+            this.cacheProvider = cacheProvider;
         }
 
         #region Methods
-        public async Task ExecuteMigrationAsync(
+        public async Task<RoomSnapshotDTO> EnterRoomAsync(
             EntityInstance player,
-            TransformInstance transform,
-            string toRoomSpatialId,
-            Vector2 spawnPosition,
-            int layerZ)
+            string destinationRoomId,
+            bool isInitialLogin = false)
         {
-            var fromRoomId = transform.RoomSpatialID;
+            var transform = player.GetComponent<TransformInstance>();
+            if (transform == null)
+                throw new InternalException(
+                    ApplicationCode.RoomMigrationServiceCode.TransformMissing,
+                    $"Entity '{player.ID}' has no TransformInstance.");
 
-            // Bring target space into RAM
-            await residencyService.EnsureRoomLoaded(toRoomSpatialId);
+            // Bring target room into memory
+            var roomSnapshot = await residencyService.EnsureRoomLoaded(destinationRoomId);
 
-            // Physical server-side spatial mutation
-            entitySpawnService.TransitionRoom(player, toRoomSpatialId, spawnPosition, layerZ);
+            // Resolve valid spawn by rules
+            var (spawnPosition, layerZ) = ResolvePlayerSpawn(roomSnapshot.Room);
+            
+            // Restore old room id
+            var oldRoomId = transform.RoomSpatialID;
 
-            // Keep application contexts in sync
-            playerContext.LeaveRoom(fromRoomId, player.ID);
-            playerContext.JoinRoom(toRoomSpatialId, player.ID);
-
-            // Update memory lifecycles
-            residencyService.MarkRoomHot(toRoomSpatialId);
-            if (playerContext.IsRoomEmpty(fromRoomId))
-                residencyService.MarkRoomExited(fromRoomId);
+            if (isInitialLogin)
+            {
+                // Use login indexing path
+                entitySpawnService.SpawnOnLogin(player, destinationRoomId, spawnPosition, layerZ);
+            }
             else
-                residencyService.TouchRoom(fromRoomId);
+            {
+                // Standard live gameplay room-to-room migration
+                entitySpawnService.TransitionRoom(player, destinationRoomId, spawnPosition, layerZ);
+                await residencyService.LeaveRoomAsync(oldRoomId, player.ID);
+            }
 
-            // Network Socket Group Swap
+            // Update ongoing tracking layers
+            await residencyService.JoinRoomAsync(destinationRoomId, player.ID);
+
+            // Move groups
             var ownership = player.GetComponent<OwnershipInstance>();
             if (ownership != null)
             {
-                var activeConnections = connectionManager.Get(ownership.UserID);
-                foreach (var connectionId in activeConnections)
+                foreach (var connectionId in connectionManager.Get(ownership.UserID))
                 {
-                    await connectionManager.Ungroup(connectionId, fromRoomId);
-                    await connectionManager.Group(connectionId, toRoomSpatialId);
+                    if (!isInitialLogin)
+                        await connectionManager.Ungroup(connectionId, oldRoomId);
+                    await connectionManager.Group(connectionId, destinationRoomId);
                 }
             }
+
+            return BuildDTO(roomSnapshot);
+        }
+
+        private (Vector2 position, int layerZ) ResolvePlayerSpawn(
+            RoomSpatial room)
+        {
+            // Find hub room definition
+            var roomDefinition = cacheProvider.Room.Get(room.DefinitionID);
+            if (roomDefinition == null)
+                throw new InternalException(
+                    ApplicationCode.RoomMigrationServiceCode.RoomDefinitionNotFound,
+                    $"Room spatial '{room.ID}' references unknown room definition '{room.DefinitionID}'.");
+
+            // Find player spawn
+            var playerSpawnRule = roomDefinition.EntitySpawnRules.FirstOrDefault(r => r.Type == SpawnRuleType.Player);
+            if (playerSpawnRule == null)
+                throw new InternalException(
+                    ApplicationCode.RoomMigrationServiceCode.PlayerSpawnRuleMissing,
+                    $"Room definition '{roomDefinition.ID}' does not define a player spawn rule.");
+
+            // Calculate coordinates (Using the exact point or center of the designated tile cell zone)
+            int x = Random.Shared.Next(playerSpawnRule.MinX, playerSpawnRule.MaxX + 1);
+            int y = Random.Shared.Next(playerSpawnRule.MinY, playerSpawnRule.MaxY + 1);
+
+            var cell = cacheProvider.Room.GetTopCell(roomDefinition.ID, x, y);
+            if (cell == null)
+                throw new InternalException(
+                    ApplicationCode.RoomMigrationServiceCode.SpawnCellNotFound,
+                    $"No valid spawn cell exists at ({x}, {y}) in room definition '{roomDefinition.ID}'.");
+
+            return (new Vector2(x, y), cell.Z);
+        }
+
+        private RoomSnapshotDTO BuildDTO(
+            RoomSnapshot snapshot)
+        {
+            var snapshotDto = new RoomSnapshotDTO()
+            {
+                RoomData = mapper.Map<RoomRuntimeDTO>(snapshot.Room)
+            };
+
+            snapshotDto.RoomData.Entities = mapper.Map<List<EntityInstanceDTO>>(snapshot.Entities);
+
+            return snapshotDto;
         }
         #endregion
     }

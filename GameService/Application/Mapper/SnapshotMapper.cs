@@ -4,7 +4,6 @@ using Domain.Common;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
 using Domain.Runtime.WorldDomain.Spatial;
-using Domain.Runtime.WorldDomain.Topology;
 using Domain.Snapshot.EntityDomain;
 using Domain.Snapshot.EntityDomain.Component;
 using Domain.Snapshot.WorldDomain;
@@ -81,7 +80,6 @@ namespace Application.Mapper
             CreateMap<WorldItemPayloadInstance, WorldItemPayloadSnapshot>();
 
             // World Domain
-            CreateMap<RoomConnectionInstance, RoomConnectionSnapshot>();
             CreateMap<RoomSpatial, RoomSnapshot>();
         }
     }

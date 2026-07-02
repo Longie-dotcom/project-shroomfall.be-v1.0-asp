@@ -2,6 +2,7 @@
 using Application.Interfaces.Utility;
 using Contract;
 using Contract.DTO.Admin;
+using Contract.DTO.Connection;
 using Contract.DTO.Design;
 using Contract.DTO.Domain.Runtime;
 using Contract.DTO.Game;
@@ -92,6 +93,18 @@ namespace Infrastructure.Realtime
             return hub.Clients
                 .Group(roomId)
                 .SendAsync(NetworkMethod.OnPlayerAppearanceChanged, appearanceChanged);
+        }
+
+        // ─────────────────────────────
+        // Room Snapshot (changed) 
+        // ─────────────────────────────
+        public Task SendRoomSnapshotUpdated(
+            string roomId,
+            RoomSnapshotDTO payload)
+        {
+            return hub.Clients
+                .Group(roomId)
+                .SendAsync(NetworkMethod.OnRoomSnapshotUpdated, payload);
         }
 
         // ─────────────────────────────

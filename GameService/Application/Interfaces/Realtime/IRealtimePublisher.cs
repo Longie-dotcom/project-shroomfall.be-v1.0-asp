@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces.Utility;
 using Contract.DTO.Admin;
+using Contract.DTO.Connection;
 using Contract.DTO.Design;
 using Contract.DTO.Domain.Runtime;
 using Contract.DTO.Game;
@@ -45,6 +46,13 @@ namespace Application.Interfaces.Realtime
         Task SendPlayerAppearanceChanged(
             string roomSpatialId,
             EntityAppearanceChangedDTO appearanceChanged);
+
+        // ─────────────────────────────
+        // Room Snapshot (changed) 
+        // ─────────────────────────────
+        Task SendRoomSnapshotUpdated(
+            string roomId,
+            RoomSnapshotDTO payload);
 
         // ─────────────────────────────
         // Definition Update Notification

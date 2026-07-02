@@ -1,5 +1,4 @@
-﻿using Application.Context;
-using Application.Interfaces.Cache;
+﻿using Application.Interfaces.Cache;
 using Contract.Enum.EntityDomain;
 using Contract.Enum.WorldDomain;
 using Domain.Abstraction;

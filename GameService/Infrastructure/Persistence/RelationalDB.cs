@@ -37,7 +37,7 @@ namespace Infrastructure.Persistence
         public DbSet<EffectDefinition> EffectDefinitions { get; set; }
         public DbSet<ItemDefinition> ItemDefinitions { get; set; }
 
-        public DbSet<RoomConnection> RoomConnections { get; set; }
+        public DbSet<CombatRunDefinition> CombatRunDefinitions { get; set; }
         public DbSet<RoomDefinition> RoomDefinitions { get; set; }
 
         public DbSet<DefinitionVersionLog> DefinitionVersionLogs { get; set; }
@@ -825,6 +825,82 @@ namespace Infrastructure.Persistence
             #endregion
 
             #region World Domain
+            modelBuilder.Entity<CombatRunDefinition>(entity =>
+            {
+                // ─────────────────────────────
+                // Table
+                // ─────────────────────────────
+                entity.ToTable("CombatRunDefinitions");
+
+                // ─────────────────────────────
+                // Primary Key
+                // ─────────────────────────────
+                entity.HasKey(x => x.ID);
+
+                // ─────────────────────────────
+                // Properties
+                // ─────────────────────────────
+                entity.Property(x => x.ID)
+                    .IsRequired();
+
+                // ─────────────────────────────
+                // Relationships
+                // ─────────────────────────────
+                entity.HasMany(x => x.Floors)
+                    .WithOne(x => x.CombatRunDefinition)
+                    .HasForeignKey(x => x.CombatRunDefinitionID)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // ─────────────────────────────
+                // Indexes
+                // ─────────────────────────────
+                entity.HasIndex(x => x.ID);
+            });
+
+            modelBuilder.Entity<Floor>(entity =>
+            {
+                // ─────────────────────────────
+                // Table
+                // ─────────────────────────────
+                entity.ToTable("CombatRunFloors");
+
+                // ─────────────────────────────
+                // Primary Key
+                // ─────────────────────────────
+                entity.HasKey(x => new
+                {
+                    x.CombatRunDefinitionID,
+                    x.Level
+                });
+
+                // ─────────────────────────────
+                // Properties
+                // ─────────────────────────────
+                entity.Property(x => x.Level)
+                    .IsRequired();
+
+                entity.Property(x => x.RoomDefinitionID)
+                    .IsRequired();
+
+                entity.Property(x => x.CombatRunDefinitionID)
+                    .IsRequired();
+
+                // ─────────────────────────────
+                // Relationships
+                // ─────────────────────────────
+                entity.HasOne(x => x.CombatRunDefinition)
+                    .WithMany(x => x.Floors)
+                    .HasForeignKey(x => x.CombatRunDefinitionID)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // ─────────────────────────────
+                // Indexes
+                // ─────────────────────────────
+                entity.HasIndex(x => x.RoomDefinitionID);
+
+                entity.HasIndex(x => x.Level);
+            });
+
             modelBuilder.Entity<RoomDefinition>(entity =>
             {
                 // ─────────────────────────────
@@ -955,58 +1031,6 @@ namespace Infrastructure.Persistence
                 // ─────────────────────────────
                 entity.HasIndex(x => x.RoomDefinitionID);
                 entity.HasIndex(x => x.EntityDefinitionID);
-            });
-
-            modelBuilder.Entity<RoomConnection>(entity =>
-            {
-                // ─────────────────────────────
-                // Table
-                // ─────────────────────────────
-                entity.ToTable("RoomConnections");
-
-                // ─────────────────────────────
-                // Primary Key
-                // ─────────────────────────────
-                entity.HasKey(x => x.ID);
-
-                // ─────────────────────────────
-                // Properties
-                // ─────────────────────────────
-                entity.Property(x => x.SourceRoomID)
-                    .IsRequired();
-                entity.Property(x => x.SourceEntityID)
-                    .IsRequired();
-                entity.Property(x => x.DestinationRoomID)
-                    .IsRequired();
-                entity.Property(x => x.DestinationEntityID)
-                    .IsRequired();
-
-                // ─────────────────────────────
-                // Relationships
-                // ─────────────────────────────
-                entity.HasOne(x => x.SourceRoom)
-                    .WithMany()
-                    .HasForeignKey(x => x.SourceRoomID)
-                    .OnDelete(DeleteBehavior.Restrict);
-                entity.HasOne(x => x.DestinationRoom)
-                    .WithMany()
-                    .HasForeignKey(x => x.DestinationRoomID)
-                    .OnDelete(DeleteBehavior.Restrict);
-                entity.HasOne(x => x.SourceEntity)
-                    .WithMany()
-                    .HasForeignKey(x => x.SourceEntityID)
-                    .OnDelete(DeleteBehavior.Restrict);
-                entity.HasOne(x => x.DestinationEntity)
-                    .WithMany()
-                    .HasForeignKey(x => x.DestinationEntityID)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                // ─────────────────────────────
-                // Indexes
-                // ─────────────────────────────
-                entity.HasIndex(x => new { x.SourceRoomID, x.SourceEntityID })
-                    .IsUnique();
-                entity.HasIndex(x => new { x.DestinationRoomID, x.DestinationEntityID });
             });
             #endregion
 

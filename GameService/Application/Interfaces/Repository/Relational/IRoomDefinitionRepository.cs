@@ -5,6 +5,9 @@ namespace Application.Interfaces.Repository.Relational
 {
     public interface IRoomDefinitionRepository : ISQLGenericRepository<RoomDefinition>, IRelationalRepository
     {
-
+        Task UpsertChildrenAsync(
+            string roomDefinitionId,
+            IEnumerable<Cell> cells,
+            IEnumerable<EntitySpawnRule> spawnRules);
     }
 }

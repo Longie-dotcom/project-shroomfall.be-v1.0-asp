@@ -9,12 +9,15 @@ namespace Domain.Runtime.EntityDomain.Component
 
         #region Properties
         public string UserID { get; }
+        public string PersonalRoomID { get; }
         #endregion
 
         public OwnershipInstance(
-            string userID) : base(Guid.Empty)
+            string userID,
+            string personalRoomID) : base(Guid.Empty)
         {
             UserID = userID;
+            PersonalRoomID = personalRoomID;
         }
 
         #region Methods

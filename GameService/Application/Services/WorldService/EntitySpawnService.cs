@@ -1,5 +1,4 @@
-﻿using Application.Context;
-using Application.Interfaces.Realtime.Events;
+﻿using Application.Interfaces.Realtime.Events;
 using Application.Interfaces.Realtime.Events.Game;
 using Application.Services.WorldService.Factory;
 using Contract;
@@ -78,6 +77,7 @@ namespace Application.Services.WorldService
     public class PlayerEntityCreateContext : WorldEntityCreateContext
     {
         public string UserID { get; }
+        public string PersonalRoomID { get; }
 
         public PlayerEntityCreateContext(
             string instanceId,
@@ -85,7 +85,8 @@ namespace Application.Services.WorldService
             string roomSpatialId,
             int layerZ,
             Vector2 position,
-            string userId) : base(
+            string userId,
+            string personalRoomID) : base(
                 instanceId,
                 definitionId,
                 roomSpatialId,
@@ -93,6 +94,7 @@ namespace Application.Services.WorldService
                 position)
         {
             UserID = userId;
+            PersonalRoomID = personalRoomID;
         }
     }
 
@@ -184,6 +186,31 @@ namespace Application.Services.WorldService
 
             // HELLO PACKET (New Room channel)
             // Alert newly targeted zone observers using the updated spatial coordinates
+            eventBus.Publish(new EntityLifecycleEvent(
+                entity,
+                targetRoomSpatialId,
+                EntityLifecycleType.Spawn));
+        }
+
+        public void SpawnOnLogin(
+            EntityInstance entity,
+            string targetRoomSpatialId,
+            Vector2 targetPosition,
+            int targetLayerZ)
+        {
+            // Inject into spatial partitioning and engine ticks
+            worldContext.AddEntity(entity);
+
+            // ATOMIC DOMAIN ROOM TRANSITION
+            // This updates the internal dictionaries and spatial grids perfectly
+            worldContext.ChangeRoom(
+                entity.ID,
+                targetPosition,
+                targetLayerZ,
+                targetRoomSpatialId);
+
+            // HELLO PACKET ONLY
+            // Alert only the clients in the new personal room that the player has arrived
             eventBus.Publish(new EntityLifecycleEvent(
                 entity,
                 targetRoomSpatialId,

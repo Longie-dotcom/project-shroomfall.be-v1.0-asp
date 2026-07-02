@@ -15,8 +15,8 @@ using Domain.Definition.MetaDomain;
 using Domain.Definition.WorldDomain;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
+using Domain.Runtime.WorldDomain.Run;
 using Domain.Runtime.WorldDomain.Spatial;
-using Domain.Runtime.WorldDomain.Topology;
 using Domain.Shared;
 
 namespace Application.Mapper
@@ -104,9 +104,9 @@ namespace Application.Mapper
             // World Domain
             CreateMap<Cell, CellDefinitionDTO>();
             CreateMap<EntitySpawnRule, EntitySpawnRuleDefinitionDTO>();
-            CreateMap<RoomConnection, RoomConnectionDefinitionDTO>();
             CreateMap<RoomPresentationDefinition, RoomPresentationDefinitionDTO>();
             CreateMap<RoomDefinition, RoomDefinitionDTO>();
+            CreateMap<CombatRunDefinition, CombatRunDefinitionDTO>();
 
             // ─────────────────────────────
             // RUNTIME to DTO
@@ -162,7 +162,7 @@ namespace Application.Mapper
 
             // World Domain
             CreateMap<RoomSpatial, RoomRuntimeDTO>();
-            CreateMap<RoomConnectionInstance, RoomConnectionRuntimeDTO>();
+            CreateMap<CombatRunInstance, CombatRunInstanceDTO>();
         }
     }
 }

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(RelationalDB))]
-    [Migration("20260628154922_initial")]
+    [Migration("20260702184051_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -643,6 +643,18 @@ namespace Infrastructure.Migrations
                     b.ToTable("Cells", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Definition.WorldDomain.CombatRunDefinition", b =>
+                {
+                    b.Property<string>("ID")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("ID");
+
+                    b.ToTable("CombatRunDefinitions", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Definition.WorldDomain.EntitySpawnRule", b =>
                 {
                     b.Property<Guid>("ID")
@@ -692,39 +704,25 @@ namespace Infrastructure.Migrations
                     b.ToTable("EntitySpawnRules", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Definition.WorldDomain.RoomConnection", b =>
+            modelBuilder.Entity("Domain.Definition.WorldDomain.Floor", b =>
                 {
-                    b.Property<string>("ID")
+                    b.Property<string>("CombatRunDefinitionID")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("DestinationEntityID")
+                    b.Property<int>("Level")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RoomDefinitionID")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("DestinationRoomID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.HasKey("CombatRunDefinitionID", "Level");
 
-                    b.Property<string>("SourceEntityID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.HasIndex("Level");
 
-                    b.Property<string>("SourceRoomID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.HasIndex("RoomDefinitionID");
 
-                    b.HasKey("ID");
-
-                    b.HasIndex("DestinationEntityID");
-
-                    b.HasIndex("SourceEntityID");
-
-                    b.HasIndex("DestinationRoomID", "DestinationEntityID");
-
-                    b.HasIndex("SourceRoomID", "SourceEntityID")
-                        .IsUnique();
-
-                    b.ToTable("RoomConnections", (string)null);
+                    b.ToTable("CombatRunFloors", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Definition.WorldDomain.RoomDefinition", b =>
@@ -1075,39 +1073,15 @@ namespace Infrastructure.Migrations
                     b.Navigation("RoomDefinition");
                 });
 
-            modelBuilder.Entity("Domain.Definition.WorldDomain.RoomConnection", b =>
+            modelBuilder.Entity("Domain.Definition.WorldDomain.Floor", b =>
                 {
-                    b.HasOne("Domain.Definition.EntityDomain.EntityDefinition", "DestinationEntity")
-                        .WithMany()
-                        .HasForeignKey("DestinationEntityID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                    b.HasOne("Domain.Definition.WorldDomain.CombatRunDefinition", "CombatRunDefinition")
+                        .WithMany("Floors")
+                        .HasForeignKey("CombatRunDefinitionID")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Definition.WorldDomain.RoomDefinition", "DestinationRoom")
-                        .WithMany()
-                        .HasForeignKey("DestinationRoomID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Definition.EntityDomain.EntityDefinition", "SourceEntity")
-                        .WithMany()
-                        .HasForeignKey("SourceEntityID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Definition.WorldDomain.RoomDefinition", "SourceRoom")
-                        .WithMany()
-                        .HasForeignKey("SourceRoomID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("DestinationEntity");
-
-                    b.Navigation("DestinationRoom");
-
-                    b.Navigation("SourceEntity");
-
-                    b.Navigation("SourceRoom");
+                    b.Navigation("CombatRunDefinition");
                 });
 
             modelBuilder.Entity("Domain.Definition.WorldDomain.RoomDefinition", b =>
@@ -1174,6 +1148,11 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Definition.LocalizationDomain.Locale", b =>
                 {
                     b.Navigation("LocalizationEntries");
+                });
+
+            modelBuilder.Entity("Domain.Definition.WorldDomain.CombatRunDefinition", b =>
+                {
+                    b.Navigation("Floors");
                 });
 
             modelBuilder.Entity("Domain.Definition.WorldDomain.RoomDefinition", b =>
