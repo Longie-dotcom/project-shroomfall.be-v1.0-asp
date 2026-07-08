@@ -2,11 +2,11 @@
 using Application.Services.AttributeService;
 using Application.Services.WorldService.Factory.Component;
 using Contract.Enum.EntityDomain;
+using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
 using Domain.Snapshot.EntityDomain;
+using ResponseCode;
 
 namespace Application.Services.WorldService.Factory
 {

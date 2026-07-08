@@ -1,8 +1,8 @@
 ﻿using Application.Interfaces.Utility;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using Domain.DomainException;
 using Infrastructure.Utility;
 using Microsoft.Extensions.DependencyInjection;
+using ResponseCode;
 
 namespace Infrastructure.Configuration
 {

@@ -1,10 +1,10 @@
 ﻿using Domain.Abstraction.World;
 using Domain.Common;
+using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
 using Domain.Runtime.WorldDomain.Spatial;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using ResponseCode;
 using System.Collections;
 
 namespace Domain.Runtime.WorldDomain

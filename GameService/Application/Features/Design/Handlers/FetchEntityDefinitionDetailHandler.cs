@@ -5,8 +5,8 @@ using Application.Interfaces.Repository.Relational;
 using Application.Services.DesignService;
 using AutoMapper;
 using Contract.DTO.Domain.Definition;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using Domain.DomainException;
+using ResponseCode;
 
 namespace Application.Features.Design.Handlers
 {

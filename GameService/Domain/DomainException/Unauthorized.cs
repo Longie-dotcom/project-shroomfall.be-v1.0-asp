@@ -1,6 +1,6 @@
-﻿namespace Domain.Shared.DomainException
+﻿namespace Domain.DomainException
 {
-    public class InternalException : Exception
+    public class Unauthorized : Exception
     {
         #region Attributes
         #endregion
@@ -9,7 +9,7 @@
         public string Code { get; }
         #endregion
 
-        public InternalException(
+        public Unauthorized(
             string code,
             string? message = "") : base(message)
         {

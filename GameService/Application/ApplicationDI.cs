@@ -58,7 +58,6 @@ namespace Application
             services.AddScoped<IHandler<FetchEntityDefinitionCommand, PagedResponseDTO<EntityDefinitionDTO>>, FetchEntityDefinitionHandler>();
             services.AddScoped<IHandler<FetchEntityDefinitionDetailCommand, EntityDefinitionDetailDTO>, FetchEntityDefinitionDetailHandler>();
             services.AddScoped<IHandler<FetchItemDefinitionCommand, PagedResponseDTO<ItemDefinitionDTO>>, FetchItemDefinitionHandler>();
-            services.AddScoped<IHandler<FetchLocaleCommand, ExistLocalesDTO>, FetchLocaleHandler>();
             services.AddScoped<IHandler<UpdateDefinitionCommand>, UpdateDefinitionHandler>();
             services.AddScoped<IHandler<UpsertEffectDefinitionCommand>, UpsertEffectDefinitionHandler>();
             services.AddScoped<IHandler<UpsertEntityDefinitionCommand>, UpsertEntityDefinitionHandler>();
@@ -79,7 +78,6 @@ namespace Application
             services.AddScoped<IHandler<RefreshTokenCommand, TokenDTO>, RefreshTokenHandler>();
             services.AddScoped<IHandler<RegisterCommand, TokenDTO>, RegisterHandler>();
             services.AddScoped<IHandler<SteamAuthCommand, TokenDTO>, SteamAuthHandler>();
-            services.AddScoped<IHandler<UpdatePreferredLocaleCommand>, UpdatePreferredLocaleHandler>();
             services.AddScoped<IHandler<UpdateProfileCommand>, UpdateProfileHandler>();
 
             // ─────────────────────────────

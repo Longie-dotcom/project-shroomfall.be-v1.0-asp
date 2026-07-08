@@ -7,9 +7,9 @@ using Application.Services.WorldService;
 using AutoMapper;
 using Contract.DTO.Domain.Runtime;
 using Domain.Common;
+using Domain.DomainException;
 using Domain.Runtime.EntityDomain.Component;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using ResponseCode;
 
 namespace Application.Features.Game.Handlers
 {

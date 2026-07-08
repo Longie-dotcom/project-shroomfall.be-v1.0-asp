@@ -1,4 +1,4 @@
-﻿using Contract.DTO.Domain.Definition;
+﻿using Microsoft.AspNetCore.Http;
 
 namespace Application.Features.Design.Commands
 {
@@ -8,19 +8,13 @@ namespace Application.Features.Design.Commands
         #endregion
 
         #region Properties
-        public RoomDefinitionDTO Room { get; }
-        public List<CellDefinitionDTO> Cells { get; }
-        public List<EntitySpawnRuleDefinitionDTO> EntitySpawnRules { get; }
+        public IFormFile File { get; }
         #endregion
 
         public UpsertRoomDefinitionCommand(
-            RoomDefinitionDTO room,
-            List<CellDefinitionDTO> cells,
-            List<EntitySpawnRuleDefinitionDTO> entitySpawnRules)
+            IFormFile file)
         {
-            Room = room;
-            Cells = cells;
-            EntitySpawnRules = entitySpawnRules;
+            File = file;
         }
 
         #region Methods

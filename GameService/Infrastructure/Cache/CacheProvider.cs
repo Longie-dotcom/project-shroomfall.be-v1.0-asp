@@ -7,9 +7,9 @@ using Application.Interfaces.Cache.WorldDomain;
 using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
 using Application.Interfaces.Utility;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using Domain.DomainException;
 using Microsoft.Extensions.DependencyInjection;
+using ResponseCode;
 
 namespace Infrastructure.Cache
 {

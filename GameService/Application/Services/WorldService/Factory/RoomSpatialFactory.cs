@@ -1,8 +1,7 @@
 ﻿using Application.Interfaces.Cache;
+using Domain.DomainException;
 using Domain.Runtime.WorldDomain.Spatial;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
-
+using ResponseCode;
 
 namespace Application.Services.WorldService.Factory
 {

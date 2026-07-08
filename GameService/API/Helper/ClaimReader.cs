@@ -1,5 +1,5 @@
-﻿using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+﻿using Domain.DomainException;
+using ResponseCode;
 using System.Security.Claims;
 
 namespace API.Helper

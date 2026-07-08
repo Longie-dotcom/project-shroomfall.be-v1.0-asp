@@ -1,8 +1,8 @@
 ﻿using Application.Interfaces.Cache.EntityDomain.Component;
 using Contract.Enum.MetaDomain.Effect;
 using Domain.Definition.EntityDomain.Component;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using Domain.DomainException;
+using ResponseCode;
 
 namespace Infrastructure.Cache.EntityDomain.Component
 {

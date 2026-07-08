@@ -1,6 +1,6 @@
 ﻿using Contract.Enum.IdentityDomain;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using Domain.DomainException;
+using ResponseCode;
 
 namespace Domain.Definition.IdentityDomain
 {
@@ -10,10 +10,9 @@ namespace Domain.Definition.IdentityDomain
         #endregion
 
         #region Properties
-        public string ID { get; private set; }
+        public string ID { get; private set; } = string.Empty;
         public Role Role { get; private set; }
-        public string Name { get; private set; }
-        public string PreferredLocale { get; private set; }
+        public string Name { get; private set; } = string.Empty;
         public DateTime? Dob { get; private set; }
         public string? Gender { get; private set; }
         public string? Email { get; private set; }
@@ -30,7 +29,6 @@ namespace Domain.Definition.IdentityDomain
         public User(
             string id, 
             string name,
-            string preferredLocale,
             Role role,
             Password? password = null,
             string? email = null,
@@ -54,7 +52,6 @@ namespace Domain.Definition.IdentityDomain
             ID = id;
             Role = role;
             Name = name;
-            PreferredLocale = preferredLocale;
             Email = email;
             PasswordHash = password?.Hash;
             SteamID = steamId;
@@ -63,7 +60,8 @@ namespace Domain.Definition.IdentityDomain
         }
 
         #region Methods
-        public void VerifyPassword(string plainPassword)
+        public void VerifyPassword(
+            string plainPassword)
         {
             if (PasswordHash == null)
                 throw new Unauthorized(
@@ -83,13 +81,17 @@ namespace Domain.Definition.IdentityDomain
             LastLogin = DateTime.UtcNow;
         }
 
-        public void SetRefreshToken(string token, DateTime expiry)
+        public void SetRefreshToken(
+            string token, 
+            DateTime expiry)
         {
             RefreshToken = token;
             RefreshTokenExpiry = expiry;
         }
 
-        public void ValidateRefreshToken(string token, DateTime now)
+        public void ValidateRefreshToken(
+            string token,
+            DateTime now)
         {
             if (RefreshToken != token)
                 throw new Unauthorized(
@@ -103,9 +105,9 @@ namespace Domain.Definition.IdentityDomain
         }
 
         public void UpdateProfile(
-                    string? name,
-                    DateTime? dob,
-                    string? gender)
+            string? name,
+            DateTime? dob,
+            string? gender)
         {
             if (name != null)
             {
@@ -137,12 +139,6 @@ namespace Domain.Definition.IdentityDomain
                 Gender = gender;
             }
         }
-
-        public void UpdatePreferredLocale(
-            string preferredLocale)
-        {
-            PreferredLocale = preferredLocale;
-        }
         #endregion
     }
 
@@ -152,7 +148,7 @@ namespace Domain.Definition.IdentityDomain
         #endregion
 
         #region Properties
-        public string Hash { get; private set; }
+        public string Hash { get; private set; } = string.Empty;
         #endregion
 
         private Password() { }

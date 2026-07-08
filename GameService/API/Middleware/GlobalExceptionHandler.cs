@@ -1,6 +1,6 @@
 ﻿using Application.Interfaces.Utility;
 using Contract.DTO.Common;
-using Domain.Shared.DomainException;
+using Domain.DomainException;
 using System.Text.Json;
 
 namespace API.Middleware

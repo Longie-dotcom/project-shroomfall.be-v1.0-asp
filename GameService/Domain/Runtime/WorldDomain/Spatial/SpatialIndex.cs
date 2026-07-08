@@ -1,7 +1,7 @@
-﻿using Domain.Runtime.EntityDomain;
+﻿using Domain.DomainException;
+using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using ResponseCode;
 
 namespace Domain.Runtime.WorldDomain.Spatial
 {

@@ -1,9 +1,9 @@
 ﻿using Application.Interfaces.Repository.Base;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using Domain.DomainException;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
+using ResponseCode;
 
 namespace Infrastructure.Repository.Base
 {

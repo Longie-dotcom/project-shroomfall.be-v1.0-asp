@@ -1,6 +1,6 @@
 ﻿using Domain.Abstraction;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using Domain.DomainException;
+using ResponseCode;
 
 namespace Application.Services.WorldService
 {

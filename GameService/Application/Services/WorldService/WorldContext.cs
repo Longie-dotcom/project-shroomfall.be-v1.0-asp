@@ -4,7 +4,7 @@ using Domain.Common;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
 using Domain.Runtime.WorldDomain.Spatial;
-using Domain.Shared.ResponseCode;
+using ResponseCode;
 
 namespace Application.Services.WorldService
 {

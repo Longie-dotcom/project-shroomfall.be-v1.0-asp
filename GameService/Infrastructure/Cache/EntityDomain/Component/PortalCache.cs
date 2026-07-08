@@ -1,7 +1,7 @@
 ﻿using Application.Interfaces.Cache.EntityDomain.Component;
 using Domain.Definition.EntityDomain.Component;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using Domain.DomainException;
+using ResponseCode;
 
 namespace Infrastructure.Cache.EntityDomain.Component
 {

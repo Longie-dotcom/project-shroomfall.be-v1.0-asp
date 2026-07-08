@@ -1,4 +1,4 @@
-﻿namespace Domain.Shared.DomainException
+﻿namespace Domain.DomainException
 {
     public class BadRequest : Exception
     {

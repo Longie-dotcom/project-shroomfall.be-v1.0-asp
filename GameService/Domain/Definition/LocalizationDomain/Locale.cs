@@ -1,6 +1,5 @@
-﻿using Domain.Shared;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+﻿using Domain.DomainException;
+using ResponseCode;
 
 namespace Domain.Definition.LocalizationDomain
 {

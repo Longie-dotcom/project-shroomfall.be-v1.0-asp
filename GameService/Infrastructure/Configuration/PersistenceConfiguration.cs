@@ -1,7 +1,6 @@
 ﻿using Contract.Enum.MetaDomain.Effect;
 using Contract.Enum.MetaDomain.Item;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using Domain.DomainException;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,6 +8,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
+using ResponseCode;
 
 namespace Infrastructure.Configuration
 {

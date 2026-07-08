@@ -1,6 +1,6 @@
-﻿using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+﻿using Domain.DomainException;
 using Microsoft.AspNetCore.SignalR;
+using ResponseCode;
 
 namespace Infrastructure.Realtime
 {

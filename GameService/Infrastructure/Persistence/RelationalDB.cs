@@ -560,8 +560,6 @@ namespace Infrastructure.Persistence
                     .IsRequired();
                 entity.Property(e => e.Name)
                     .IsRequired();
-                entity.Property(e => e.PreferredLocale)
-                    .IsRequired();
                 entity.Property(e => e.Dob)
                     .IsRequired(false);
                 entity.Property(e => e.Gender)

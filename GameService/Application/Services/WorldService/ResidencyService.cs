@@ -3,8 +3,8 @@ using Application.Interfaces.Realtime.Events.Admin;
 using Application.Interfaces.Utility;
 using Application.Persistence;
 using Contract;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using Domain.DomainException;
+using ResponseCode;
 using System.Collections.Concurrent;
 
 namespace Application.Services.WorldService
@@ -152,7 +152,7 @@ namespace Application.Services.WorldService
                 snapshot = await snapshotPersistence.LoadRoomSnapshotAsync(roomSpatialId);
                 if (snapshot == null)
                     throw new InternalException(
-                        ApplicationCode.ResidencyTickCode.RoomSnapshotNotFoundInPersistence,
+                        ApplicationCode.ResidencyServiceCode.RoomSnapshotNotFoundInPersistence,
                         $"Residency synchronization failed. Cold state Room '{roomSpatialId}' contains no archived record state inside snapshot persistence layer.");
 
                 worldContext.Load(snapshot);
@@ -272,7 +272,7 @@ namespace Application.Services.WorldService
 
                 // Append telemetry snapshot data to tracking stream safely
                 telemetryQueue.EnqueueAlert(
-                    ApplicationCode.ResidencyTickCode.StateHeartbeatReport,
+                    ApplicationCode.ResidencyServiceCode.StateHeartbeatReport,
                     $"Residency performance update. Active clusters tracked -> Hot: {hotCount} | Warm: {warmCount} | Cold: {coldCount} (Total Tracked Rooms: {nodes.Count})",
                     TelemetrySeverity.Info);
             }
@@ -291,7 +291,7 @@ namespace Application.Services.WorldService
             var room = worldContext.GetRoom(roomSpatialId);
             if (room == null)
                 throw new InternalException(
-                    ApplicationCode.ResidencyTickCode.RoomSpatialNotFoundInRuntime,
+                    ApplicationCode.ResidencyServiceCode.RoomSpatialNotFoundInRuntime,
                     $"Residency synchronization failed. Room '{roomSpatialId}' is state marked '{node.State}' but could not be located inside runtime memory context.");
 
             return new RoomSnapshot
@@ -355,7 +355,7 @@ namespace Application.Services.WorldService
                     catch (Exception ex)
                     {
                         telemetryQueue.EnqueueAlert(
-                            ApplicationCode.ResidencyTickCode.RoomSnapshotPersistenceFailed,
+                            ApplicationCode.ResidencyServiceCode.RoomSnapshotPersistenceFailed,
                             $"Background eviction snapshot save failed for room '{node.RoomSpatialID}'. Exception: {ex.Message}",
                             TelemetrySeverity.Error);
                     }

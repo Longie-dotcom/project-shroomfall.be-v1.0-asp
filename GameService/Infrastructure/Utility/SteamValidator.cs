@@ -1,6 +1,6 @@
 ﻿using Application.Interfaces.Utility;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using Domain.DomainException;
+using ResponseCode;
 using System.Text.Json;
 
 namespace Infrastructure.Utility
@@ -27,7 +27,8 @@ namespace Infrastructure.Utility
         }
 
         #region Methods
-        public async Task<string?> ValidateTicket(string ticket)
+        public async Task<string?> ValidateTicket(
+            string ticket)
         {
             var url = "https://api.steampowered.com/ISteamUserAuth/AuthenticateUserTicket/v1/" + $"?key={apiKey}&appid={appId}&ticket={ticket}";
 

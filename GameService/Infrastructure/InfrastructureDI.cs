@@ -40,7 +40,7 @@ namespace Infrastructure
             services.AddCacheConfiguration();
 
             // ─────────────────────────────
-            // BACKGROUND
+            // BACKGROUNDS
             // ─────────────────────────────
             services.AddBackgroundConfiguration();
 

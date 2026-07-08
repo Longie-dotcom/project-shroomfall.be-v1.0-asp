@@ -2,7 +2,7 @@
 using Application.Interfaces.Realtime.Events.Admin;
 using Application.Interfaces.Realtime.Managers;
 using Application.Interfaces.Utility;
-using Domain.Shared.ResponseCode;
+using ResponseCode;
 using System.Collections.Concurrent;
 
 namespace Infrastructure.Realtime.Managers

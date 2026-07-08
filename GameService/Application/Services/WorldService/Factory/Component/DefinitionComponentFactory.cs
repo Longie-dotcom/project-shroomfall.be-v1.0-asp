@@ -2,10 +2,10 @@
 using Domain.Abstraction;
 using Domain.Common;
 using Domain.Definition.EntityDomain.Component;
+using Domain.DomainException;
 using Domain.Runtime.EntityDomain.Component;
 using Domain.Shared;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using ResponseCode;
 
 namespace Application.Services.WorldService.Factory.Component
 {

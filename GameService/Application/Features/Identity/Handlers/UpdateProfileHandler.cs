@@ -2,8 +2,8 @@
 using Application.Features.Identity.Commands;
 using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using Domain.DomainException;
+using ResponseCode;
 
 namespace Application.Features.Identity.Handlers
 {

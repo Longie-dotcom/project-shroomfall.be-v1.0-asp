@@ -5,11 +5,11 @@ using Contract.DTO.Connection;
 using Contract.DTO.Domain.Runtime;
 using Contract.Enum.WorldDomain;
 using Domain.Common;
+using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
 using Domain.Runtime.WorldDomain.Spatial;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using ResponseCode;
 
 namespace Application.Services.WorldService
 {

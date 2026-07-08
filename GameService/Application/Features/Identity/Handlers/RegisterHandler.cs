@@ -6,8 +6,8 @@ using Application.Services.IdentityService;
 using Contract.DTO.Identity;
 using Contract.Enum.IdentityDomain;
 using Domain.Definition.IdentityDomain;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using Domain.DomainException;
+using ResponseCode;
 
 namespace Application.Features.Identity.Handlers
 {
@@ -56,7 +56,6 @@ namespace Application.Features.Identity.Handlers
             var user = new User(
                 id: Guid.NewGuid().ToString(),
                 name: dto.Name ?? "Player",
-                preferredLocale: dto.PreferredLocale,
                 role: Role.Player,
                 password: Password.Create(dto.Password),
                 email: email

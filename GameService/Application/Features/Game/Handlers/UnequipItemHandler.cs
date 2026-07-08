@@ -3,8 +3,8 @@ using Application.Features.Game.Commands;
 using Application.Interfaces.Realtime.Managers;
 using Application.Services.ItemService;
 using Application.Services.WorldService;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using Domain.DomainException;
+using ResponseCode;
 
 namespace Application.Features.Game.Handlers
 {

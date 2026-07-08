@@ -4,8 +4,8 @@ using Application.Interfaces.Realtime.Managers;
 using Application.Services.WorldService;
 using Contract;
 using Contract.DTO.Connection;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using Domain.DomainException;
+using ResponseCode;
 
 namespace Application.Features.Game.Handlers
 {
@@ -35,7 +35,7 @@ namespace Application.Features.Game.Handlers
             EnterHubCommand command)
         {
             // Validate hud ids
-            if (!Constraint.STATIC_HUB_ROOM_SPATIAL_IDS.Contains(command.HubRoomSpatialID))
+            if (!Constraint.STATIC_HUB_ROOM_MAPS.Any(map => map.SpatialId == command.HubRoomSpatialID))
                 throw new BadRequest(
                     ApplicationCode.GameHandlerCode.EnterHubInvalidHubRoom,
                     $"Hub room '{command.HubRoomSpatialID}' is not a registered static hub room.");

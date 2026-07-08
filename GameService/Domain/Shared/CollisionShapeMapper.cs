@@ -1,9 +1,9 @@
 ﻿using Contract.Enum.EntityDomain;
 using Domain.Abstraction;
 using Domain.Definition.EntityDomain.Component;
+using Domain.DomainException;
 using Domain.Runtime.EntityDomain.Component;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using ResponseCode;
 
 namespace Domain.Shared
 {

@@ -23,18 +23,18 @@ namespace Application.Services.WorldService
         #region Methods
         public async Task LoadAsync()
         {
-            foreach (var hubId in Constraint.STATIC_HUB_ROOM_SPATIAL_IDS)
-            {
-                var snapshot = initializationService.InitializeRoom(
-                    hubId,
-                    hubId,
-                    null,
-                    null,
-                    null);
+            //foreach (var hub in Constraint.STATIC_HUB_ROOM_MAPS)
+            //{
+            //    var snapshot = initializationService.InitializeRoom(
+            //        hub.DefinitionKey,
+            //        hub.SpatialId,
+            //        null,
+            //        null,
+            //        null);
 
-                residencyService.RegisterRuntimeRoom(snapshot.room);
-                residencyService.MarkRoomPermanent(hubId);
-            }
+            //    residencyService.RegisterRuntimeRoom(snapshot.room);
+            //    residencyService.MarkRoomPermanent(hub.SpatialId);
+            //}
         }
         #endregion
     }

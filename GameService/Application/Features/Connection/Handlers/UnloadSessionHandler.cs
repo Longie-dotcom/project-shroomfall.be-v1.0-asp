@@ -3,10 +3,10 @@ using Application.Features.Connection.Commands;
 using Application.Interfaces.Realtime.Managers;
 using Application.Persistence;
 using Application.Services.WorldService;
+using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using ResponseCode;
 
 namespace Application.Features.Connection.Handlers
 {

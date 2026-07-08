@@ -3,10 +3,10 @@ using Application.Interfaces.Realtime.Events.Game;
 using Application.Services.WorldService.Factory;
 using Contract;
 using Domain.Common;
+using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using ResponseCode;
 
 namespace Application.Services.WorldService
 {

@@ -2,11 +2,22 @@
 using Application.Features.Design.Commands;
 using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
+using Contract.DTO.Domain.Definition;
 using Domain.Definition.WorldDomain;
+using Domain.DomainException;
 using Domain.Shared;
+using ResponseCode;
+using System.Text.Json;
 
 namespace Application.Features.Design.Handlers
 {
+    public class RoomDefinitionPayload
+    {
+        public RoomDefinitionDTO Room { get; set; } = new RoomDefinitionDTO();
+        public List<CellDefinitionDTO> Cells { get; set; } = new List<CellDefinitionDTO>();
+        public List<EntitySpawnRuleDefinitionDTO> EntitySpawnRules { get; set; } = new List<EntitySpawnRuleDefinitionDTO>();
+    }
+
     public class UpsertRoomDefinitionHandler : IHandler<UpsertRoomDefinitionCommand>
     {
         #region Attributes
@@ -23,9 +34,43 @@ namespace Application.Features.Design.Handlers
         }
 
         #region Methods
-        public async Task Handle(UpsertRoomDefinitionCommand command)
+        public async Task Handle(
+            UpsertRoomDefinitionCommand command)
         {
-            var dto = command.Room;
+            if (command.File == null || command.File.Length == 0)
+            {
+                throw new BadRequest(
+                    ApplicationCode.DesignHandlerCode.RoomFilePayloadEmpty,
+                    "The uploaded room definition file is null or empty.");
+            }
+
+            RoomDefinitionPayload? payload;
+
+            // Stream Reading & Parsing
+            try
+            {
+                using var stream = command.File.OpenReadStream();
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+                payload = await JsonSerializer.DeserializeAsync<RoomDefinitionPayload>(stream, options);
+            }
+            catch (JsonException ex)
+            {
+                throw new BadRequest(
+                    ApplicationCode.DesignHandlerCode.RoomFileInvalidJson,
+                    $"Failed to deserialize JSON stream due to formatting errors: {ex.Message}");
+            }
+
+            // Data Invariant Verification
+            if (payload == null || payload.Room == null)
+            {
+                throw new BadRequest(
+                    ApplicationCode.DesignHandlerCode.RoomFileSchemaParseFailed,
+                    "The file was parsed but contains an invalid root payload structure or missing 'Room' schema definition.");
+            }
+
+            // Extract our clean, validated objects
+            var dto = payload.Room;
 
             // Resolve repository
             var repo = relationalUoW.GetRepository<IRoomDefinitionRepository>();
@@ -45,7 +90,7 @@ namespace Application.Features.Design.Handlers
             }
 
             // Map Child Collections directly using your shared project DTOs
-            var domainCells = command.Cells.Select(c => new Cell(
+            var domainCells = payload.Cells.Select(c => new Cell(
                 roomDefinitionId: dto.ID,
                 type: c.Type,
                 x: c.X,
@@ -53,7 +98,7 @@ namespace Application.Features.Design.Handlers
                 z: c.Z
             )).ToList();
 
-            var domainRules = command.EntitySpawnRules.Select(r => new EntitySpawnRule(
+            var domainRules = payload.EntitySpawnRules.Select(r => new EntitySpawnRule(
                 id: r.ID == Guid.Empty ? Guid.NewGuid() : r.ID,
                 type: r.Type,
                 minX: r.MinX,

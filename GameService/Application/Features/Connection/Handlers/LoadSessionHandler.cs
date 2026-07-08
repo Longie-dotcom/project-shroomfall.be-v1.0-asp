@@ -6,10 +6,10 @@ using Application.Services.WorldService;
 using AutoMapper;
 using Contract.DTO.Connection;
 using Contract.DTO.Domain.Runtime;
+using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using ResponseCode;
 
 namespace Application.Features.Connection.Handlers
 {

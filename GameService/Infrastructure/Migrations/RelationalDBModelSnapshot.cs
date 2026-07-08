@@ -452,10 +452,6 @@ namespace Infrastructure.Migrations
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PreferredLocale")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("RefreshToken")
                         .HasColumnType("nvarchar(max)");
 

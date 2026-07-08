@@ -1,8 +1,8 @@
 ﻿using Application.Interfaces.Cache.LocalizationDomain;
 using Application.Interfaces.Utility;
 using Domain.Definition.LocalizationDomain;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using Domain.DomainException;
+using ResponseCode;
 
 namespace Infrastructure.Cache.LocalizationDomain
 {

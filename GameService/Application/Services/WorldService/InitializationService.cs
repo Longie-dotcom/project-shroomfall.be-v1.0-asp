@@ -3,10 +3,10 @@ using Application.Services.WorldService.Factory;
 using Contract.Enum.WorldDomain;
 using Domain.Common;
 using Domain.Definition.WorldDomain;
+using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.WorldDomain.Spatial;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using ResponseCode;
 
 namespace Application.Services.WorldService
 {

@@ -30,7 +30,7 @@ namespace Infrastructure.Repository.Relational
             IEnumerable<Cell> cells,
             IEnumerable<EntitySpawnRule> spawnRules)
         {
-            // 1. Handle Cells collection replacement
+            // Handle Cells collection replacement
             var oldCells = await context.Set<Cell>()
                 .Where(x => x.RoomDefinitionID == roomDefinitionId)
                 .ToListAsync();
@@ -45,7 +45,7 @@ namespace Infrastructure.Repository.Relational
                 await context.Set<Cell>().AddRangeAsync(cells);
             }
 
-            // 2. Handle EntitySpawnRules collection replacement
+            // Handle EntitySpawnRules collection replacement
             var oldRules = await context.Set<EntitySpawnRule>()
                 .Where(x => x.RoomDefinitionID == roomDefinitionId)
                 .ToListAsync();

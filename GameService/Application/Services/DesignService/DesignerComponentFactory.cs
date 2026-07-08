@@ -4,9 +4,9 @@ using Contract.DTO.Domain.Definition;
 using Contract.Enum.EntityDomain;
 using Domain.Common;
 using Domain.Definition.EntityDomain.Component;
+using Domain.DomainException;
 using Domain.Shared;
-using Domain.Shared.DomainException;
-using Domain.Shared.ResponseCode;
+using ResponseCode;
 
 namespace Application.Services.DesignService
 {

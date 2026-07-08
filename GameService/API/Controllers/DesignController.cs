@@ -5,6 +5,7 @@ using Contract.DTO.Common;
 using Contract.DTO.Design;
 using Contract.DTO.Domain.Definition;
 using Contract.Enum.IdentityDomain;
+using Domain.Definition.IdentityDomain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
@@ -85,17 +86,6 @@ namespace API.Controllers
             return Ok(result);
         }
 
-        [AllowAnonymous]
-        [HttpGet("locale")]
-        public async Task<ActionResult<ExistLocalesDTO>> GetLocales()
-        {
-            var result = await dispatcher.Send<FetchLocaleCommand, ExistLocalesDTO>(
-                new FetchLocaleCommand()
-            );
-
-            return Ok(result);
-        }
-
         [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
         [HttpPost("definition")]
         public async Task<IActionResult> UpdateDefinition(
@@ -157,31 +147,13 @@ namespace API.Controllers
         public async Task<IActionResult> UploadRoomDefinition(
             IFormFile file)
         {
-            if (file == null || file.Length == 0)
-            {
-                return BadRequest("No file was uploaded or the file is empty.");
-            }
+            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
 
-            try
-            {
-                using var stream = file.OpenReadStream();
+            await dispatcher.Send<UpsertRoomDefinitionCommand>(
+                new UpsertRoomDefinitionCommand(file)
+            );
 
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var command = await JsonSerializer.DeserializeAsync<UpsertRoomDefinitionCommand>(stream, options);
-
-                if (command == null || command.Room == null)
-                {
-                    return BadRequest("Failed to parse room definition. The file structure might be invalid.");
-                }
-
-                await dispatcher.Send<UpsertRoomDefinitionCommand>(command);
-
-                return Ok();
-            }
-            catch (JsonException ex)
-            {
-                return BadRequest($"Invalid JSON format: {ex.Message}");
-            }
+            return Ok();
         }
 
         [Authorize]
