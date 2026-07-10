@@ -5,10 +5,8 @@ using Contract.DTO.Common;
 using Contract.DTO.Design;
 using Contract.DTO.Domain.Definition;
 using Contract.Enum.IdentityDomain;
-using Domain.Definition.IdentityDomain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
 
 namespace API.Controllers
 {

@@ -24,10 +24,9 @@ namespace Infrastructure.Repository.NonRelational
         }
 
         #region Methods
-        public async Task<IEnumerable<EntitySnapshot>> GetByRoomIdAsync(
-            string roomSpatialId)
+        public async Task<IEnumerable<EntitySnapshot>> GetByRoomIdAsync(string roomSpatialId)
         {
-            var filter = Builders<EntitySnapshot>.Filter.ElemMatch("Components",
+            var filter = Builders<EntitySnapshot>.Filter.ElemMatch<BsonDocument>("Components",
                 Builders<BsonDocument>.Filter.And(
                     Builders<BsonDocument>.Filter.Eq("Type", nameof(TransformSnapshot)),
                     Builders<BsonDocument>.Filter.Eq("RoomSpatialID", roomSpatialId)
@@ -37,10 +36,9 @@ namespace Infrastructure.Repository.NonRelational
             return await collection.Find(filter).ToListAsync();
         }
 
-        public async Task<IEnumerable<EntitySnapshot>> GetPlayerDocumentsByUserIdAsync(
-            string userId)
+        public async Task<IEnumerable<EntitySnapshot>> GetPlayerDocumentsByUserIdAsync(string userId)
         {
-            var filter = Builders<EntitySnapshot>.Filter.ElemMatch("Components",
+            var filter = Builders<EntitySnapshot>.Filter.ElemMatch<BsonDocument>("Components",
                 Builders<BsonDocument>.Filter.And(
                     Builders<BsonDocument>.Filter.Eq("Type", nameof(OwnershipSnapshot)),
                     Builders<BsonDocument>.Filter.Eq("UserID", userId)
