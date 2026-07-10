@@ -29,9 +29,8 @@ namespace Infrastructure.Repository.NonRelational
         {
             var filter = Builders<EntitySnapshot>.Filter.ElemMatch(
                 entity => entity.Components,
-                Builders<ComponentSnapshot>.Filter.And(
-                    Builders<ComponentSnapshot>.Filter.Eq(c => c.Type, nameof(TransformSnapshot)),
-                    Builders<ComponentSnapshot>.Filter.Eq("RoomSpatialID", roomSpatialId)));
+                Builders<ComponentSnapshot>.Filter.OfType<TransformSnapshot>(
+                    Builders<TransformSnapshot>.Filter.Eq(c => c.RoomSpatialID, roomSpatialId)));
 
             return await collection.Find(filter).ToListAsync();
         }
@@ -40,9 +39,8 @@ namespace Infrastructure.Repository.NonRelational
         {
             var filter = Builders<EntitySnapshot>.Filter.ElemMatch(
                 entity => entity.Components,
-                Builders<ComponentSnapshot>.Filter.And(
-                    Builders<ComponentSnapshot>.Filter.Eq(c => c.Type, nameof(OwnershipSnapshot)),
-                    Builders<ComponentSnapshot>.Filter.Eq("UserID", userId)));
+                Builders<ComponentSnapshot>.Filter.OfType<OwnershipSnapshot>(
+                    Builders<OwnershipSnapshot>.Filter.Eq(c => c.UserID, userId)));
 
             return await collection.Find(filter).ToListAsync();
         }
