@@ -5,6 +5,7 @@ using Domain.Common;
 using Domain.Definition.WorldDomain;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
+using Domain.Runtime.EntityDomain.Component;
 using Domain.Runtime.WorldDomain.Spatial;
 using ResponseCode;
 
@@ -20,7 +21,7 @@ namespace Application.Services.WorldService
     {
         #region Attributes
         private readonly Random random;
-        private readonly ICacheProvider cacheProvider;  
+        private readonly ICacheProvider cacheProvider;
         private readonly CollisionService collisionService;
         private readonly EntityInstanceFactory entityInstanceFactory;
         private readonly RoomSpatialFactory roomSpatialFactory;
@@ -52,7 +53,7 @@ namespace Application.Services.WorldService
         {
             var room = roomSpatialFactory.Create(roomDefinitionId, roomSpatialId, playerInstanceId);
             var pendingEntities = new List<EntityInstance>();
-            EntityInstance? player = null; 
+            EntityInstance? player = null;
 
             // Spawn Context-Specific (Player) Entities
             if (!string.IsNullOrEmpty(playerDefinitionId) &&
@@ -60,9 +61,9 @@ namespace Application.Services.WorldService
                 !string.IsNullOrEmpty(userId))
             {
                 player = SpawnEntitiesByType(
-                    roomDefinitionId, 
-                    roomSpatialId, 
-                    SpawnRuleType.Player, 
+                    roomDefinitionId,
+                    roomSpatialId,
+                    SpawnRuleType.Player,
                     pendingEntities,
                     entityDefId: playerDefinitionId,
                     forcedInstanceId: playerInstanceId,
@@ -131,9 +132,37 @@ namespace Application.Services.WorldService
 
                     var entity = entityInstanceFactory.Create(context);
 
-                    collisionService.SpawnAtNearestValidPosition(entity, roomDef.ID, roomSpatialId, pos, layerZ, buffer, 5);
-                    buffer.Add(entity);
+                    var transform = entity.GetComponent<TransformInstance>();
+                    if (transform == null)
+                        throw new InternalException(
+                            ApplicationCode.InitializationServiceCode.TransformComponentMissing,
+                            $"Spawning failed. Entity blueprint '{activeEntityDefId}' (Instance: '{instanceId}') lacks a required TransformInstance component.");
 
+                    var collision = entity.GetComponent<CollisionInstance>();
+                    if (collision == null)
+                        throw new InternalException(
+                            ApplicationCode.InitializationServiceCode.CollisionComponentMissing,
+                            $"Spawning failed. Entity blueprint '{activeEntityDefId}' (Instance: '{instanceId}') lacks a required CollisionInstance component.");
+
+                    var spawnBody = new CollisionBody(
+                        entity.ID,
+                        roomSpatialId,
+                        pos,
+                        collision.CollisionOffset,
+                        layerZ,
+                        collision.CollisionShape,
+                        collision.Layer,
+                        collision.Mask
+                    );
+
+                    collisionService.SpawnAtNearestValidPosition(
+                        spawnBody,
+                        transform,
+                        roomDef.ID,
+                        buffer,
+                        5);
+
+                    buffer.Add(entity);
                     lastSpawned = entity;
                 }
             }
