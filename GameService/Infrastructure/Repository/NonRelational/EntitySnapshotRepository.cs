@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces.Repository.NonRelational;
+using Domain.Abstraction;
 using Domain.Snapshot.EntityDomain;
 using Domain.Snapshot.EntityDomain.Component;
 using Infrastructure.Persistence;
@@ -26,24 +27,22 @@ namespace Infrastructure.Repository.NonRelational
         #region Methods
         public async Task<IEnumerable<EntitySnapshot>> GetByRoomIdAsync(string roomSpatialId)
         {
-            var filter = Builders<EntitySnapshot>.Filter.ElemMatch<BsonDocument>("Components",
-                Builders<BsonDocument>.Filter.And(
-                    Builders<BsonDocument>.Filter.Eq("Type", nameof(TransformSnapshot)),
-                    Builders<BsonDocument>.Filter.Eq("RoomSpatialID", roomSpatialId)
-                )
-            );
+            var filter = Builders<EntitySnapshot>.Filter.ElemMatch(
+                entity => entity.Components,
+                Builders<ComponentSnapshot>.Filter.And(
+                    Builders<ComponentSnapshot>.Filter.Eq(c => c.Type, nameof(TransformSnapshot)),
+                    Builders<ComponentSnapshot>.Filter.Eq("RoomSpatialID", roomSpatialId)));
 
             return await collection.Find(filter).ToListAsync();
         }
 
         public async Task<IEnumerable<EntitySnapshot>> GetPlayerDocumentsByUserIdAsync(string userId)
         {
-            var filter = Builders<EntitySnapshot>.Filter.ElemMatch<BsonDocument>("Components",
-                Builders<BsonDocument>.Filter.And(
-                    Builders<BsonDocument>.Filter.Eq("Type", nameof(OwnershipSnapshot)),
-                    Builders<BsonDocument>.Filter.Eq("UserID", userId)
-                )
-            );
+            var filter = Builders<EntitySnapshot>.Filter.ElemMatch(
+                entity => entity.Components,
+                Builders<ComponentSnapshot>.Filter.And(
+                    Builders<ComponentSnapshot>.Filter.Eq(c => c.Type, nameof(OwnershipSnapshot)),
+                    Builders<ComponentSnapshot>.Filter.Eq("UserID", userId)));
 
             return await collection.Find(filter).ToListAsync();
         }
