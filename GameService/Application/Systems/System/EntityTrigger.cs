@@ -2,7 +2,7 @@
 using Application.Interfaces.Realtime.Events;
 using Application.Interfaces.Realtime.Events.Game;
 using Application.Services.AttributeService;
-using Application.Services.ItemService;
+using Application.Services.UsageService;
 using Application.Services.WorldService;
 using Application.Systems.Queue;
 using Domain.Runtime.EntityDomain.Component;
@@ -15,25 +15,25 @@ namespace Application.Systems.System
         private readonly WorldContext worldContext;
         private readonly ICacheProvider cacheProvider;
         private readonly IEventBus eventBus;
-        private readonly ItemUsageService itemUsageService;
         private readonly EntitySpawnService entitySpawnService;
         private readonly EffectService effectService;
+        private readonly ItemService itemService;
         #endregion
 
         public EntityTrigger(
             WorldContext worldContext,
             ICacheProvider cacheProvider,
             IEventBus eventBus,
-            ItemUsageService itemUsageService,
             EntitySpawnService entitySpawnService,
-            EffectService effectService)
+            EffectService effectService,
+            ItemService itemService)
         {
             this.worldContext = worldContext;
             this.cacheProvider = cacheProvider;
             this.eventBus = eventBus;
-            this.itemUsageService = itemUsageService;
             this.entitySpawnService = entitySpawnService;
             this.effectService = effectService;
+            this.itemService = itemService;
         }
 
         #region Methods
@@ -120,31 +120,21 @@ namespace Application.Systems.System
             var entity = worldContext.GetEntity(result.EntityInstanceID);
             if (entity == null) return;
 
-            var inventory = entity.GetComponent<InventoryInstance>();
-            var item = inventory?.Items.FirstOrDefault(x => x.ID == result.ItemInstanceID);
+            // Execute the item usage logic
+            itemService.Execute(entity, result.Context);
 
-            if (item != null)
+            // Grab the transform to get current position/facing direction
+            var transform = entity.GetComponent<TransformInstance>();
+            if (transform != null && result.Context.ItemDef.TriggeredAction.HasValue)
             {
-                var itemDef = cacheProvider.Item.Get(item.DefinitionID);
-                if (itemDef != null)
-                {
-                    // Execute the item usage logic
-                    itemUsageService.Execute(entity, item, itemDef, result.TargetPosition);
-
-                    // Grab the transform to get current position/facing direction
-                    var transform = entity.GetComponent<TransformInstance>();
-                    if (transform != null && itemDef.TriggeredAction.HasValue)
-                    {
-                        eventBus.Publish(new EntityActedEvent(
-                            entity.ID,
-                            transform.RoomSpatialID,
-                            transform.Position,
-                            transform.FacingDirection,
-                            itemDef.TriggeredAction.Value,
-                            itemDef.ID
-                        ));
-                    }
-                }
+                eventBus.Publish(new EntityActedEvent(
+                    entity.ID,
+                    transform.RoomSpatialID,
+                    transform.Position,
+                    transform.FacingDirection,
+                    result.Context.ItemDef.TriggeredAction.Value,
+                    result.Context.ItemDef.ID
+                ));
             }
         }
 

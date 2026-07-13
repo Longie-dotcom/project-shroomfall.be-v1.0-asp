@@ -8,7 +8,7 @@ namespace Domain.Definition.EntityDomain.Component
         #endregion
 
         #region Properties
-        public float Lifetime { get; private set; }
+        public float Duration { get; private set; }
         #endregion
 
         protected LifetimeDefinition() : base() { }
@@ -16,9 +16,9 @@ namespace Domain.Definition.EntityDomain.Component
         public LifetimeDefinition(
             Guid id,
             string entityDefinitionId,
-            float lifetime) : base(id, entityDefinitionId)
+            float duration) : base(id, entityDefinitionId)
         {
-            Lifetime = lifetime;
+            Duration = duration;
         }
 
         #region Methods

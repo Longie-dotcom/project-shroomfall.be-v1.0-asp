@@ -1,9 +1,10 @@
 ﻿using Application.Interfaces.Utility;
-using Contract.DTO.Admin;
-using Contract.DTO.Connection;
-using Contract.DTO.Design;
-using Contract.DTO.Domain.Runtime;
-using Contract.DTO.Game;
+using Contract.DTO.Feature.Admin.Response;
+using Contract.DTO.Feature.Design.Response;
+using Contract.DTO.Feature.Game.Response;
+using Contract.DTO.Runtime.EntityDomain;
+using Contract.DTO.Runtime.EntityDomain.Component;
+using Contract.DTO.Runtime.WorldDomain;
 
 namespace Application.Interfaces.Realtime
 {
@@ -52,7 +53,7 @@ namespace Application.Interfaces.Realtime
         // ─────────────────────────────
         Task SendRoomSnapshotUpdated(
             string roomId,
-            RoomSnapshotDTO payload);
+            RoomSpatialDTO payload);
 
         // ─────────────────────────────
         // Definition Update Notification

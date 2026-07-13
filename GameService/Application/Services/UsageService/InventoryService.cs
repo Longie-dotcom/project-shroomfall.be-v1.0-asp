@@ -1,10 +1,12 @@
 ﻿using Application.Interfaces.Cache;
+using Contract;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
+using Domain.Runtime.MetaDomain;
 using ResponseCode;
 
-namespace Application.Services.ItemService
+namespace Application.Services.UsageService
 {
     public class InventoryService
     {
@@ -167,7 +169,7 @@ namespace Application.Services.ItemService
         }
 
         /// <summary>
-        /// Deducts a single quantity unit from an item stack. Splits off and returns a single unit payload, 
+        /// Deducts a (Constraint.ITEM_DEDUCTED_VALUE) quantity unit from an item stack. Splits off and returns a single unit payload, 
         /// or handles full stack removal if it was the last item.
         /// </summary>
         public ItemInstance DeductItem(
@@ -180,14 +182,14 @@ namespace Application.Services.ItemService
                     ApplicationCode.InventoryServiceCode.DeductTargetInventoryMissing,
                     $"Target entity {entity.ID} does not possess an InventoryInstance component.");
 
-            if (item.Amount > 1)
+            if (item.Amount > Constraint.ITEM_DEDUCTED_VALUE)
             {
-                item.RemoveAmount(1);
+                item.RemoveAmount(Constraint.ITEM_DEDUCTED_VALUE);
 
                 return new ItemInstance(
                     id: item.ID,
                     definitionId: item.DefinitionID,
-                    amount: 1,
+                    amount: Constraint.ITEM_DEDUCTED_VALUE,
                     quality: item.Quality,
                     durability: item.Durability);
             }
@@ -201,12 +203,11 @@ namespace Application.Services.ItemService
         /// </summary>
         public void DegradeItem(
             EntityInstance entity,
-            ItemInstance item,
-            int cost)
+            ItemInstance item)
         {
             if (item.Durability.HasValue)
             {
-                bool isShattered = item.DegradeDurability(cost);
+                bool isShattered = item.DegradeDurability();
                 if (isShattered)
                 {
                     RemoveItem(entity, item);

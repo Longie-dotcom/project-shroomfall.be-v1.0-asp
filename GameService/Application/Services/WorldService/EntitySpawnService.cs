@@ -6,6 +6,7 @@ using Domain.Common;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
+using Domain.Runtime.MetaDomain;
 using ResponseCode;
 
 namespace Application.Services.WorldService
@@ -125,7 +126,8 @@ namespace Application.Services.WorldService
         {
             var transform = entity.GetComponent<TransformInstance>();
             if (transform == null)
-                throw new InternalException(
+                
+                new InternalException(
                     ApplicationCode.EntitySpawnServiceCode.ActivateTransformMissing,
                     $"Cannot activate entity {entity.ID} without a Transform component.");
 
@@ -153,6 +155,31 @@ namespace Application.Services.WorldService
                 entity,
                 transform.RoomSpatialID,
                 EntityLifecycleType.Despawn));
+        }
+
+        public void Spawn(
+            WorldEntityCreateContext context)
+        {
+            var entity = entityInstanceFactory.Create(context);
+            if (entity == null)
+                throw new InternalException(
+                    ApplicationCode.EntitySpawnServiceCode.SpawnEntityCreationFailed,
+                    $"Failed to create entity instance from definition ID: {context.DefinitionID}");
+
+            Activate(entity);
+        }
+
+        public void Despawn(
+            EntityInstance entity)
+        {
+            if (entity == null)
+                throw new InternalException(
+                    ApplicationCode.EntitySpawnServiceCode.DespawnEntityMissing,
+                    "Cannot despawn null entity instance");
+
+            Deactivate(entity);
+
+            // Note: Handle any permanent garbage collection or data-purging here if required
         }
 
         public void TransitionRoom(
@@ -190,56 +217,6 @@ namespace Application.Services.WorldService
                 entity,
                 targetRoomSpatialId,
                 EntityLifecycleType.Spawn));
-        }
-
-        public void SpawnOnLogin(
-            EntityInstance entity,
-            string targetRoomSpatialId,
-            Vector2 targetPosition,
-            int targetLayerZ)
-        {
-            // Inject into spatial partitioning and engine ticks
-            worldContext.AddEntity(entity);
-
-            // ATOMIC DOMAIN ROOM TRANSITION
-            // This updates the internal dictionaries and spatial grids perfectly
-            worldContext.ChangeRoom(
-                entity.ID,
-                targetPosition,
-                targetLayerZ,
-                targetRoomSpatialId);
-
-            // HELLO PACKET ONLY
-            // Alert only the clients in the new personal room that the player has arrived
-            eventBus.Publish(new EntityLifecycleEvent(
-                entity,
-                targetRoomSpatialId,
-                EntityLifecycleType.Spawn));
-        }
-
-        public void Spawn(
-            WorldEntityCreateContext context)
-        {
-            var entity = entityInstanceFactory.Create(context);
-            if (entity == null)
-                throw new InternalException(
-                    ApplicationCode.EntitySpawnServiceCode.SpawnEntityCreationFailed,
-                    $"Failed to create entity instance from definition ID: {context.DefinitionID}");
-
-            Activate(entity);
-        }
-
-        public void Despawn(
-            EntityInstance entity)
-        {
-            if (entity == null)
-                throw new InternalException(
-                    ApplicationCode.EntitySpawnServiceCode.DespawnEntityMissing,
-                    "Cannot despawn null entity instance");
-
-            Deactivate(entity);
-
-            // Note: Handle any permanent garbage collection or data-purging here if required
         }
         #endregion
     }

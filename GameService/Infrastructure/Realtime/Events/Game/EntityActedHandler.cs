@@ -1,7 +1,7 @@
 ﻿using Application.Interfaces.Realtime;
 using Application.Interfaces.Realtime.Events;
 using Application.Interfaces.Realtime.Events.Game;
-using Contract.DTO.Game;
+using Contract.DTO.Feature.Game.Response;
 
 namespace Infrastructure.Realtime.Events.Game
 {

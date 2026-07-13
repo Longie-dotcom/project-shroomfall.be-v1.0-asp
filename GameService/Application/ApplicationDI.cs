@@ -9,22 +9,24 @@ using Application.Features.Game.Handlers;
 using Application.Features.Identity.Commands;
 using Application.Features.Identity.Handlers;
 using Application.Mapper;
-using Application.Persistence;
 using Application.Services.AttributeService;
 using Application.Services.DesignService;
 using Application.Services.EntityService;
 using Application.Services.IdentityService;
-using Application.Services.ItemService;
+using Application.Services.UsageService;
 using Application.Services.WorldService;
 using Application.Services.WorldService.Factory;
 using Application.Services.WorldService.Factory.Component;
+using Application.Services.WorldService.Persistence;
 using Application.Systems.Queue;
 using Application.Systems.System;
 using Contract.DTO.Common;
-using Contract.DTO.Connection;
-using Contract.DTO.Design;
-using Contract.DTO.Domain.Definition;
-using Contract.DTO.Identity;
+using Contract.DTO.Definition.EntityDomain.Component;
+using Contract.DTO.Definition.MetaDomain;
+using Contract.DTO.Feature.Connection.Response;
+using Contract.DTO.Feature.Design.Response;
+using Contract.DTO.Feature.Identity.Response;
+using Contract.DTO.Runtime.WorldDomain;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Application
@@ -66,10 +68,9 @@ namespace Application
             services.AddScoped<IHandler<UserRefreshCommand, DefinitionSnapshotDTO?>, UserRefreshHandler>();
 
             // Game
-            services.AddScoped<IHandler<BackHomeCommand, RoomSnapshotDTO>, BackHomeHandler>();
-            services.AddScoped<IHandler<EnterHubCommand, RoomSnapshotDTO>, EnterHubHandler>();
+            services.AddScoped<IHandler<BackHomeCommand, RoomSpatialDTO>, BackHomeHandler>();
+            services.AddScoped<IHandler<EnterHubCommand, RoomSpatialDTO>, EnterHubHandler>();
             services.AddScoped<IHandler<MoveCommand>, MoveHandler>();
-            services.AddScoped<IHandler<UnequipItemCommand>, UnequipItemHandler>();
             services.AddScoped<IHandler<UpdateAppearanceCommand>, UpdateAppearanceHandler>();
             services.AddScoped<IHandler<UseItemCommand>, UseItemHandler>();
 
@@ -87,13 +88,6 @@ namespace Application
             services.AddAutoMapper(cfg => { cfg.AddProfile<SnapshotMapper>(); });
 
             // ─────────────────────────────
-            // PERSISTENCE
-            // ─────────────────────────────
-            services.AddScoped<EntityPersistence>();
-            services.AddScoped<RoomPersistence>();
-            services.AddScoped<SnapshotPersistence>();
-
-            // ─────────────────────────────
             // SERVICES
             // ─────────────────────────────
             // Attribute service
@@ -104,7 +98,7 @@ namespace Application
             // Design service
             services.AddSingleton<ComponentDiscoveryRegistry>();
             services.AddScoped<DefinitionService>();
-            services.AddScoped<DesignerComponentFactory>();
+            services.AddScoped<DefinitionComponentFactory>();
             services.AddScoped<LocalizationEntryFactory>();
 
             // Entity service
@@ -116,17 +110,19 @@ namespace Application
             // Identity service
             services.AddSingleton<TokenService>();
 
-            // Item service
+            // Usage service
             services.AddSingleton<InventoryService>();
             services.AddSingleton<ItemService>();
-            services.AddSingleton<ItemUsageService>();
 
             // World service
-            services.AddSingleton<DefinitionComponentFactory>();
-            services.AddSingleton<RuntimeComponentFactory>();
-            services.AddSingleton<SnapshotComponentFactory>();
+            services.AddSingleton<DefinitionRuntimeFactory>();
+            services.AddSingleton<SnapshotRuntimeFactory>();
             services.AddSingleton<EntityInstanceFactory>();
             services.AddSingleton<RoomSpatialFactory>();
+
+            services.AddScoped<EntityPersistence>();
+            services.AddScoped<RoomPersistence>();
+            services.AddScoped<SnapshotPersistence>();
 
             services.AddSingleton<BootstrapService>();
             services.AddSingleton<CollisionService>();

@@ -55,7 +55,11 @@ namespace Application.Features.Game.Handlers
                     $"Player instance {playerInstanceId} is missing ActionInstance component");
 
             // Fire intent
-            actionState.SetItemUseIntent(dto.ItemInstanceID, new Vector2(dto.TargetPositionX, dto.TargetPositionY));
+            actionState.SetItemUseIntent(
+                dto.ItemInstanceID,
+                new Vector2(dto.TargetPositionX, dto.TargetPositionY),
+                dto.UnequippedSlot,
+                dto.ItemUsageAction);
         }
         #endregion
     }

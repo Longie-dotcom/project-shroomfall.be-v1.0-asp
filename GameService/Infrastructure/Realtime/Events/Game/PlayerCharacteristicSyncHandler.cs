@@ -3,7 +3,9 @@ using Application.Interfaces.Realtime.Events;
 using Application.Interfaces.Realtime.Events.Game;
 using Application.Interfaces.Realtime.Managers;
 using AutoMapper;
-using Contract.DTO.Domain.Runtime;
+using Contract.DTO.Runtime.EntityDomain.Component;
+using Domain.DomainException;
+using ResponseCode;
 
 namespace Infrastructure.Realtime.Events.Game
 {
@@ -41,14 +43,15 @@ namespace Infrastructure.Realtime.Events.Game
             var userId = sessionManager.GetUserIdByPlayerId(syncEvent.EntityInstanceID);
             if (userId != null)
             {
-                var connectionIds = connectionManager.Get(userId);
+                var connectionId = connectionManager.Get(userId);
+                if (connectionId == null)
+                    throw new InternalException(
+                        InfrastructureCode.PlayerCharacteristicSyncHandlerCode.ConnectionNotFound,
+                        $"No active connection found for user '{userId}'.");
 
-                foreach (var connId in connectionIds)
-                {
-                    await publisher.SendPlayerCharacteristicSync(
-                        connId,
-                        mapper.Map<CharacteristicInstanceDTO>(syncEvent.CharacteristicInstance));
-                }
+                await publisher.SendPlayerCharacteristicSync(
+                    connectionId,
+                    mapper.Map<CharacteristicInstanceDTO>(syncEvent.CharacteristicInstance));
             }
         }
         #endregion

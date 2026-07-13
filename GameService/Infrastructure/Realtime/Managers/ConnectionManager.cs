@@ -2,6 +2,7 @@
 using Application.Interfaces.Realtime.Events.Admin;
 using Application.Interfaces.Realtime.Managers;
 using Application.Interfaces.Utility;
+using Domain.DomainException;
 using Microsoft.AspNetCore.SignalR;
 using ResponseCode;
 using System.Collections.Concurrent;
@@ -14,7 +15,7 @@ namespace Infrastructure.Realtime.Managers
         private readonly ITelemetryQueue telemetryQueue;
         private readonly IEventBus eventBus;
         private readonly IHubContext<GameHub> hub;
-        private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, byte>> userToConnection;
+        private readonly ConcurrentDictionary<string, string> userToConnection;
         #endregion
 
         #region Properties
@@ -36,69 +37,51 @@ namespace Infrastructure.Realtime.Managers
             string userId,
             string connectionId)
         {
-            var connections = userToConnection.GetOrAdd(
-                userId,
-                _ => new ConcurrentDictionary<string, byte>());
+            if (userToConnection.ContainsKey(userId))
+                throw new BadRequest(
+                    InfrastructureCode.ConnectionManagerCode.ConnectionAlreadyExists,
+                    $"User {userId} already has an active connection.");
 
-            bool isNewUserWatchStatus = connections.IsEmpty;
-
-            connections[connectionId] = 0;
+            userToConnection[userId] = connectionId;
 
             telemetryQueue.EnqueueAlert(
                 code: InfrastructureCode.ConnectionManagerCode.ConnectionAdded,
                 message: $"Connection {connectionId} added for user {userId}.",
                 severity: TelemetrySeverity.Info);
 
-            if (isNewUserWatchStatus)
-                telemetryQueue.EnqueueAlert(
-                    code: InfrastructureCode.ConnectionManagerCode.WatchStatusOnline,
-                    message: $"User {userId} has started watching (went online).",
-                    severity: TelemetrySeverity.Info);
-
-            eventBus.Publish(new UserConnectionChangedEvent(userId, connections.Count));
+            eventBus.Publish(new UserConnectionChangedEvent(userId, 1));
         }
 
         public void Remove(
             string userId,
             string connectionId)
         {
-            if (!userToConnection.TryGetValue(userId, out var connections))
-                return;
+            if (!userToConnection.TryGetValue(userId, out var currentConnectionId))
+                throw new BadRequest(
+                    InfrastructureCode.ConnectionManagerCode.ConnectionNotFound,
+                    $"User {userId} does not have an active connection.");
 
-            connections.TryRemove(connectionId, out _);
+            if (currentConnectionId != connectionId)
+                throw new BadRequest(
+                    InfrastructureCode.ConnectionManagerCode.ConnectionMismatch,
+                    $"Connection {connectionId} does not match the active connection for user {userId}.");
+
+            userToConnection.TryRemove(userId, out _);
 
             telemetryQueue.EnqueueAlert(
                 code: InfrastructureCode.ConnectionManagerCode.ConnectionRemoved,
                 message: $"Connection {connectionId} removed for user {userId}.",
                 severity: TelemetrySeverity.Info);
 
-            if (connections.IsEmpty)
-            {
-                userToConnection.TryRemove(userId, out _);
-
-                telemetryQueue.EnqueueAlert(
-                    code: InfrastructureCode.ConnectionManagerCode.WatchStatusOffline,
-                    message: $"User {userId} has stopped watching (went offline).",
-                    severity: TelemetrySeverity.Info);
-            }
-
-            eventBus.Publish(new UserConnectionChangedEvent(userId, connections.Count));
+            eventBus.Publish(new UserConnectionChangedEvent(userId, 0));
         }
 
-        public IReadOnlyCollection<string> Get(
+        public string? Get(
             string userId)
         {
-            if (!userToConnection.TryGetValue(userId, out var connections))
-                return Array.Empty<string>();
-
-            return connections.Keys.ToList();
-        }
-
-        public bool HasConnections(
-            string userId)
-        {
-            return userToConnection.TryGetValue(userId, out var connections)
-                && !connections.IsEmpty;
+            return userToConnection.TryGetValue(userId, out var connectionId)
+                ? connectionId
+                : null;
         }
 
         public Task Group(

@@ -1,9 +1,8 @@
 ﻿using API.Helper;
 using Application.Features.Abstraction;
 using Application.Features.Game.Commands;
-using Contract.DTO.Connection;
-using Contract.DTO.Game;
-using Contract.Enum.MetaDomain.Item;
+using Contract.DTO.Feature.Game.Command;
+using Contract.DTO.Runtime.WorldDomain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -56,26 +55,12 @@ namespace API.Controllers
         }
 
         [Authorize]
-        [HttpPost("unequip-item")]
-        public async Task<IActionResult> UnequipItem(
-            [FromBody] EquipmentSlot slot)
-        {
-            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
-
-            await dispatcher.Send<UnequipItemCommand>(
-                new UnequipItemCommand(userId, slot)
-            );
-
-            return NoContent();
-        }
-
-        [Authorize]
         [HttpPost("back-home")]
         public async Task<IActionResult> BackHome()
         {
             var (userId, _, _) = ClaimReader.GetIdentity(User);
 
-            var snapshot = await dispatcher.Send<BackHomeCommand, RoomSnapshotDTO>(
+            var snapshot = await dispatcher.Send<BackHomeCommand, RoomSpatialDTO>(
                 new BackHomeCommand(userId)
             );
 
@@ -89,7 +74,7 @@ namespace API.Controllers
         {
             var (userId, _, _) = ClaimReader.GetIdentity(User);
 
-            var snapshot = await dispatcher.Send<EnterHubCommand, RoomSnapshotDTO>(
+            var snapshot = await dispatcher.Send<EnterHubCommand, RoomSpatialDTO>(
                 new EnterHubCommand(userId, hubRoomSpatialId)
             );
 

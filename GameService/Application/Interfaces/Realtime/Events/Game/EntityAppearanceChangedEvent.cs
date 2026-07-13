@@ -1,4 +1,4 @@
-﻿using Contract.DTO.Domain.Runtime;
+﻿using Contract.DTO.Runtime.EntityDomain.Component;
 
 namespace Application.Interfaces.Realtime.Events.Game
 {

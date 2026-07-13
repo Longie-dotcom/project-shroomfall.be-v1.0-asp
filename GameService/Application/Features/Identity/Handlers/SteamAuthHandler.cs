@@ -4,7 +4,7 @@ using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
 using Application.Interfaces.Utility;
 using Application.Services.IdentityService;
-using Contract.DTO.Identity;
+using Contract.DTO.Feature.Identity.Response;
 using Contract.Enum.IdentityDomain;
 using Domain.Definition.IdentityDomain;
 using Domain.DomainException;

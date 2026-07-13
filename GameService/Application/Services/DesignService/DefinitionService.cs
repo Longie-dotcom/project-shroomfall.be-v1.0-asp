@@ -1,8 +1,10 @@
 ﻿using Application.Interfaces.Cache;
 using AutoMapper;
-using Contract.DTO.Design;
-using Contract.DTO.Domain.Definition;
-using Domain.Shared;
+using Contract.DTO.Definition.EntityDomain.Component;
+using Contract.DTO.Definition.LocalizationDomain;
+using Contract.DTO.Definition.MetaDomain;
+using Contract.DTO.Definition.WorldDomain;
+using Contract.DTO.Feature.Design.Response;
 
 namespace Application.Services.DesignService
 {
@@ -29,16 +31,11 @@ namespace Application.Services.DesignService
             long version)
         {
             var allRooms = cacheProvider.Room.GetAll();
-            var attributes = AttributeDefinitions.AllList()
-                .Select(x => mapper.Map<AttributeDefinitionDTO>(x))
-                .ToList();
             var effects = mapper.Map<List<EffectDefinitionDTO>>(cacheProvider.Effect.GetAll());
             var items = mapper.Map<List<ItemDefinitionDTO>>(cacheProvider.Item.GetAll());
             var entities = mapper.Map<List<EntityDefinitionDTO>>(cacheProvider.Entity.GetAll());
-            var interactables = mapper.Map<List<InteractableDefinitionDTO>>(cacheProvider.Interactable.GetAll());
-            var portals = mapper.Map<List<PortalDefinitionDTO>>(cacheProvider.Portal.GetAll());
-            var cells = mapper.Map<List<CellDefinitionDTO>>(allRooms.SelectMany(r => r.Cells).ToList());
-            var entitySpawnRules = mapper.Map<List<EntitySpawnRuleDefinitionDTO>>(allRooms.SelectMany(r => r.EntitySpawnRules).ToList());
+            var cells = mapper.Map<List<CellDTO>>(allRooms.SelectMany(r => r.Cells).ToList());
+            var entitySpawnRules = mapper.Map<List<EntitySpawnRuleDTO>>(allRooms.SelectMany(r => r.EntitySpawnRules).ToList());
             var rooms = mapper.Map<List<RoomDefinitionDTO>>(allRooms);
             var combatRuns = mapper.Map<List<CombatRunDefinitionDTO>>(cacheProvider.CombatRun.GetAll());
             var locales = mapper.Map<List<LocaleDTO>>(cacheProvider.Locale.GetAll());
@@ -46,16 +43,13 @@ namespace Application.Services.DesignService
             return new DefinitionSnapshotDTO
             {
                 Version = version,
-                Attributes = attributes,
                 Effects = effects,
                 Items = items,
                 Entities = entities,
-                Interactables = interactables,
-                Portals = portals,
-                Cells = cells,
-                EntitySpawnRules = entitySpawnRules,
-                Rooms = rooms,
                 CombatRuns = combatRuns,
+                Rooms = rooms,
+                EntitySpawnRules = entitySpawnRules,
+                Cells = cells,
                 Locales = locales
             };
         }

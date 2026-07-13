@@ -14,10 +14,10 @@ namespace Application.Services.WorldService.Factory
     {
         #region Attributes
         private readonly ICacheProvider cacheProvider;
-        private readonly DefinitionComponentFactory definitionComponentFactory;
-        private readonly RuntimeComponentFactory runtimeComponentFactory;
-        private readonly SnapshotComponentFactory snapshotComponentFactory;
+        private readonly DefinitionRuntimeFactory definitionRuntimeFactory;
+        private readonly SnapshotRuntimeFactory snapshotRuntimeFactory;
         private readonly CharacteristicService characteristicService;
+        private readonly EffectService effectService;
         #endregion
 
         #region Properties
@@ -25,16 +25,16 @@ namespace Application.Services.WorldService.Factory
 
         public EntityInstanceFactory(
             ICacheProvider cacheProvider,
-            DefinitionComponentFactory definitionComponentFactory,
-            RuntimeComponentFactory runtimeComponentFactory,
-            SnapshotComponentFactory snapshotComponentFactory,
-            CharacteristicService characteristicService)
+            DefinitionRuntimeFactory definitionRuntimeFactory,
+            SnapshotRuntimeFactory snapshotRuntimeFactory,
+            CharacteristicService characteristicService,
+            EffectService effectService)
         {
             this.cacheProvider = cacheProvider;
-            this.definitionComponentFactory = definitionComponentFactory;
-            this.runtimeComponentFactory = runtimeComponentFactory;
-            this.snapshotComponentFactory = snapshotComponentFactory;
+            this.definitionRuntimeFactory = definitionRuntimeFactory;
+            this.snapshotRuntimeFactory = snapshotRuntimeFactory;
             this.characteristicService = characteristicService;
+            this.effectService = effectService;
         }
 
         #region Methods
@@ -45,11 +45,26 @@ namespace Application.Services.WorldService.Factory
 
             foreach (var componentSnapshot in snapshot.Components)
             {
-                var runtimeComponent = snapshotComponentFactory.Create(componentSnapshot);
+                var runtimeComponent = snapshotRuntimeFactory.Create(componentSnapshot);
                 entity.AddComponent(runtimeComponent);
             }
 
-            // Refresh entity
+            // Refresh entity equipment effects
+            var inventory = entity.GetComponent<InventoryInstance>();
+            if (inventory != null)
+            {
+                foreach (var equippedItem in inventory.GetAllEquipped().Values)
+                {
+                    var itemDef = cacheProvider.Item.Get(equippedItem.DefinitionID);
+                    var config = itemDef?.EquippableConfig;
+                    if (config != null)
+                    {
+                        config.EffectDefinitionIDs.ForEach(e => effectService.ApplyEffect(entity, e));
+                    }
+                }
+            }
+
+            // Refresh entity characteristic
             characteristicService.InitializeCores(entity);
 
             return entity;
@@ -110,8 +125,8 @@ namespace Application.Services.WorldService.Factory
                     ApplicationCode.EntityInstanceFactoryCode.CollisionDefinitionNotFound,
                     $"WorldEntity '{entity.DefinitionID}' missing Collision definition.");
 
-            entity.AddComponent(definitionComponentFactory.Create(collision));
-            entity.AddComponent(runtimeComponentFactory.CreateTransform(context.RoomSpatialID, context.LayerZ, context.Position));
+            entity.AddComponent(definitionRuntimeFactory.CreateCollision(collision));
+            entity.AddComponent(definitionRuntimeFactory.CreateTransform(context.RoomSpatialID, context.LayerZ, context.Position));
         }
 
         private void ConstructPortal(
@@ -137,8 +152,8 @@ namespace Application.Services.WorldService.Factory
                     ApplicationCode.EntityInstanceFactoryCode.TriggeredEffectDefinitionNotFound,
                     $"AreaEffect '{entity.DefinitionID}' missing Triggered Effect configuration.");
 
-            entity.AddComponent(definitionComponentFactory.Create(lifetime));
-            entity.AddComponent(definitionComponentFactory.Create(triggeredEffect));
+            entity.AddComponent(definitionRuntimeFactory.CreateLifeTime(lifetime));
+            entity.AddComponent(definitionRuntimeFactory.CreateTriggeredEffect(triggeredEffect));
         }
 
         private void ConstructProjectile(EntityInstance entity, WorldEntityCreateContext context)
@@ -166,9 +181,9 @@ namespace Application.Services.WorldService.Factory
                     ApplicationCode.EntityInstanceFactoryCode.ProjectileDefinitionNotFound,
                     $"Projectile '{entity.DefinitionID}' missing Projectile configuration.");
 
-            entity.AddComponent(definitionComponentFactory.Create(lifetime));
-            entity.AddComponent(definitionComponentFactory.Create(triggeredEffect));
-            entity.AddComponent(definitionComponentFactory.Create(projectile));
+            entity.AddComponent(definitionRuntimeFactory.CreateLifeTime(lifetime));
+            entity.AddComponent(definitionRuntimeFactory.CreateTriggeredEffect(triggeredEffect));
+            entity.AddComponent(definitionRuntimeFactory.CreateProjectile(projectile));
 
             // Set direction
             entity.GetComponent<ProjectileInstance>()!.Direction = projectileContext.Direction;
@@ -209,14 +224,14 @@ namespace Application.Services.WorldService.Factory
                     ApplicationCode.EntityInstanceFactoryCode.AIDefinitionNotFound,
                     $"Creature '{entity.DefinitionID}' missing AI definition.");
 
-            entity.AddComponent(definitionComponentFactory.Create(characteristic));
-            entity.AddComponent(definitionComponentFactory.Create(inventory));
-            entity.AddComponent(definitionComponentFactory.Create(appearance));
-            entity.AddComponent(definitionComponentFactory.Create(ai));
-            entity.AddComponent(runtimeComponentFactory.CreateEffectContainer());
-            entity.AddComponent(runtimeComponentFactory.CreateEquipment());
-            entity.AddComponent(runtimeComponentFactory.CreateAction());
+            entity.AddComponent(definitionRuntimeFactory.CreateCharacteristic(characteristic));
+            entity.AddComponent(definitionRuntimeFactory.CreateInventory(inventory));
+            entity.AddComponent(definitionRuntimeFactory.CreateAppearance(appearance));
+            entity.AddComponent(definitionRuntimeFactory.CreateAI(ai));
+            entity.AddComponent(definitionRuntimeFactory.CreateEffectContainer());
+            entity.AddComponent(definitionRuntimeFactory.CreateAction());
 
+            // Initialize
             characteristicService.InitializeVitals(entity);
             characteristicService.InitializeCores(entity);
         }
@@ -248,14 +263,14 @@ namespace Application.Services.WorldService.Factory
                     ApplicationCode.EntityInstanceFactoryCode.AppearanceDefinitionNotFound,
                     $"Player '{entity.DefinitionID}' missing Appearance definition.");
 
-            entity.AddComponent(definitionComponentFactory.Create(characteristic));
-            entity.AddComponent(definitionComponentFactory.Create(inventory));
-            entity.AddComponent(definitionComponentFactory.Create(appearance));
-            entity.AddComponent(runtimeComponentFactory.CreateEffectContainer());
-            entity.AddComponent(runtimeComponentFactory.CreateEquipment());
-            entity.AddComponent(runtimeComponentFactory.CreateAction());
-            entity.AddComponent(runtimeComponentFactory.CreateOwnership(playerContext.UserID, playerContext.PersonalRoomID));
+            entity.AddComponent(definitionRuntimeFactory.CreateCharacteristic(characteristic));
+            entity.AddComponent(definitionRuntimeFactory.CreateInventory(inventory));
+            entity.AddComponent(definitionRuntimeFactory.CreateAppearance(appearance));
+            entity.AddComponent(definitionRuntimeFactory.CreateEffectContainer());
+            entity.AddComponent(definitionRuntimeFactory.CreateAction());
+            entity.AddComponent(definitionRuntimeFactory.CreateOwnership(playerContext.UserID, playerContext.PersonalRoomID));
 
+            // Initialize
             characteristicService.InitializeVitals(entity);
             characteristicService.InitializeCores(entity);
         }
@@ -269,7 +284,7 @@ namespace Application.Services.WorldService.Factory
                     ApplicationCode.EntityInstanceFactoryCode.InvalidContextType,
                     $"Expected InventoryEntityCreateContext for Item entity, but got {context.GetType().Name}.");
 
-            entity.AddComponent(runtimeComponentFactory.CreateWorldItemPayload(itemContext.Payload));
+            entity.AddComponent(definitionRuntimeFactory.CreateWorldItemPayload(itemContext.Payload));
         }
         #endregion
     }

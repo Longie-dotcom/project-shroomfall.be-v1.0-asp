@@ -2,7 +2,7 @@
 using Application.Interfaces.Realtime.Events;
 using Application.Interfaces.Realtime.Events.Game;
 using AutoMapper;
-using Contract.DTO.Domain.Runtime;
+using Contract.DTO.Runtime.EntityDomain;
 
 namespace Infrastructure.Realtime.Events.Game
 {

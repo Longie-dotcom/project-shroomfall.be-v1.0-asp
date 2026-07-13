@@ -1,8 +1,8 @@
 ﻿using Application.Interfaces.Cache;
 using Application.Interfaces.Realtime.Managers;
 using AutoMapper;
-using Contract.DTO.Connection;
-using Contract.DTO.Domain.Runtime;
+using Contract.DTO.Runtime.EntityDomain;
+using Contract.DTO.Runtime.WorldDomain;
 using Contract.Enum.WorldDomain;
 using Domain.Common;
 using Domain.DomainException;
@@ -21,6 +21,7 @@ namespace Application.Services.WorldService
         private readonly EntitySpawnService entitySpawnService;
         private readonly IConnectionManager connectionManager;
         private readonly ICacheProvider cacheProvider;
+        private readonly CollisionService collisionService;
         #endregion
 
         public RoomMigrationService(
@@ -28,20 +29,21 @@ namespace Application.Services.WorldService
             ResidencyService residencyService,
             EntitySpawnService entitySpawnService,
             IConnectionManager connectionManager,
-            ICacheProvider cacheProvider)
+            ICacheProvider cacheProvider,
+            CollisionService collisionService)
         {
             this.mapper = mapper;
             this.residencyService = residencyService;
             this.entitySpawnService = entitySpawnService;
             this.connectionManager = connectionManager;
             this.cacheProvider = cacheProvider;
+            this.collisionService = collisionService;
         }
 
         #region Methods
-        public async Task<RoomSnapshotDTO> EnterRoomAsync(
+        public async Task<RoomSpatialDTO> EnterRoomAsync(
             EntityInstance player,
-            string destinationRoomId,
-            bool isInitialLogin = false)
+            string destinationRoomId)
         {
             var transform = player.GetComponent<TransformInstance>();
             if (transform == null)
@@ -53,34 +55,32 @@ namespace Application.Services.WorldService
             var roomSnapshot = await residencyService.EnsureRoomLoaded(destinationRoomId);
 
             // Resolve valid spawn by rules
-            var (spawnPosition, layerZ) = ResolvePlayerSpawn(roomSnapshot.Room);
-            
+            var (spawnPosition, layerZ) = ResolvePlayerSpawn(roomSnapshot.Room, player, transform, roomSnapshot.Entities);
+
             // Restore old room id
             var oldRoomId = transform.RoomSpatialID;
 
-            if (isInitialLogin)
+            // Standard live gameplay room-to-room migration (works perfectly for same-room teleports too!)
+            entitySpawnService.TransitionRoom(player, destinationRoomId, spawnPosition, layerZ);
+
+            // Only leave old groups/leases if we ACTUALLY changed rooms
+            if (oldRoomId != destinationRoomId)
             {
-                // Use login indexing path
-                entitySpawnService.SpawnOnLogin(player, destinationRoomId, spawnPosition, layerZ);
-            }
-            else
-            {
-                // Standard live gameplay room-to-room migration
-                entitySpawnService.TransitionRoom(player, destinationRoomId, spawnPosition, layerZ);
-                await residencyService.LeaveRoomAsync(oldRoomId, player.ID);
+                await residencyService.PlayerLeaveRoomAsync(oldRoomId, player.ID);
             }
 
-            // Update ongoing tracking layers
-            await residencyService.JoinRoomAsync(destinationRoomId, player.ID);
+            // Update ongoing tracking layers (Safe to call repeatedly, it uses HashSet)
+            await residencyService.PlayerJoinRoomAsync(destinationRoomId, player.ID);
 
-            // Move groups
             var ownership = player.GetComponent<OwnershipInstance>();
             if (ownership != null)
             {
-                foreach (var connectionId in connectionManager.Get(ownership.UserID))
+                var connectionId = connectionManager.Get(ownership.UserID);
+                if (connectionId != null)
                 {
-                    if (!isInitialLogin)
+                    if (oldRoomId != destinationRoomId)
                         await connectionManager.Ungroup(connectionId, oldRoomId);
+
                     await connectionManager.Group(connectionId, destinationRoomId);
                 }
             }
@@ -88,24 +88,41 @@ namespace Application.Services.WorldService
             return BuildDTO(roomSnapshot);
         }
 
-        private (Vector2 position, int layerZ) ResolvePlayerSpawn(
-            RoomSpatial room)
+        public async Task PlayerQuitGame(
+            string roomId,
+            string userId,
+            string connectionId,
+            EntityInstance player)
         {
-            // Find hub room definition
+            // Freeze active engine loops first
+            entitySpawnService.Deactivate(player);
+
+            // Sever this specific connection from SignalR updates and clear it from our tracking state
+            await connectionManager.Ungroup(connectionId, roomId);
+            connectionManager.Remove(userId, connectionId);
+
+            // Release the room residency lease
+            await residencyService.PlayerQuitGame(roomId, player);
+        }
+
+        private (Vector2 position, int layerZ) ResolvePlayerSpawn(
+            RoomSpatial room,
+            EntityInstance player,
+            TransformInstance transform,
+            IEnumerable<EntityInstance> roomEntities)
+        {
             var roomDefinition = cacheProvider.Room.Get(room.DefinitionID);
             if (roomDefinition == null)
                 throw new InternalException(
                     ApplicationCode.RoomMigrationServiceCode.RoomDefinitionNotFound,
                     $"Room spatial '{room.ID}' references unknown room definition '{room.DefinitionID}'.");
 
-            // Find player spawn
             var playerSpawnRule = roomDefinition.EntitySpawnRules.FirstOrDefault(r => r.Type == SpawnRuleType.Player);
             if (playerSpawnRule == null)
                 throw new InternalException(
                     ApplicationCode.RoomMigrationServiceCode.PlayerSpawnRuleMissing,
                     $"Room definition '{roomDefinition.ID}' does not define a player spawn rule.");
 
-            // Calculate coordinates (Using the exact point or center of the designated tile cell zone)
             int x = Random.Shared.Next(playerSpawnRule.MinX, playerSpawnRule.MaxX + 1);
             int y = Random.Shared.Next(playerSpawnRule.MinY, playerSpawnRule.MaxY + 1);
 
@@ -115,19 +132,40 @@ namespace Application.Services.WorldService
                     ApplicationCode.RoomMigrationServiceCode.SpawnCellNotFound,
                     $"No valid spawn cell exists at ({x}, {y}) in room definition '{roomDefinition.ID}'.");
 
-            return (new Vector2(x, y), cell.Z);
+            var initialPosition = new Vector2(x, y);
+            int initialLayerZ = cell.Z;
+
+            var collisionInstance = player.GetComponent<CollisionInstance>();
+            if (collisionInstance != null)
+            {
+                var collisionBody = new CollisionBody(
+                    player.ID,
+                    room.ID,
+                    initialPosition,
+                    collisionInstance.CollisionOffset,
+                    initialLayerZ,
+                    collisionInstance.CollisionShape,
+                    collisionInstance.Layer,
+                    collisionInstance.Mask);
+
+                // Pass the real transform instance so collisionService can set the valid position directly
+                collisionService.SpawnAtNearestValidPosition(
+                    collisionBody,
+                    transform,
+                    room.DefinitionID,
+                    roomEntities);
+
+                return (transform.Position, transform.LayerZ);
+            }
+
+            return (initialPosition, initialLayerZ);
         }
 
-        private RoomSnapshotDTO BuildDTO(
-            RoomSnapshot snapshot)
+        private RoomSpatialDTO BuildDTO(
+            RoomInstance roomInstance)
         {
-            var snapshotDto = new RoomSnapshotDTO()
-            {
-                RoomData = mapper.Map<RoomRuntimeDTO>(snapshot.Room)
-            };
-
-            snapshotDto.RoomData.Entities = mapper.Map<List<EntityInstanceDTO>>(snapshot.Entities);
-
+            var snapshotDto = mapper.Map<RoomSpatialDTO>(roomInstance.Room);
+            snapshotDto.Entities = mapper.Map<List<EntityInstanceDTO>>(roomInstance.Entities);
             return snapshotDto;
         }
         #endregion

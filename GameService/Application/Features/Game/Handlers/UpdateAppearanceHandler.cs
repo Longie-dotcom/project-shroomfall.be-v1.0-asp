@@ -5,7 +5,7 @@ using Application.Interfaces.Realtime.Events.Game;
 using Application.Interfaces.Realtime.Managers;
 using Application.Services.WorldService;
 using AutoMapper;
-using Contract.DTO.Domain.Runtime;
+using Contract.DTO.Runtime.EntityDomain.Component;
 using Domain.Common;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain.Component;

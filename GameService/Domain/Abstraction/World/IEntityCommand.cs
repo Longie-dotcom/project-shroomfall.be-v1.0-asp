@@ -7,7 +7,7 @@ namespace Domain.Abstraction.World
     {
         void AddEntity(
             EntityInstance entityInstance);
-        EntityInstance RemoveEntity(
+        void RemoveEntity(
             string entityInstanceId);
         void EntityMove(
             string entityInstanceId,

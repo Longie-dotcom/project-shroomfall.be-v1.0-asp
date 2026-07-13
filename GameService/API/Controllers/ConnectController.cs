@@ -1,7 +1,8 @@
 ﻿using API.Helper;
 using Application.Features.Abstraction;
 using Application.Features.Connection.Commands;
-using Contract.DTO.Connection;
+using Contract.DTO.Feature.Connection.Command;
+using Contract.DTO.Feature.Connection.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

@@ -18,10 +18,11 @@ namespace Domain.Definition.MetaDomain
         public EntityAction? TriggeredAction { get; private set; }
         public ItemPresentationDefinition Presentation { get; private set; }
 
-        // Configuration per type
-        public SpawnEntityConfig? SpawnEntityConfig { get; private set; }
-        public ApplyEffectConfig? ApplyEffectConfig { get; private set; }
-        public EquipConfig? EquipConfig { get; private set; }
+        public ConsumableConfig? ConsumableConfig { get; private set; }
+        public EquippableConfig? EquippableConfig { get; private set; }
+        public PlaceableConfig? PlaceableConfig { get; private set; }
+        public RangedConfig? RangedConfig { get; private set; }
+        public MeleeConfig? MeleeConfig { get; private set; }
 
         public CostConfig CostConfig { get; private set; }
         #endregion
@@ -36,9 +37,11 @@ namespace Domain.Definition.MetaDomain
             int? maxDurability,
             EntityAction? triggeredAction,
             ItemPresentationDefinition presentation,
-            SpawnEntityConfig? spawnEntityConfig,
-            ApplyEffectConfig? applyEffectConfig,
-            EquipConfig? equipConfig,
+            ConsumableConfig? consumableConfig,
+            EquippableConfig? equippableConfig,
+            PlaceableConfig? placeableConfig,
+            RangedConfig? rangedConfig,
+            MeleeConfig? meleeConfig,
             CostConfig costConfig)
         {
             ID = id;
@@ -48,9 +51,11 @@ namespace Domain.Definition.MetaDomain
             MaxDurability = maxDurability;
             TriggeredAction = triggeredAction;
             Presentation = presentation;
-            SpawnEntityConfig = spawnEntityConfig;
-            ApplyEffectConfig = applyEffectConfig;
-            EquipConfig = equipConfig;
+            ConsumableConfig = consumableConfig;
+            EquippableConfig = equippableConfig;
+            PlaceableConfig = placeableConfig;
+            RangedConfig = rangedConfig;
+            MeleeConfig = meleeConfig;
             CostConfig = costConfig;
         }
 
@@ -61,9 +66,11 @@ namespace Domain.Definition.MetaDomain
             int? maxStack,
             int? maxDurability,
             EntityAction? triggeredAction,
-            SpawnEntityConfig? spawnEntityConfig,
-            ApplyEffectConfig? applyEffectConfig,
-            EquipConfig? equipConfig,
+            ConsumableConfig? consumableConfig,
+            EquippableConfig? equippableConfig,
+            PlaceableConfig? placeableConfig,
+            RangedConfig? rangedConfig,
+            MeleeConfig? meleeConfig,
             CostConfig costConfig)
         {
             Type = type;
@@ -71,9 +78,11 @@ namespace Domain.Definition.MetaDomain
             MaxStack = maxStack;
             MaxDurability = maxDurability;
             TriggeredAction = triggeredAction;
-            SpawnEntityConfig = spawnEntityConfig;
-            ApplyEffectConfig = applyEffectConfig;
-            EquipConfig = equipConfig;
+            ConsumableConfig = consumableConfig;
+            EquippableConfig = equippableConfig;
+            PlaceableConfig = placeableConfig;
+            RangedConfig = rangedConfig;
+            MeleeConfig = meleeConfig;
             CostConfig = costConfig;
         }
         #endregion
@@ -103,26 +112,34 @@ namespace Domain.Definition.MetaDomain
         #endregion
     }
 
-    public class SpawnEntityConfig
-    {
-        public string EntityDefinitionID { get; set; } = string.Empty;
-        public SpawnTargetType TargetType { get; set; } = SpawnTargetType.WorldPosition;
-        public float MaxRange { get; set; }
-    }
-
-    public class ApplyEffectConfig
+    public class ConsumableConfig
     {
         public List<string> EffectDefinitionIDs { get; set; } = new List<string>();
     }
 
-    public class EquipConfig
+    public class EquippableConfig
     {
         public EquipmentSlot Slot { get; set; }
+        public List<string> EffectDefinitionIDs { get; set; } = new List<string>();
+    }
+
+    public class PlaceableConfig
+    {
+        public string EntityDefinitionID { get; set; } = string.Empty;
+    }
+
+    public class RangedConfig
+    {
+        public string EntityDefinitionID { get; set; } = string.Empty;
+    }
+
+    public class MeleeConfig
+    {
+        public string EntityDefinitionID { get; set; } = string.Empty;
     }
 
     public class CostConfig
     {
         public ItemConsumptionMethod Method { get; set; }
-        public int Value { get; set; } = 1;
     }
 }

@@ -1,7 +1,7 @@
 ﻿using Application.Interfaces.Realtime;
 using Application.Interfaces.Realtime.Events;
 using Application.Interfaces.Realtime.Events.Design;
-using Contract.DTO.Design;
+using Contract.DTO.Feature.Design.Response;
 
 namespace Infrastructure.Realtime.Events.Design
 {

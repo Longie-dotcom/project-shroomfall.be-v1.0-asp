@@ -4,7 +4,7 @@ using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
 using AutoMapper;
 using Contract.DTO.Common;
-using Contract.DTO.Domain.Definition;
+using Contract.DTO.Definition.MetaDomain;
 
 namespace Application.Features.Design.Handlers
 {

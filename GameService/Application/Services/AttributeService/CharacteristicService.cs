@@ -1,12 +1,12 @@
 ﻿using Application.Interfaces.Cache;
 using Application.Interfaces.Realtime.Events;
 using Application.Interfaces.Realtime.Events.Game;
+using Contract;
 using Contract.Enum.MetaDomain.Effect;
 using Domain.Definition.EntityDomain.Component;
 using Domain.Definition.MetaDomain;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
-using Domain.Shared;
 
 namespace Application.Services.AttributeService
 {
@@ -144,9 +144,10 @@ namespace Application.Services.AttributeService
             CharacteristicInstance characteristic,
             EffectContainerInstance effectContainer)
         {
-            // Group active status effects
             var activeEffectsByAttribute = new Dictionary<AttributeType, List<EffectDefinition>>();
-            foreach (var activeEffect in effectContainer.ActiveEffects)
+
+            // Look at how clean this is now! We just grab the unified persistent lists.
+            foreach (var activeEffect in effectContainer.GetAllPersistentEffects())
             {
                 var modifier = cacheProvider.Effect.Get(activeEffect.DefinitionID);
                 if (modifier == null) continue;

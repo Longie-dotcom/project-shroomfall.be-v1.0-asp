@@ -8,9 +8,7 @@
         void Remove(
             string userId,
             string connectionId);
-        IReadOnlyCollection<string> Get(
-            string userId);
-        bool HasConnections(
+        string? Get(
             string userId);
         Task Group(
             string connectionId,

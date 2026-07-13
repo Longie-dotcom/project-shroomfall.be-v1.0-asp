@@ -2,7 +2,7 @@
 using Application.Features.Design.Commands;
 using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
-using Contract.DTO.Domain.Definition;
+using Contract.DTO.Definition.WorldDomain;
 using Domain.Definition.WorldDomain;
 using Domain.DomainException;
 using Domain.Shared;
@@ -14,8 +14,8 @@ namespace Application.Features.Design.Handlers
     public class RoomDefinitionPayload
     {
         public RoomDefinitionDTO Room { get; set; } = new RoomDefinitionDTO();
-        public List<CellDefinitionDTO> Cells { get; set; } = new List<CellDefinitionDTO>();
-        public List<EntitySpawnRuleDefinitionDTO> EntitySpawnRules { get; set; } = new List<EntitySpawnRuleDefinitionDTO>();
+        public List<CellDTO> Cells { get; set; } = new List<CellDTO>();
+        public List<EntitySpawnRuleDTO> EntitySpawnRules { get; set; } = new List<EntitySpawnRuleDTO>();
     }
 
     public class UpsertRoomDefinitionHandler : IHandler<UpsertRoomDefinitionCommand>

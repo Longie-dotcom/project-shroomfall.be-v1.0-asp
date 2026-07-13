@@ -3,9 +3,11 @@ using Domain.Abstraction;
 using Domain.Common;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
+using Domain.Runtime.MetaDomain;
 using Domain.Runtime.WorldDomain.Spatial;
 using Domain.Snapshot.EntityDomain;
 using Domain.Snapshot.EntityDomain.Component;
+using Domain.Snapshot.MetaDomain;
 using Domain.Snapshot.WorldDomain;
 
 namespace Application.Mapper
@@ -38,7 +40,6 @@ namespace Application.Mapper
                 .Include<CollisionInstance, CollisionSnapshot>()
                 .Include<CharacteristicInstance, CharacteristicSnapshot>()
                 .Include<EffectContainerInstance, EffectContainerSnapshot>()
-                .Include<EquipmentInstance, EquipmentSnapshot>()
                 .Include<InventoryInstance, InventorySnapshot>()
                 .Include<LifetimeInstance, LifetimeSnapshot>()
                 .Include<OwnershipInstance, OwnershipSnapshot>()
@@ -56,13 +57,10 @@ namespace Application.Mapper
             CreateMap<CollisionInstance, CollisionSnapshot>();
 
             CreateMap<CharacteristicInstance, CharacteristicSnapshot>()
-                .ForMember(dest => dest.Vitals, opt => opt.MapFrom(src => src.GetVitals()))
-                .ForMember(dest => dest.Cores, opt => opt.MapFrom(src => src.GetCores()));
+                .ForMember(dest => dest.Vitals, opt => opt.MapFrom(src => src.GetVitals()));
 
             CreateMap<EffectContainerInstance, EffectContainerSnapshot>();
             CreateMap<EffectInstance, EffectSnapshot>();
-
-            CreateMap<EquipmentInstance, EquipmentSnapshot>();
 
             CreateMap<InventoryInstance, InventorySnapshot>();
             CreateMap<ItemInstance, ItemSnapshot>();

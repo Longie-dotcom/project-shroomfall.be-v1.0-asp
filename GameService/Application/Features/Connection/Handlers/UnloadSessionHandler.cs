@@ -1,10 +1,8 @@
 ﻿using Application.Features.Abstraction;
 using Application.Features.Connection.Commands;
 using Application.Interfaces.Realtime.Managers;
-using Application.Persistence;
 using Application.Services.WorldService;
 using Domain.DomainException;
-using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
 using ResponseCode;
 
@@ -13,11 +11,8 @@ namespace Application.Features.Connection.Handlers
     public class UnloadSessionHandler : IHandler<UnloadSessionCommand>
     {
         #region Attributes
-        private readonly EntityPersistence entityPersistence;
-        private readonly ResidencyService residencyService;
         private readonly ISessionManager sessionManager;
-        private readonly EntitySpawnService entitySpawnService;
-        private readonly IConnectionManager connectionManager;
+        private readonly RoomMigrationService roomMigrationService; 
         private readonly WorldContext worldContext;
         #endregion
 
@@ -25,18 +20,12 @@ namespace Application.Features.Connection.Handlers
         #endregion
 
         public UnloadSessionHandler(
-            EntityPersistence entityPersistence,
-            ResidencyService residencyService,
             ISessionManager sessionManager,
-            EntitySpawnService entitySpawnService,
-            IConnectionManager connectionManager,
+            RoomMigrationService roomMigrationService,
             WorldContext worldContext)
         {
-            this.entityPersistence = entityPersistence;
-            this.residencyService = residencyService;
             this.sessionManager = sessionManager;
-            this.entitySpawnService = entitySpawnService;
-            this.connectionManager = connectionManager;
+            this.roomMigrationService = roomMigrationService;
             this.worldContext = worldContext;
         }
 
@@ -63,22 +52,14 @@ namespace Application.Features.Connection.Handlers
                     ApplicationCode.ConnectionHandlerCode.UnloadSessionTransformMissing,
                     $"Player instance {playerInstanceId} is missing its TransformInstance component.");
 
-            // Sever this specific connection from SignalR updates and clear it from our tracking state
-            await connectionManager.Ungroup(command.ConnectionID, transform.RoomSpatialID);
-            connectionManager.Remove(command.UserID, command.ConnectionID);
+            // Freeze engine loops and release residency
+            await roomMigrationService.PlayerQuitGame(
+                transform.RoomSpatialID, 
+                command.UserID, 
+                command.ConnectionID, 
+                player);
 
-            // Now that the dead pipe is gone, check if they are still browsing on another window or device
-            if (connectionManager.HasConnections(command.UserID))
-                return; 
-
-            // Freeze active engine loops first
-            entitySpawnService.Deactivate(player);
-
-            // Save frozen data snapshot to cold storage second
-            await entityPersistence.SaveManyAsync(new List<EntityInstance>() { player });
-
-            // Clear tracking context variables and release the room residency lease
-            await residencyService.LeaveRoomAsync(transform.RoomSpatialID, player.ID);
+            // Clear the overall session
             sessionManager.Remove(command.UserID);
         }
         #endregion

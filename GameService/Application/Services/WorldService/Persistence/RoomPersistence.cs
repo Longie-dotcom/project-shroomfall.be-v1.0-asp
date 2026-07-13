@@ -3,9 +3,8 @@ using Application.Interfaces.Repository.NonRelational;
 using Application.Services.WorldService.Factory;
 using AutoMapper;
 using Domain.Runtime.WorldDomain.Spatial;
-using Domain.Snapshot.WorldDomain;
 
-namespace Application.Persistence
+namespace Application.Services.WorldService.Persistence
 {
     public class RoomPersistence
     {
@@ -45,10 +44,8 @@ namespace Application.Persistence
             RoomSpatial room)
         {
             var roomRepo = nonRelationalUoW.GetRepository<IRoomSnapshotRepository>();
-
-            var doc = mapper.Map<RoomSnapshot>(room);
-
-            await roomRepo.UpdateAsync(doc);
+            var snapshot = mapper.Map<Domain.Snapshot.WorldDomain.RoomSnapshot>(room);
+            await roomRepo.UpdateAsync(snapshot);
         }
         #endregion
     }

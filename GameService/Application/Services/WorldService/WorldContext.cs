@@ -1,6 +1,7 @@
 ﻿using Application.Interfaces.Utility;
 using Domain.Abstraction.World;
 using Domain.Common;
+using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
 using Domain.Runtime.WorldDomain.Spatial;
@@ -18,6 +19,7 @@ namespace Application.Services.WorldService
         #endregion
 
         #region Properties
+        public long CurrentTick { get; private set; }
         #endregion
 
         public WorldContext(
@@ -33,6 +35,11 @@ namespace Application.Services.WorldService
         }
 
         #region Query
+        public void AdvanceTick()
+        {
+            CurrentTick++;
+        }
+
         public IEnumerable<EntityInstance> GetEntities()
         {
             return worldQuery.GetEntities();
@@ -75,24 +82,24 @@ namespace Application.Services.WorldService
 
         #region Command
         public void Load(
-            RoomSnapshot roomSnapshot)
+            RoomInstance roomInstance)
         {
             // Load room first
-            roomCommand.AddRoom(roomSnapshot.Room);
+            roomCommand.AddRoom(roomInstance.Room);
 
             // Then load entities
-            foreach (var entityInstance in roomSnapshot.Entities)
+            foreach (var entityInstance in roomInstance.Entities)
             {
                 AddEntity(entityInstance);
             }
 
             telemetryQueue.EnqueueAlert(
                 ApplicationCode.WorldContextCode.RoomLoaded,
-                $"Successfully loading room '{roomSnapshot.Room.ID}' into World...",
+                $"Successfully loading room '{roomInstance.Room.ID}' into World...",
                 TelemetrySeverity.Info);
         }
 
-        public RoomSnapshot? Unload(
+        public RoomInstance? Unload(
             string roomSpatialId)
         {
             // Fetch room need to be unloaded
@@ -124,8 +131,8 @@ namespace Application.Services.WorldService
                 $"Evicting room '{roomSpatialId}' from World...",
                 TelemetrySeverity.Info);
 
-            // Return snapshot for persist
-            return new RoomSnapshot
+            // Return instance for persist
+            return new RoomInstance
             {
                 Room = room,
                 Entities = entities
@@ -161,16 +168,26 @@ namespace Application.Services.WorldService
             int layerZ,
             string newRoomSpatialId)
         {
-            entityCommand.ChangeRoom(
-                entityInstanceId,
-                newPosition,
-                layerZ,
-                newRoomSpatialId);
+            try
+            {
+                entityCommand.ChangeRoom(
+                    entityInstanceId,
+                    newPosition,
+                    layerZ,
+                    newRoomSpatialId);
 
-            telemetryQueue.EnqueueAlert(
-                ApplicationCode.WorldContextCode.EntityRoomChanged,
-                $"Entity '{entityInstanceId}' changed room to room spatial: {newRoomSpatialId} on new position: ({newPosition.X}, {newPosition.Y}, {layerZ}",
-                TelemetrySeverity.Info);
+                telemetryQueue.EnqueueAlert(
+                    ApplicationCode.WorldContextCode.EntityRoomChanged,
+                    $"Entity '{entityInstanceId}' changed room to room spatial: {newRoomSpatialId} on new position: ({newPosition.X}, {newPosition.Y}, {layerZ}",
+                    TelemetrySeverity.Info);
+            }
+            catch (InternalException ex)
+            {
+                telemetryQueue.EnqueueAlert(
+                    ex.Code,
+                    ex.Message,
+                    TelemetrySeverity.Error);
+            }
         }
         #endregion
     }

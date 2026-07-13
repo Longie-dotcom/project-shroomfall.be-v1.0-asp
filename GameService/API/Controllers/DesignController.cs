@@ -2,8 +2,10 @@
 using Application.Features.Abstraction;
 using Application.Features.Design.Commands;
 using Contract.DTO.Common;
-using Contract.DTO.Design;
-using Contract.DTO.Domain.Definition;
+using Contract.DTO.Definition.EntityDomain.Component;
+using Contract.DTO.Definition.MetaDomain;
+using Contract.DTO.Feature.Design.Command;
+using Contract.DTO.Feature.Design.Response;
 using Contract.Enum.IdentityDomain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -43,6 +45,20 @@ namespace API.Controllers
         }
 
         [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
+        [HttpGet("items")]
+        public async Task<ActionResult<PagedResponseDTO<ItemDefinitionDTO>>> GetAllItems(
+            [FromQuery] ItemDefinitionQueryDTO queries)
+        {
+            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
+
+            var result = await dispatcher.Send<FetchItemDefinitionCommand, PagedResponseDTO<ItemDefinitionDTO>>(
+                new FetchItemDefinitionCommand(userId, queries)
+            );
+
+            return Ok(result);
+        }
+
+        [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
         [HttpGet("entities/{id}")]
         public async Task<ActionResult<EntityDefinitionDetailDTO>> FetchEntityDefinitionDetail(
             [FromRoute] string id)
@@ -71,34 +87,6 @@ namespace API.Controllers
         }
 
         [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
-        [HttpGet("items")]
-        public async Task<ActionResult<PagedResponseDTO<ItemDefinitionDTO>>> GetAllItems(
-            [FromQuery] ItemDefinitionQueryDTO queries)
-        {
-            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
-
-            var result = await dispatcher.Send<FetchItemDefinitionCommand, PagedResponseDTO<ItemDefinitionDTO>>(
-                new FetchItemDefinitionCommand(userId, queries)
-            );
-
-            return Ok(result);
-        }
-
-        [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
-        [HttpPost("definition")]
-        public async Task<IActionResult> UpdateDefinition(
-            [FromBody] UpdateDefinitionDTO dto)
-        {
-            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
-
-            await dispatcher.Send<UpdateDefinitionCommand>(
-                new UpdateDefinitionCommand(userId, dto)
-            );
-
-            return Ok();
-        }
-
-        [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
         [HttpPost("effect-definition")]
         public async Task<IActionResult> UpsertEffectDefinition(
             [FromBody] UpsertEffectDefinitionDTO dto)
@@ -107,20 +95,6 @@ namespace API.Controllers
 
             await dispatcher.Send<UpsertEffectDefinitionCommand>(
                 new UpsertEffectDefinitionCommand(userId, dto)
-            );
-
-            return Ok();
-        }
-
-        [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
-        [HttpPost("entity-definition")]
-        public async Task<IActionResult> UpsertEntityDefinition(
-            [FromBody] UpsertEntityDefinitionDTO dto)
-        {
-            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
-
-            await dispatcher.Send<UpsertEntityDefinitionCommand>(
-                new UpsertEntityDefinitionCommand(userId, dto)
             );
 
             return Ok();
@@ -141,14 +115,42 @@ namespace API.Controllers
         }
 
         [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
+        [HttpPost("entity-definition")]
+        public async Task<IActionResult> UpsertEntityDefinition(
+            [FromBody] UpsertEntityDefinitionDTO dto)
+        {
+            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
+
+            await dispatcher.Send<UpsertEntityDefinitionCommand>(
+                new UpsertEntityDefinitionCommand(userId, dto)
+            );
+
+            return Ok();
+        }
+
+        [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
         [HttpPost("room-definition/upload")]
-        public async Task<IActionResult> UploadRoomDefinition(
+        public async Task<IActionResult> UpsertRoomDefinition(
             IFormFile file)
         {
             var (userId, steamId, role) = ClaimReader.GetIdentity(User);
 
             await dispatcher.Send<UpsertRoomDefinitionCommand>(
                 new UpsertRoomDefinitionCommand(file)
+            );
+
+            return Ok();
+        }
+
+        [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
+        [HttpPost("definition")]
+        public async Task<IActionResult> UpdateDefinition(
+            [FromBody] UpdateDefinitionDTO dto)
+        {
+            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
+
+            await dispatcher.Send<UpdateDefinitionCommand>(
+                new UpdateDefinitionCommand(userId, dto)
             );
 
             return Ok();

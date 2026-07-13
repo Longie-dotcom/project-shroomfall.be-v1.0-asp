@@ -35,10 +35,8 @@ namespace Infrastructure.Configuration
             services.AddSingleton<IAppearanceCache, AppearanceCache>();
             services.AddSingleton<ICollisionCache, CollisionCache>();
             services.AddSingleton<ICharacteristicCache, CharacteristicCache>();
-            services.AddSingleton<IInteractableCache, InteractableCache>();
             services.AddSingleton<IInventoryCache, InventoryCache>();
             services.AddSingleton<ILifetimeCache, LifetimeCache>();
-            services.AddSingleton<IPortalCache, PortalCache>();
             services.AddSingleton<IProjectileCache, ProjectileCache>();
             services.AddSingleton<ITriggeredEffectCache, TriggeredEffectCache>();
             services.AddSingleton<IEntityCache, EntityCache>();

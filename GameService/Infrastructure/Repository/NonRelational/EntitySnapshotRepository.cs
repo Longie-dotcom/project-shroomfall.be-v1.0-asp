@@ -35,7 +35,7 @@ namespace Infrastructure.Repository.NonRelational
             return await collection.Find(filter).ToListAsync();
         }
 
-        public async Task<IEnumerable<EntitySnapshot>> GetPlayerDocumentsByUserIdAsync(string userId)
+        public async Task<IEnumerable<EntitySnapshot>> GetPlayerSnapshotByUserIdAsync(string userId)
         {
             var filter = Builders<EntitySnapshot>.Filter.ElemMatch(
                 entity => entity.Components,

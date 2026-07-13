@@ -3,7 +3,8 @@ using Application.Features.Design.Commands;
 using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
 using Application.Services.DesignService;
-using Contract.DTO.Domain.Definition;
+using Contract.DTO.Abstraction;
+using Contract.DTO.Definition.EntityDomain.Component;
 using Contract.Enum.EntityDomain;
 using Domain.Definition.EntityDomain;
 using Domain.Definition.EntityDomain.Component;
@@ -18,7 +19,7 @@ namespace Application.Features.Design.Handlers
         #region Attributes
         private readonly IRelationalUoW relationalUoW;
         private readonly LocalizationEntryFactory localizationEntryFactory;
-        private readonly DesignerComponentFactory designerComponentFactory;
+        private readonly DefinitionComponentFactory definitionComponentFactory;
 
         private static readonly Dictionary<string, Type> ComponentStringToDomainMapping = new(StringComparer.OrdinalIgnoreCase)
         {
@@ -26,10 +27,8 @@ namespace Application.Features.Design.Handlers
             { nameof(AppearanceDefinitionDTO), typeof(AppearanceDefinition) },
             { nameof(CollisionDefinitionDTO), typeof(CollisionDefinition) },
             { nameof(CharacteristicDefinitionDTO), typeof(CharacteristicDefinition) },
-            { nameof(InteractableDefinitionDTO), typeof(InteractableDefinition) },
             { nameof(InventoryDefinitionDTO), typeof(InventoryDefinition) },
             { nameof(LifetimeDefinitionDTO), typeof(LifetimeDefinition) },
-            { nameof(PortalDefinitionDTO), typeof(PortalDefinition) },
             { nameof(ProjectileDefinitionDTO), typeof(ProjectileDefinition) },
             { nameof(TriggeredEffectDefinitionDTO), typeof(TriggeredEffectDefinition) }
         };
@@ -40,11 +39,11 @@ namespace Application.Features.Design.Handlers
         public UpsertEntityDefinitionHandler(
             IRelationalUoW relationalUoW,
             LocalizationEntryFactory localizationEntryFactory,
-            DesignerComponentFactory designerComponentFactory)
+            DefinitionComponentFactory definitionComponentFactory)
         {
             this.relationalUoW = relationalUoW;
             this.localizationEntryFactory = localizationEntryFactory;
-            this.designerComponentFactory = designerComponentFactory;
+            this.definitionComponentFactory = definitionComponentFactory;
         }
 
         #region Methods
@@ -75,7 +74,7 @@ namespace Application.Features.Design.Handlers
             // Pipeline component definitions generation
             foreach (var componentDto in dto.Components)
             {
-                await designerComponentFactory.UpsertAndSaveAsync(componentDto, dto.Type, dto.ID);
+                await definitionComponentFactory.UpsertAndSaveAsync(componentDto, dto.Type, dto.ID);
             }
 
             int rowsAffected = await relationalUoW.SaveChangesAsync();

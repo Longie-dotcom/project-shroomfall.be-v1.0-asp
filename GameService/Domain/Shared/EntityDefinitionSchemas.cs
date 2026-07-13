@@ -22,7 +22,6 @@ namespace Domain.Shared
                 EntityType.Portal, new()
                 {
                     typeof(CollisionDefinition),
-                    typeof(PortalDefinition)
                 }
             },
 
@@ -40,7 +39,6 @@ namespace Domain.Shared
                 EntityType.WorldObject, new()
                 {
                     typeof(CollisionDefinition),
-                    typeof(InteractableDefinition)
                 }
             },
 

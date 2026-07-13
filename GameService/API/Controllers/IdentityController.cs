@@ -1,7 +1,8 @@
 ﻿using API.Helper;
 using Application.Features.Abstraction;
 using Application.Features.Identity.Commands;
-using Contract.DTO.Identity;
+using Contract.DTO.Feature.Identity.Command;
+using Contract.DTO.Feature.Identity.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

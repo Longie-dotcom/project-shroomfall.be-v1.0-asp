@@ -2,7 +2,7 @@
 using Application.Features.Connection.Commands;
 using Application.Features.Game.Commands;
 using Contract;
-using Contract.DTO.Game;
+using Contract.DTO.Feature.Game.Command;
 using Contract.Enum.IdentityDomain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;

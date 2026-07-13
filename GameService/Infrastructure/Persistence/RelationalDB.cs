@@ -21,10 +21,8 @@ namespace Infrastructure.Persistence
         public DbSet<AppearanceDefinition> AppearanceDefinitions { get; set; }
         public DbSet<CollisionDefinition> CollisionDefinitions { get; set; }
         public DbSet<CharacteristicDefinition> CharacteristicDefinitions { get; set; }
-        public DbSet<InteractableDefinition> InteractableDefinitions { get; set; }
         public DbSet<InventoryDefinition> InventoryDefinitions { get; set; }
         public DbSet<LifetimeDefinition> LifetimeDefinitions { get; set; }
-        public DbSet<PortalDefinition> PortalDefinitions { get; set; }
         public DbSet<ProjectileDefinition> ProjectileDefinitions { get; set; }
         public DbSet<TriggeredEffectDefinition> TriggeredEffectDefinitions { get; set; }
         public DbSet<EntityDefinition> EntityDefinitions { get; set; }
@@ -285,34 +283,6 @@ namespace Infrastructure.Persistence
                     .IsUnique();
             });
 
-            modelBuilder.Entity<InteractableDefinition>(entity =>
-            {
-                // ─────────────────────────────
-                // Table
-                // ─────────────────────────────
-                entity.ToTable("InteractableDefinitions");
-
-                // ─────────────────────────────
-                // Primary Key
-                // ─────────────────────────────
-                entity.HasKey(x => x.ID);
-
-                // ─────────────────────────────
-                // Properties
-                // ─────────────────────────────
-                entity.Property(x => x.EntityDefinitionID)
-                    .IsRequired();
-                entity.Property(x => x.Type)
-                    .HasConversion<string>()
-                    .IsRequired();
-
-                // ─────────────────────────────
-                // Indexes
-                // ─────────────────────────────
-                entity.HasIndex(x => x.Type);
-                entity.HasIndex(x => x.EntityDefinitionID).IsUnique();
-            });
-
             modelBuilder.Entity<InventoryDefinition>(entity =>
             {
                 // ─────────────────────────────
@@ -369,7 +339,6 @@ namespace Infrastructure.Persistence
                 entity.Property(x => x.Quality)
                     .HasConversion<string>()
                     .IsRequired();
-                entity.Ignore(x => x.Durability);
                 entity.Property(x => x.InventoryDefinitionID)
                     .IsRequired();
 
@@ -405,45 +374,13 @@ namespace Infrastructure.Persistence
                 // ─────────────────────────────
                 entity.Property(x => x.EntityDefinitionID)
                     .IsRequired();
-                entity.Property(x => x.Lifetime)
+                entity.Property(x => x.Duration)
                     .IsRequired();
 
                 // ─────────────────────────────
                 // Indexes
                 // ─────────────────────────────
-                entity.HasIndex(x => x.Lifetime);
-                entity.HasIndex(x => x.EntityDefinitionID).IsUnique();
-            });
-
-            modelBuilder.Entity<PortalDefinition>(entity =>
-            {
-                // ─────────────────────────────
-                // Table
-                // ─────────────────────────────
-                entity.ToTable("PortalDefinitions");
-
-                // ─────────────────────────────
-                // Primary Key
-                // ─────────────────────────────
-                entity.HasKey(x => x.ID);
-
-                // ─────────────────────────────
-                // Properties
-                // ─────────────────────────────
-                entity.Property(x => x.EntityDefinitionID)
-                    .IsRequired();
-                entity.Property(x => x.LocalTriggerOffsetX)
-                    .IsRequired();
-                entity.Property(x => x.LocalTriggerOffsetY)
-                    .IsRequired();
-                entity.Property(x => x.TriggerWidth)
-                    .IsRequired();
-                entity.Property(x => x.TriggerHeight)
-                    .IsRequired();
-
-                // ─────────────────────────────
-                // Indexes
-                // ─────────────────────────────
+                entity.HasIndex(x => x.Duration);
                 entity.HasIndex(x => x.EntityDefinitionID).IsUnique();
             });
 
@@ -673,55 +610,6 @@ namespace Infrastructure.Persistence
             #endregion
 
             #region Meta Domain
-            modelBuilder.Entity<EffectDefinition>(entity =>
-            {
-                // ─────────────────────────────
-                // Table
-                // ─────────────────────────────
-                entity.ToTable("EffectDefinitions");
-
-                // ─────────────────────────────
-                // Primary Key
-                // ─────────────────────────────
-                entity.HasKey(x => x.ID);
-
-                // ─────────────────────────────
-                // Properties
-                // ─────────────────────────────
-                entity.Property(x => x.Type)
-                    .HasConversion<string>()
-                    .IsRequired();
-                entity.Property(x => x.AttributeType)
-                    .HasConversion<string>()
-                    .IsRequired();
-                entity.Property(x => x.SourceType)
-                    .HasConversion<string>()
-                    .IsRequired(false);
-                entity.Property(x => x.Value)
-                    .IsRequired();
-                entity.Property(x => x.Duration)
-                    .IsRequired(false);
-                entity.Property(x => x.Interval)
-                    .IsRequired(false);
-                entity.OwnsOne(x => x.Presentation, presentation =>
-                {
-                    presentation.OwnsOne(x => x.LocalizedText, localization =>
-                    {
-                        localization.Property(x => x.NameKey)
-                            .IsRequired();
-                        localization.Property(x => x.DescriptionKey)
-                            .IsRequired();
-                    });
-                    presentation.Property(x => x.IconID)
-                        .IsRequired(false);
-                });
-
-                // ─────────────────────────────
-                // Indexes
-                // ─────────────────────────────
-                entity.HasIndex(x => x.AttributeType);
-            });
-
             modelBuilder.Entity<ItemDefinition>(entity =>
             {
                 // ─────────────────────────────
@@ -750,6 +638,7 @@ namespace Infrastructure.Persistence
                 entity.Property(x => x.TriggeredAction)
                     .HasConversion<string>()
                     .IsRequired(false);
+
                 entity.OwnsOne(x => x.Presentation, presentation =>
                 {
                     presentation.OwnsOne(x => x.LocalizedText, localization =>
@@ -766,41 +655,53 @@ namespace Infrastructure.Persistence
                 // ─────────────────────────────
                 // Owned Types (Configurations)
                 // ─────────────────────────────
-                entity.OwnsOne(x => x.SpawnEntityConfig, spawn =>
+                entity.OwnsOne(x => x.ConsumableConfig, consumable =>
                 {
-                    spawn.Property(x => x.EntityDefinitionID)
-                        .IsRequired();
-                    spawn.Property(x => x.TargetType)
-                        .HasConversion<string>()
-                        .IsRequired();
-                    spawn.Property(x => x.MaxRange)
+                    consumable.ToJson();
+                    consumable.Property(x => x.EffectDefinitionIDs)
                         .IsRequired();
                 });
-
-                entity.Navigation(x => x.SpawnEntityConfig)
+                entity.Navigation(x => x.ConsumableConfig)
                     .IsRequired(false);
 
 
-                entity.OwnsOne(x => x.ApplyEffectConfig, effect =>
+                entity.OwnsOne(x => x.EquippableConfig, equip =>
                 {
-                    effect.ToJson();
-
-                    effect.Property(x => x.EffectDefinitionIDs)
-                        .IsRequired();
-                });
-
-                entity.Navigation(x => x.ApplyEffectConfig)
-                    .IsRequired(false);
-
-
-                entity.OwnsOne(x => x.EquipConfig, equip =>
-                {
+                    equip.ToJson();
                     equip.Property(x => x.Slot)
                         .HasConversion<string>()
                         .IsRequired();
+                    equip.Property(x => x.EffectDefinitionIDs)
+                        .IsRequired();
                 });
+                entity.Navigation(x => x.EquippableConfig)
+                    .IsRequired(false);
 
-                entity.Navigation(x => x.EquipConfig)
+
+                entity.OwnsOne(x => x.PlaceableConfig, placeable =>
+                {
+                    placeable.Property(x => x.EntityDefinitionID)
+                        .IsRequired();
+                });
+                entity.Navigation(x => x.PlaceableConfig)
+                    .IsRequired(false);
+
+
+                entity.OwnsOne(x => x.RangedConfig, ranged =>
+                {
+                    ranged.Property(x => x.EntityDefinitionID)
+                        .IsRequired();
+                });
+                entity.Navigation(x => x.RangedConfig)
+                    .IsRequired(false);
+
+
+                entity.OwnsOne(x => x.MeleeConfig, melee =>
+                {
+                    melee.Property(x => x.EntityDefinitionID)
+                        .IsRequired();
+                });
+                entity.Navigation(x => x.MeleeConfig)
                     .IsRequired(false);
 
 
@@ -808,9 +709,6 @@ namespace Infrastructure.Persistence
                 {
                     cost.Property(x => x.Method)
                         .HasConversion<string>()
-                        .IsRequired();
-
-                    cost.Property(x => x.Value)
                         .IsRequired();
                 });
 
@@ -1010,7 +908,7 @@ namespace Infrastructure.Persistence
                 entity.Property(x => x.RoomDefinitionID)
                     .IsRequired();
                 entity.Property(x => x.EntityDefinitionID)
-                    .IsRequired(false);
+                    .IsRequired();
 
                 // ─────────────────────────────
                 // Relationships

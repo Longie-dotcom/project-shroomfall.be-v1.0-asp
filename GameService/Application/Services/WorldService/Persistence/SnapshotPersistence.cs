@@ -1,6 +1,4 @@
-﻿using Application.Services.WorldService;
-
-namespace Application.Persistence
+﻿namespace Application.Services.WorldService.Persistence
 {
     public class SnapshotPersistence
     {
@@ -21,7 +19,7 @@ namespace Application.Persistence
         }
 
         #region Methods
-        public async Task<RoomSnapshot?> LoadRoomSnapshotAsync(
+        public async Task<RoomInstance?> LoadRoomInstanceAsync(
             string roomSpatialId)
         {
             var room = await roomPersistence.LoadAsync(roomSpatialId);
@@ -30,15 +28,15 @@ namespace Application.Persistence
 
             var entities = await entityPersistence.LoadByRoomAsync(roomSpatialId);
 
-            return new RoomSnapshot
+            return new RoomInstance
             {
                 Room = room,
                 Entities = entities
             };
         }
 
-        public async Task SaveRoomSnapshotAsync(
-            RoomSnapshot snapshot)
+        public async Task SaveRoomInstanceAsync(
+            RoomInstance snapshot)
         {
             await roomPersistence.SaveAsync(snapshot.Room);
 

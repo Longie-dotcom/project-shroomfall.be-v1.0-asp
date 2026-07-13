@@ -1,7 +1,7 @@
 ﻿using Application.Interfaces.Realtime;
 using Application.Interfaces.Realtime.Events;
 using Application.Interfaces.Realtime.Events.Admin;
-using Contract.DTO.Admin;
+using Contract.DTO.Feature.Admin.Response;
 
 namespace Infrastructure.Realtime.Events.Admin
 {

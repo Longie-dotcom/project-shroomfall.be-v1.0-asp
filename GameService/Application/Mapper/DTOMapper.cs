@@ -1,9 +1,16 @@
 ﻿using AutoMapper;
+using Contract.DTO.Abstraction;
 using Contract.DTO.Common;
-using Contract.DTO.Design;
-using Contract.DTO.Domain.Definition;
-using Contract.DTO.Domain.Runtime;
-using Contract.DTO.Identity;
+using Contract.DTO.Definition;
+using Contract.DTO.Definition.EntityDomain.Component;
+using Contract.DTO.Definition.IdentityDomain;
+using Contract.DTO.Definition.LocalizationDomain;
+using Contract.DTO.Definition.MetaDomain;
+using Contract.DTO.Definition.WorldDomain;
+using Contract.DTO.Runtime.EntityDomain;
+using Contract.DTO.Runtime.EntityDomain.Component;
+using Contract.DTO.Runtime.MetaDomain;
+using Contract.DTO.Runtime.WorldDomain;
 using Domain.Abstraction;
 using Domain.Common;
 using Domain.Definition;
@@ -15,9 +22,9 @@ using Domain.Definition.MetaDomain;
 using Domain.Definition.WorldDomain;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
+using Domain.Runtime.MetaDomain;
 using Domain.Runtime.WorldDomain.Run;
 using Domain.Runtime.WorldDomain.Spatial;
-using Domain.Shared;
 
 namespace Application.Mapper
 {
@@ -58,10 +65,8 @@ namespace Application.Mapper
                 .Include<AppearanceDefinition, AppearanceDefinitionDTO>()
                 .Include<CharacteristicDefinition, CharacteristicDefinitionDTO>()
                 .Include<CollisionDefinition, CollisionDefinitionDTO>()
-                .Include<InteractableDefinition, InteractableDefinitionDTO>()
                 .Include<InventoryDefinition, InventoryDefinitionDTO>()
                 .Include<LifetimeDefinition, LifetimeDefinitionDTO>()
-                .Include<PortalDefinition, PortalDefinitionDTO>()
                 .Include<ProjectileDefinition, ProjectileDefinitionDTO>()
                 .Include<TriggeredEffectDefinition, TriggeredEffectDefinitionDTO>();
 
@@ -75,38 +80,34 @@ namespace Application.Mapper
 
             CreateMap<CollisionDefinition, CollisionDefinitionDTO>();
 
-            CreateMap<InteractableDefinition, InteractableDefinitionDTO>();
-
             CreateMap<InventoryDefinition, InventoryDefinitionDTO>();
             CreateMap<InventoryEntry, InventoryEntryDTO>();
 
             CreateMap<LifetimeDefinition, LifetimeDefinitionDTO>();
-
-            CreateMap<PortalDefinition, PortalDefinitionDTO>();
 
             CreateMap<ProjectileDefinition, ProjectileDefinitionDTO>();
 
             CreateMap<TriggeredEffectDefinition, TriggeredEffectDefinitionDTO>();
 
             // Meta Domain
-            CreateMap<AttributeDefinition, AttributeDefinitionDTO>();
-
             CreateMap<EffectPresentationDefinition, EffectPresentationDefinitionDTO>();
             CreateMap<EffectDefinition, EffectDefinitionDTO>();
 
             CreateMap<ItemPresentationDefinition, ItemPresentationDefinitionDTO>();
-            CreateMap<SpawnEntityConfig, SpawnEntityConfigDTO>();
-            CreateMap<ApplyEffectConfig, ApplyEffectConfigDTO>();
-            CreateMap<EquipConfig, EquipConfigDTO>();
+            CreateMap<ConsumableConfig, ConsumableConfigDTO>();
+            CreateMap<EquippableConfig, EquippableConfigDTO>();
+            CreateMap<PlaceableConfig, PlaceableConfigDTO>();
+            CreateMap<RangedConfig, RangedConfigDTO>();
+            CreateMap<MeleeConfig, MeleeConfigDTO>();
             CreateMap<CostConfig, CostConfigDTO>();
             CreateMap<ItemDefinition, ItemDefinitionDTO>();
 
             // World Domain
-            CreateMap<Cell, CellDefinitionDTO>();
-            CreateMap<EntitySpawnRule, EntitySpawnRuleDefinitionDTO>();
-            CreateMap<RoomPresentationDefinition, RoomPresentationDefinitionDTO>();
-            CreateMap<RoomDefinition, RoomDefinitionDTO>();
             CreateMap<CombatRunDefinition, CombatRunDefinitionDTO>();
+            CreateMap<RoomDefinition, RoomDefinitionDTO>();
+            CreateMap<RoomPresentationDefinition, RoomPresentationDefinitionDTO>();
+            CreateMap<EntitySpawnRule, EntitySpawnRuleDTO>();
+            CreateMap<Cell, CellDTO>();
 
             // ─────────────────────────────
             // RUNTIME to DTO
@@ -117,12 +118,15 @@ namespace Application.Mapper
                 .Include<ActionInstance, ActionInstanceDTO>()
                 .Include<AIInstance, AIInstanceDTO>()
                 .Include<AppearanceInstance, AppearanceInstanceDTO>()
+                .Include<CollisionInstance, CollisionInstanceDTO>()
                 .Include<CharacteristicInstance, CharacteristicInstanceDTO>()
                 .Include<EffectContainerInstance, EffectContainerInstanceDTO>()
-                .Include<EquipmentInstance, EquipmentInstanceDTO>()
                 .Include<InventoryInstance, InventoryInstanceDTO>()
+                .Include<LifetimeInstance, LifetimeInstanceDTO>()
                 .Include<OwnershipInstance, OwnershipInstanceDTO>()
+                .Include<ProjectileInstance, ProjectileInstanceDTO>()
                 .Include<TransformInstance, TransformInstanceDTO>()
+                .Include<TriggeredEffectInstance, TriggeredEffectInstanceDTO>()
                 .Include<WorldItemPayloadInstance, WorldItemPayloadInstanceDTO>();
 
             CreateMap<ActionInstance, ActionInstanceDTO>();
@@ -131,37 +135,38 @@ namespace Application.Mapper
 
             CreateMap<AppearanceInstance, AppearanceInstanceDTO>();
 
+            CreateMap<CollisionInstance, CollisionInstanceDTO>();
+
             CreateMap<CharacteristicInstance, CharacteristicInstanceDTO>()
                 .ForMember(dest => dest.Cores, opt => opt.MapFrom(src =>
                     src.GetCores().Select(kvp => new AttributeValueInstanceDTO { AttributeType = kvp.Key, Value = kvp.Value })))
                 .ForMember(dest => dest.Vitals, opt => opt.MapFrom(src =>
                     src.GetVitals().Select(kvp => new AttributeValueInstanceDTO { AttributeType = kvp.Key, Value = kvp.Value })));
 
-            CreateMap<EffectContainerInstance, EffectContainerInstanceDTO>();
-            CreateMap<EffectInstance, EffectInstanceDTO>();
-
-            CreateMap<EquipmentInstance, EquipmentInstanceDTO>()
-                .ForMember(dest => dest.Slots, opt => opt.MapFrom((src, dest, destMember, context) =>
-                    src.Slots
-                        .Where(kvp => kvp.Value != null)
-                        .Select(kvp => new EquipmentSlotDTO
-                        {
-                            AttributeType = kvp.Key,
-                            Item = context.Mapper.Map<ItemInstanceDTO>(kvp.Value)
-                        })
-                        .ToList()));
+            CreateMap<EffectContainerInstance, EffectContainerInstanceDTO>()
+                .ForMember(dest => dest.ActiveEffects, opt => opt.MapFrom(src =>
+                    src.GetAllPersistentEffects()));
 
             CreateMap<InventoryInstance, InventoryInstanceDTO>();
-            CreateMap<ItemInstance, ItemInstanceDTO>();
+
+            CreateMap<LifetimeInstance, LifetimeInstanceDTO>();
 
             CreateMap<OwnershipInstance, OwnershipInstanceDTO>();
 
+            CreateMap<ProjectileInstance, ProjectileInstanceDTO>();
+
             CreateMap<TransformInstance, TransformInstanceDTO>();
+
+            CreateMap<TriggeredEffectInstance, TriggeredEffectInstanceDTO>();
 
             CreateMap<WorldItemPayloadInstance, WorldItemPayloadInstanceDTO>();
 
+            // Meta Domain
+            CreateMap<EffectInstance, EffectInstanceDTO>();
+            CreateMap<ItemInstance, ItemInstanceDTO>();
+
             // World Domain
-            CreateMap<RoomSpatial, RoomRuntimeDTO>();
+            CreateMap<RoomSpatial, RoomSpatialDTO>();
             CreateMap<CombatRunInstance, CombatRunInstanceDTO>();
         }
     }

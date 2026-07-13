@@ -82,22 +82,10 @@ namespace Application.Systems.System
             var entity = worldContext.GetEntity(cmd.EntityInstanceID);
             if (entity == null) return;
 
-            // Validate the inventory to prevent race conditions or duplicate usage
-            var inventory = entity.GetComponent<InventoryInstance>();
-            if (inventory == null) return;
-
-            var item = inventory.Items.FirstOrDefault(x => x.ID == cmd.ItemInstanceID);
-            if (item == null) return; // Item was already consumed or dropped!
-
-            // Validate definition exists
-            var itemDef = cacheProvider.Item.Get(item.DefinitionID);
-            if (itemDef == null) return;
-
             // Push to the trigger phase to actually consume and spawn
             commandBuffer.Results.Enqueue(new ItemActionResult(
                 cmd.EntityInstanceID,
-                cmd.ItemInstanceID,
-                cmd.TargetPosition));
+                cmd.Context));
         }
 
         public void ResolveEntityExpired(

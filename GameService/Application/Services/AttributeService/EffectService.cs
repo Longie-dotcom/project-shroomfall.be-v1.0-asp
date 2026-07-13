@@ -2,9 +2,10 @@
 using Application.Services.WorldService;
 using Application.Systems.Abstraction;
 using Application.Systems.Queue;
+using Domain.Definition.MetaDomain;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
-using Domain.Shared;
+using Domain.Runtime.MetaDomain;
 
 namespace Application.Services.AttributeService
 {
@@ -32,21 +33,41 @@ namespace Application.Services.AttributeService
             string effectDefinitionId)
         {
             var container = target.GetComponent<EffectContainerInstance>();
-            if (container == null) return;
-
             var effectDef = cacheProvider.Effect.Get(effectDefinitionId);
-            if (effectDef == null) return;
 
-            // Apply stack rule
-            var existing = container.ActiveEffects.FirstOrDefault(e => e.DefinitionID == effectDef.ID);
-            if (existing != null && effectDef.Duration.HasValue)
+            if (container == null || effectDef == null) return;
+
+            // INSTANT (e.g. direct damage, instant heal) - Apply and discard immediately!
+            if (effectDef.Duration == 0)
             {
-                existing.ResetTimer(effectDef.Duration.Value);
+                characteristicService.ApplyEffectLogic(target, effectDef, effectDef.Value);
                 return;
             }
 
-            var effectInstance = new EffectInstance(effectDef.ID, effectDef.Duration, effectDef.Interval);
-            container.ActiveEffects.Add(effectInstance);
+            // TEMPORARY (e.g. 10s buff or 5s poison)
+            if (effectDef.Duration > 0)
+            {
+                if (container.TemporaryEffects.TryGetValue(effectDef.ID, out var existing))
+                {
+                    existing.ResetTimer(effectDef.Duration.Value);
+                }
+                else
+                {
+                    container.TemporaryEffects[effectDef.ID] = new EffectInstance(effectDef.ID, effectDef.Duration, effectDef.Interval);
+                    characteristicService.ApplyEffectLogic(target, effectDef, effectDef.Value);
+                }
+                return;
+            }
+
+            // PERMANENT (e.g. equipped armor stats, passive traits)
+            if (!effectDef.Duration.HasValue)
+            {
+                if (!container.PermanentEffects.ContainsKey(effectDef.ID))
+                {
+                    container.PermanentEffects[effectDef.ID] = new EffectInstance(effectDef.ID, null, effectDef.Interval);
+                    characteristicService.ApplyEffectLogic(target, effectDef, effectDef.Value);
+                }
+            }
         }
 
         public void RemoveEffect(
@@ -56,60 +77,69 @@ namespace Application.Services.AttributeService
             var container = target.GetComponent<EffectContainerInstance>();
             if (container == null) return;
 
-            var effectInstance = container.ActiveEffects.FirstOrDefault(e => e.DefinitionID == effectDefinitionId);
-            if (effectInstance != null)
+            bool removed = container.TemporaryEffects.Remove(effectDefinitionId) ||
+                           container.PermanentEffects.Remove(effectDefinitionId);
+
+            if (removed)
             {
-                container.ActiveEffects.Remove(effectInstance);
+                var effectDef = cacheProvider.Effect.Get(effectDefinitionId);
+                if (effectDef != null)
+                {
+                    characteristicService.ApplyEffectLogic(target, effectDef, effectDef.Value);
+                }
             }
         }
 
         public void Tick(
-            float dt,
+            float dt, 
             CommandBuffer commandBuffer)
         {
-            var entities = worldContext.GetEntities().ToList();
-
-            foreach (var entity in entities)
+            foreach (var entity in worldContext.GetEntities())
             {
                 var container = entity.GetComponent<EffectContainerInstance>();
-                if (container == null || !container.ActiveEffects.Any()) continue;
+                if (container == null) continue;
 
-                for (int i = container.ActiveEffects.Count - 1; i >= 0; i--)
+                // --- PROCESS TEMPORARY EFFECTS ---
+                if (container.TemporaryEffects.Count > 0)
                 {
-                    var effect = container.ActiveEffects[i];
-
-                    var effectDef = cacheProvider.Effect.Get(effect.DefinitionID);
-                    if (effectDef == null) continue;
-
-                    var attrDef = AttributeDefinitions.Get(effectDef.AttributeType);
-                    if (attrDef == null) continue;
-
-                    // 1. INITIAL TRIGGER (For new effects)
-                    if (!effect.HasProcessedInitial)
+                    var tempKeys = container.TemporaryEffects.Keys.ToList();
+                    foreach (var key in tempKeys)
                     {
-                        characteristicService.ApplyEffectLogic(entity, effectDef, effectDef.Value);
+                        var effect = container.TemporaryEffects[key];
+                        var effectDef = cacheProvider.Effect.Get(effect.DefinitionID);
+                        if (effectDef == null) continue;
 
-                        effect.MarkProcessed();
+                        effect.TickDuration(dt);
 
-                        if (effect.IsInstant())
+                        // If it's a DoT (Damage over Time) / HoT (Heal over Time), tick the interval
+                        if (effect.TickInterval(dt))
                         {
-                            container.ActiveEffects.RemoveAt(i);
-                            continue;
+                            characteristicService.ApplyEffectLogic(entity, effectDef, effectDef.Value);
                         }
-                        continue;
-                    }
 
-                    // 2. PERIODIC TRIGGER (Existing effects only)
-                    if (effect.Tick(dt))
-                    {
-                        characteristicService.ApplyEffectLogic(entity, effectDef, effectDef.Value);
+                        // Handle Expiration
+                        if (effect.IsExpired())
+                        {
+                            container.TemporaryEffects.Remove(key);
+                            characteristicService.ApplyEffectLogic(entity, effectDef, effectDef.Value);
+                        }
                     }
+                }
 
-                    // 3. EXPIRATION
-                    if (effect.IsExpired())
+                // --- PROCESS PERMANENT EFFECTS ---
+                // Permanent effects don't expire, but they might have intervals (e.g. permanent passive health regen)
+                if (container.PermanentEffects.Count > 0)
+                {
+                    foreach (var effect in container.PermanentEffects.Values)
                     {
-                        container.ActiveEffects.RemoveAt(i);
-                        characteristicService.ApplyEffectLogic(entity, effectDef, effectDef.Value);
+                        if (effect.TickInterval(dt))
+                        {
+                            var effectDef = cacheProvider.Effect.Get(effect.DefinitionID);
+                            if (effectDef != null)
+                            {
+                                characteristicService.ApplyEffectLogic(entity, effectDef, effectDef.Value);
+                            }
+                        }
                     }
                 }
             }

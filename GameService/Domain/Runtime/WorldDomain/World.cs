@@ -5,7 +5,6 @@ using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
 using Domain.Runtime.WorldDomain.Spatial;
 using ResponseCode;
-using System.Collections;
 
 namespace Domain.Runtime.WorldDomain
 {
@@ -13,7 +12,6 @@ namespace Domain.Runtime.WorldDomain
     {
         #region Attributes
         private readonly Dictionary<string, EntityInstance> entities;
-        private readonly Dictionary<Type, IList> entityTypeIndex;
         private readonly SpatialIndex spatialIndex;
         #endregion
 
@@ -23,7 +21,6 @@ namespace Domain.Runtime.WorldDomain
         public World()
         {
             entities = new Dictionary<string, EntityInstance>();
-            entityTypeIndex = new Dictionary<Type, IList>();
             spatialIndex = new SpatialIndex();
         }
 
@@ -72,34 +69,26 @@ namespace Domain.Runtime.WorldDomain
             // Add or update existed entity
             entities[entityInstance.ID] = entityInstance;
 
-            // Indexing entity
-            IndexEntity(entityInstance);
-
             // Register in spatial index
             spatialIndex.AddEntity(transform);
         }
 
-        public EntityInstance RemoveEntity(
+        public void RemoveEntity(
             string entityInstanceId)
         {
             if (!entities.TryGetValue(entityInstanceId, out var entityInstance))
-                throw new InternalException(
-                    DomainCode.WorldCode.EntityInstanceNotFoundOnRemoved,
-                    $"Entity instance with instance ID: {entityInstanceId} not found when on removed");
+                return;
 
             var transform = entityInstance.GetComponent<TransformInstance>();
-            if (transform == null) return entityInstance;
+            if (transform == null) return;
 
             // Remove from spatial first
             spatialIndex.RemoveEntity(transform);
 
-            // Deinexing entity
-            DeindexEntity(entityInstance);
-
             // Remove entity from dictionary
             entities.Remove(entityInstanceId);
 
-            return entityInstance;
+            return;
         }
 
         public void EntityMove(
@@ -162,44 +151,6 @@ namespace Domain.Runtime.WorldDomain
             string roomSpatialId)
         {
             spatialIndex.RemoveRoom(roomSpatialId);
-        }
-        #endregion
-
-        #region Helpers
-        private void IndexEntity(
-            EntityInstance entityInstance)
-        {
-            var type = entityInstance.GetType();
-
-            while (type != null && typeof(EntityInstance).IsAssignableFrom(type))
-            {
-                if (!entityTypeIndex.TryGetValue(type, out var list))
-                {
-                    list = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(type))!;
-
-                    entityTypeIndex[type] = list;
-                }
-
-                list.Add(entityInstance);
-
-                type = type.BaseType;
-            }
-        }
-
-        private void DeindexEntity(
-            EntityInstance entityInstance)
-        {
-            var type = entityInstance.GetType();
-
-            while (type != null && typeof(EntityInstance).IsAssignableFrom(type))
-            {
-                if (entityTypeIndex.TryGetValue(type, out var list))
-                {
-                    list.Remove(entityInstance);
-                }
-
-                type = type.BaseType;
-            }
         }
         #endregion
     }

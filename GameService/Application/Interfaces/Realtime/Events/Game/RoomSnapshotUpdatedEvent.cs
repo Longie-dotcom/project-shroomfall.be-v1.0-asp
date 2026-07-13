@@ -1,4 +1,4 @@
-﻿using Contract.DTO.Connection;
+﻿using Contract.DTO.Runtime.WorldDomain;
 
 namespace Application.Interfaces.Realtime.Events.Game
 {
@@ -9,13 +9,13 @@ namespace Application.Interfaces.Realtime.Events.Game
 
         #region Properties
         public string RoomSpatialID { get; }
-        public RoomSnapshotDTO Room { get; }
+        public RoomSpatialDTO Room { get; }
         public DateTime OccurredAt { get; }
         #endregion
 
         public RoomSnapshotUpdatedEvent(
             string roomSpatialId,
-            RoomSnapshotDTO room)
+            RoomSpatialDTO room)
         {
             RoomSpatialID = roomSpatialId;
             Room = room;

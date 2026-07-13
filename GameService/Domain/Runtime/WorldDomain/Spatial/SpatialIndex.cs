@@ -34,9 +34,7 @@ namespace Domain.Runtime.WorldDomain.Spatial
             TransformInstance transform)
         {
             if (!rooms.TryGetValue(transform.RoomSpatialID, out var room))
-                throw new InternalException(
-                    DomainCode.SpatialIndexCode.RoomSpatialNotFoundOnEntityRemoved,
-                    $"Room spatial not registered: {transform.RoomSpatialID}, when entity: {transform.Entity.ID} was removed");
+                return;
 
             var key = transform.GetSpatialKey();
 

@@ -3,13 +3,13 @@ using Application.Features.Game.Commands;
 using Application.Interfaces.Realtime.Managers;
 using Application.Services.WorldService;
 using Contract;
-using Contract.DTO.Connection;
+using Contract.DTO.Runtime.WorldDomain;
 using Domain.DomainException;
 using ResponseCode;
 
 namespace Application.Features.Game.Handlers
 {
-    public class EnterHubHandler : IHandler<EnterHubCommand, RoomSnapshotDTO>
+    public class EnterHubHandler : IHandler<EnterHubCommand, RoomSpatialDTO>
     {
         #region Attributes
         private readonly ISessionManager sessionManager;
@@ -31,7 +31,7 @@ namespace Application.Features.Game.Handlers
         }
 
         #region Methods
-        public async Task<RoomSnapshotDTO> Handle(
+        public async Task<RoomSpatialDTO> Handle(
             EnterHubCommand command)
         {
             // Validate hud ids

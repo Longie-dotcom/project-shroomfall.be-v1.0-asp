@@ -1,5 +1,7 @@
-﻿using Application.Services.WorldService;
+﻿using Application.Services.UsageService;
+using Application.Services.WorldService;
 using Application.Systems.Abstraction;
+using Contract.Enum.MetaDomain.Item;
 using Domain.Common;
 
 namespace Application.Systems.Queue
@@ -24,17 +26,14 @@ namespace Application.Systems.Queue
     public readonly struct ItemActionCommand : IEntityCommand
     {
         public string EntityInstanceID { get; }
-        public string ItemInstanceID { get; }
-        public Vector2 TargetPosition { get; }
+        public ItemUsageActionContext Context { get; }
 
         public ItemActionCommand(
-            string entityId,
-            string itemId,
-            Vector2 targetPosition)
+            string entityInstanceId,
+            ItemUsageActionContext context)
         {
-            EntityInstanceID = entityId;
-            ItemInstanceID = itemId;
-            TargetPosition = targetPosition;
+            EntityInstanceID= entityInstanceId;
+            Context = context;
         }
     }
 

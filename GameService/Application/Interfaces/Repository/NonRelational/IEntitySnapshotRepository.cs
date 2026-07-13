@@ -7,7 +7,7 @@ namespace Application.Interfaces.Repository.NonRelational
     {
         Task<IEnumerable<EntitySnapshot>> GetByRoomIdAsync(
             string roomSpatialId);
-        Task<IEnumerable<EntitySnapshot>> GetPlayerDocumentsByUserIdAsync(
+        Task<IEnumerable<EntitySnapshot>> GetPlayerSnapshotByUserIdAsync(
             string userId);
     }
 }

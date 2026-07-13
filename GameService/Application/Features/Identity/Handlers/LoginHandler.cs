@@ -3,7 +3,7 @@ using Application.Features.Identity.Commands;
 using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
 using Application.Services.IdentityService;
-using Contract.DTO.Identity;
+using Contract.DTO.Feature.Identity.Response;
 using Domain.DomainException;
 using ResponseCode;
 

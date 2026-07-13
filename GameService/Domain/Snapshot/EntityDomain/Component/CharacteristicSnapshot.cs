@@ -11,8 +11,5 @@ namespace Domain.Snapshot.EntityDomain.Component
 
         [BsonDictionaryOptions(DictionaryRepresentation.Document)]
         public Dictionary<AttributeType, float> Vitals { get; set; } = new();
-
-        [BsonDictionaryOptions(DictionaryRepresentation.Document)]
-        public Dictionary<AttributeType, float> Cores { get; set; } = new();
     }
 }

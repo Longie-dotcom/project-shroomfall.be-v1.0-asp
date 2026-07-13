@@ -1,7 +1,7 @@
-﻿using Contract.Enum.MetaDomain.Effect;
+﻿using Contract;
+using Contract.Enum.MetaDomain.Effect;
 using Domain.Abstraction;
 using Domain.DomainException;
-using Domain.Shared;
 using ResponseCode;
 
 namespace Domain.Runtime.EntityDomain.Component

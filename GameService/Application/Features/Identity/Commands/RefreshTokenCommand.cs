@@ -1,4 +1,4 @@
-﻿using Contract.DTO.Identity;
+﻿using Contract.DTO.Feature.Identity.Command;
 
 namespace Application.Features.Identity.Commands
 {

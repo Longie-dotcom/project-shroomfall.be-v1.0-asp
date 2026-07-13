@@ -5,19 +5,6 @@ namespace Domain.Shared
     public static class LocalizationFactory
     {
         /// <summary>
-        /// Generates localized keys for system Attributes (e.g., parameter.attack_damage.name)
-        /// </summary>
-        public static LocalizedText ForAttribute(
-            string attributeKeyName)
-        {
-            return new LocalizedText
-            {
-                NameKey = $"parameter.{attributeKeyName.ToLowerShared()}.name",
-                DescriptionKey = $"parameter.{attributeKeyName.ToLowerShared()}.description"
-            };
-        }
-
-        /// <summary>
         /// Generates localized keys for Items (e.g., item.iron_sword.name)
         /// </summary>
         public static LocalizedText ForItem(

@@ -1,4 +1,5 @@
-﻿using Application.Systems.Abstraction;
+﻿using Application.Services.UsageService;
+using Application.Systems.Abstraction;
 using Domain.Common;
 using Domain.Runtime.EntityDomain;
 
@@ -27,17 +28,14 @@ namespace Application.Systems.Queue
     public readonly struct ItemActionResult : IEntityResult
     {
         public string EntityInstanceID { get; }
-        public string ItemInstanceID { get; }
-        public Vector2 TargetPosition { get; }
+        public ItemUsageActionContext Context { get; }
 
         public ItemActionResult(
             string entityInstanceId,
-            string itemId,
-            Vector2 targetPosition)
+            ItemUsageActionContext context)
         {
             EntityInstanceID = entityInstanceId;
-            ItemInstanceID = itemId;
-            TargetPosition = targetPosition;
+            Context = context;
         }
     }
 

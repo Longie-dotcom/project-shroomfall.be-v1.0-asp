@@ -2,14 +2,14 @@
 using Application.Features.Game.Commands;
 using Application.Interfaces.Realtime.Managers;
 using Application.Services.WorldService;
-using Contract.DTO.Connection;
+using Contract.DTO.Runtime.WorldDomain;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain.Component;
 using ResponseCode;
 
 namespace Application.Features.Game.Handlers
 {
-    public class BackHomeHandler : IHandler<BackHomeCommand, RoomSnapshotDTO>
+    public class BackHomeHandler : IHandler<BackHomeCommand, RoomSpatialDTO>
     {
         #region Attributes
         private readonly ISessionManager sessionManager;
@@ -31,7 +31,7 @@ namespace Application.Features.Game.Handlers
         }
 
         #region Methods
-        public async Task<RoomSnapshotDTO> Handle(
+        public async Task<RoomSpatialDTO> Handle(
             BackHomeCommand command)
         {
             // Validate player session

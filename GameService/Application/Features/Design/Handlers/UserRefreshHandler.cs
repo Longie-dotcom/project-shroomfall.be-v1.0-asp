@@ -4,7 +4,7 @@ using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
 using Application.Services.DesignService;
 using Contract;
-using Contract.DTO.Design;
+using Contract.DTO.Feature.Design.Response;
 
 namespace Application.Features.Design.Handlers
 {

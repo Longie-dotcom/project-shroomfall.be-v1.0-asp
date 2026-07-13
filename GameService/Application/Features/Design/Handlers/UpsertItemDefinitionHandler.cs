@@ -3,8 +3,12 @@ using Application.Features.Design.Commands;
 using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
 using Application.Services.DesignService;
+using Contract.DTO.Feature.Design.Command;
+using Contract.Enum.MetaDomain.Item;
 using Domain.Definition.MetaDomain;
+using Domain.DomainException;
 using Domain.Shared;
+using ResponseCode;
 
 namespace Application.Features.Design.Handlers
 {
@@ -27,47 +31,67 @@ namespace Application.Features.Design.Handlers
         }
 
         #region Methods
-        public async Task Handle(UpsertItemDefinitionCommand command)
+        public async Task Handle(
+            UpsertItemDefinitionCommand command)
         {
             var dto = command.DTO;
+
+            // Validate upsert DTO
+            ValidateCategoryConfigurations(dto);
 
             var itemRepo = relationalUoW.GetRepository<IItemDefinitionRepository>();
             var existingItem = await itemRepo.GetByIdAsync(dto.ID);
 
-            // Build config structures using their properties as defined in the domain
-            SpawnEntityConfig? spawnConfig = null;
-            if (dto.SpawnEntityConfig != null)
+            // Build category-specific configuration structures
+            ConsumableConfig? consumableConfig = null;
+            if (dto.ConsumableConfig != null)
             {
-                spawnConfig = new SpawnEntityConfig
+                consumableConfig = new ConsumableConfig
                 {
-                    EntityDefinitionID = dto.SpawnEntityConfig.EntityDefinitionID,
-                    TargetType = dto.SpawnEntityConfig.TargetType,
-                    MaxRange = dto.SpawnEntityConfig.MaxRange
+                    EffectDefinitionIDs = dto.ConsumableConfig.EffectDefinitionIDs
                 };
             }
 
-            ApplyEffectConfig? applyEffectConfig = null;
-            if (dto.ApplyEffectConfig != null)
+            EquippableConfig? equippableConfig = null;
+            if (dto.EquippableConfig != null)
             {
-                applyEffectConfig = new ApplyEffectConfig
+                equippableConfig = new EquippableConfig
                 {
-                    EffectDefinitionIDs = dto.ApplyEffectConfig.EffectDefinitionIDs
+                    Slot = dto.EquippableConfig.Slot,
+                    EffectDefinitionIDs = dto.EquippableConfig.EffectDefinitionIDs
                 };
             }
 
-            EquipConfig? equipConfig = null;
-            if (dto.EquipConfig != null)
+            PlaceableConfig? placeableConfig = null;
+            if (dto.PlaceableConfig != null)
             {
-                equipConfig = new EquipConfig
+                placeableConfig = new PlaceableConfig
                 {
-                    Slot = dto.EquipConfig.Slot
+                    EntityDefinitionID = dto.PlaceableConfig.EntityDefinitionID
+                };
+            }
+
+            RangedConfig? rangedConfig = null;
+            if (dto.RangedConfig != null)
+            {
+                rangedConfig = new RangedConfig
+                {
+                    EntityDefinitionID = dto.RangedConfig.EntityDefinitionID
+                };
+            }
+
+            MeleeConfig? meleeConfig = null;
+            if (dto.MeleeConfig != null)
+            {
+                meleeConfig = new MeleeConfig
+                {
+                    EntityDefinitionID = dto.MeleeConfig.EntityDefinitionID
                 };
             }
 
             var costConfig = new CostConfig
             {
                 Method = dto.CostConfig.Method,
-                Value = dto.CostConfig.Value
             };
 
             if (existingItem == null)
@@ -84,9 +108,11 @@ namespace Application.Features.Design.Handlers
                     dto.MaxDurability,
                     dto.TriggeredAction,
                     presentation,
-                    spawnConfig,
-                    applyEffectConfig,
-                    equipConfig,
+                    consumableConfig,
+                    equippableConfig,
+                    placeableConfig,
+                    rangedConfig,
+                    meleeConfig,
                     costConfig
                 );
 
@@ -102,9 +128,11 @@ namespace Application.Features.Design.Handlers
                     dto.MaxStack,
                     dto.MaxDurability,
                     dto.TriggeredAction,
-                    spawnConfig,
-                    applyEffectConfig,
-                    equipConfig,
+                    consumableConfig,
+                    equippableConfig,
+                    placeableConfig,
+                    rangedConfig,
+                    meleeConfig,
                     costConfig
                 );
 
@@ -113,6 +141,39 @@ namespace Application.Features.Design.Handlers
 
             // Flush changes down to your database engine context securely
             await relationalUoW.SaveChangesAsync();
+        }
+
+        private void ValidateCategoryConfigurations(
+            UpsertItemDefinitionDTO dto)
+        {
+            var category = dto.Category;
+            AssertConfigRule(nameof(dto.ConsumableConfig), category == ItemCategory.Consumable, dto.ConsumableConfig != null);
+            AssertConfigRule(nameof(dto.EquippableConfig), category == ItemCategory.Equippable, dto.EquippableConfig != null);
+            AssertConfigRule(nameof(dto.PlaceableConfig), category == ItemCategory.Placeable, dto.PlaceableConfig != null);
+            AssertConfigRule(nameof(dto.RangedConfig), category == ItemCategory.Ranged, dto.RangedConfig != null);
+            AssertConfigRule(nameof(dto.MeleeConfig), category == ItemCategory.Melee, dto.MeleeConfig != null);
+        }
+
+        private void AssertConfigRule(
+            string configName, 
+            bool isTargetCategory,
+            bool hasConfig)
+        {
+            // Triggered if: 
+            // 1. It IS the target category but lacks the config (Missing)
+            // 2. It IS NOT the target category but has the config (Conflict)
+            if ((isTargetCategory && !hasConfig) || (!isTargetCategory && hasConfig))
+            {
+                var code = isTargetCategory
+                    ? ApplicationCode.DesignHandlerCode.ItemCategoryConfigMissing
+                    : ApplicationCode.DesignHandlerCode.ItemCategoryConfigConflict;
+
+                var message = isTargetCategory
+                    ? $"{configName} configuration is required for this item category."
+                    : $"{configName} configuration conflicts with this item category.";
+
+                throw new BadRequest(code, message);
+            }
         }
         #endregion
     }

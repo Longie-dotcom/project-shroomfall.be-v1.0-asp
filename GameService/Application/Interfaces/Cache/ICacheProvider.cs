@@ -14,10 +14,8 @@ namespace Application.Interfaces.Cache
         IAppearanceCache Appearance { get; }
         ICollisionCache Collision { get; }
         ICharacteristicCache Characteristic { get; }
-        IInteractableCache Interactable { get; }
         IInventoryCache Inventory { get; }
         ILifetimeCache Lifetime { get; }
-        IPortalCache Portal { get; }
         IProjectileCache Projectile { get; }
         ITriggeredEffectCache TriggeredEffect { get; }
         IEntityCache Entity { get; }

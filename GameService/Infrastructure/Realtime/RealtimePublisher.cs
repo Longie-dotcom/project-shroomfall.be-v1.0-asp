@@ -1,11 +1,12 @@
 ﻿using Application.Interfaces.Realtime;
 using Application.Interfaces.Utility;
 using Contract;
-using Contract.DTO.Admin;
-using Contract.DTO.Connection;
-using Contract.DTO.Design;
-using Contract.DTO.Domain.Runtime;
-using Contract.DTO.Game;
+using Contract.DTO.Feature.Admin.Response;
+using Contract.DTO.Feature.Design.Response;
+using Contract.DTO.Feature.Game.Response;
+using Contract.DTO.Runtime.EntityDomain;
+using Contract.DTO.Runtime.EntityDomain.Component;
+using Contract.DTO.Runtime.WorldDomain;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Infrastructure.Realtime
@@ -100,7 +101,7 @@ namespace Infrastructure.Realtime
         // ─────────────────────────────
         public Task SendRoomSnapshotUpdated(
             string roomId,
-            RoomSnapshotDTO payload)
+            RoomSpatialDTO payload)
         {
             return hub.Clients
                 .Group(roomId)
@@ -143,7 +144,7 @@ namespace Infrastructure.Realtime
         }
 
         public Task SendUserConnectionChanged(
-                    UserConnectionChangedDTO payload)
+            UserConnectionChangedDTO payload)
         {
             return hub.Clients
                 .Group(Constraint.ADMIN_REALTIME_GROUP)

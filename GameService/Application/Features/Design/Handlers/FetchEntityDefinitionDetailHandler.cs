@@ -4,7 +4,8 @@ using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
 using Application.Services.DesignService;
 using AutoMapper;
-using Contract.DTO.Domain.Definition;
+using Contract.DTO.Abstraction;
+using Contract.DTO.Definition.EntityDomain.Component;
 using Domain.DomainException;
 using ResponseCode;
 

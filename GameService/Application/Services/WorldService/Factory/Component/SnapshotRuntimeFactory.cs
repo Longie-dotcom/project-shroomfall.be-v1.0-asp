@@ -3,19 +3,20 @@ using Domain.Abstraction;
 using Domain.Common;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain.Component;
+using Domain.Runtime.MetaDomain;
 using Domain.Shared;
 using Domain.Snapshot.EntityDomain.Component;
 using ResponseCode;
 
 namespace Application.Services.WorldService.Factory.Component
 {
-    public class SnapshotComponentFactory
+    public class SnapshotRuntimeFactory
     {
         #region Attributes
         private readonly ICacheProvider cacheProvider;
         #endregion
 
-        public SnapshotComponentFactory(
+        public SnapshotRuntimeFactory(
             ICacheProvider cacheProvider)
         {
             this.cacheProvider = cacheProvider;
@@ -39,8 +40,6 @@ namespace Application.Services.WorldService.Factory.Component
                     CreateCharacteristic(characteristic),
                 EffectContainerSnapshot effectContainer => 
                     CreateEffectContainer(effectContainer),
-                EquipmentSnapshot equipment => 
-                    CreateEquipment(equipment),
                 InventorySnapshot inventory => 
                     CreateInventory(inventory),
                 LifetimeSnapshot lifetime => 
@@ -131,74 +130,46 @@ namespace Application.Services.WorldService.Factory.Component
         {
             var container = new EffectContainerInstance();
 
-            foreach (var effectSnap in snapshot.ActiveEffects)
-            {
-                var effectDef = cacheProvider.Effect.Get(effectSnap.DefinitionID);
-
-                if (effectDef == null) continue;
-
-                var effectInstance = new EffectInstance(
-                    effectSnap.DefinitionID,
-                    effectSnap.RemainingTime,
-                    effectDef.Interval,
-                    effectSnap.IntervalAccumulator);
-
-                container.ActiveEffects.Add(effectInstance);
-            }
-
             return container;
         }
-
-        private EquipmentInstance CreateEquipment(
-            EquipmentSnapshot snapshot)
-        {
-            var equipment = new EquipmentInstance();
-
-            foreach (var slot in snapshot.Slots)
-            {
-                if (slot.Value == null)
-                {
-                    equipment.LoadSlot(slot.Key, null);
-                    continue;
-                }
-
-                var itemInstance = new ItemInstance(
-                    slot.Value.ID,
-                    slot.Value.DefinitionID,
-                    slot.Value.Amount,
-                    slot.Value.Quality,
-                    slot.Value.Durability
-                );
-
-                equipment.LoadSlot(slot.Key, itemInstance);
-            }
-
-            return equipment;
-        }
-
+        
         private InventoryInstance CreateInventory(
             InventorySnapshot snapshot)
         {
-            var itemInstances = snapshot.Items
-                .Select(i => new ItemInstance(
-                    i.ID,
-                    i.DefinitionID,
-                    i.Amount, 
-                    i.Quality,
-                    i.Durability))
-                .ToList();
+            var validItemInstances = new List<ItemInstance>();
+
+            foreach (var i in snapshot.Items)
+            {
+                var itemDef = cacheProvider.Item.Get(i.DefinitionID);
+                if (itemDef != null)
+                {
+                    validItemInstances.Add(new ItemInstance(
+                        i.ID,
+                        i.DefinitionID,
+                        i.Amount,
+                        i.Quality,
+                        i.Durability,
+                        i.EquippedSlot));
+                }
+            }
 
             return new InventoryInstance(
                 snapshot.DefinitionID,
-                itemInstances);
+                validItemInstances);
         }
 
         private LifetimeInstance CreateLifetime(
             LifetimeSnapshot snapshot)
         {
+            var def = cacheProvider.Lifetime.Get(snapshot.DefinitionID);
+            if (def == null)
+                throw new InternalException(
+                    ApplicationCode.SnapshotComponentFactoryCode.LifetimeDefinitionNotFound,
+                    $"Lifetime definition not found: {snapshot.DefinitionID}");
+
             return new LifetimeInstance(
                 snapshot.DefinitionID,
-                snapshot.Duration,
+                def.Duration,
                 snapshot.ElapsedLifetime);
         }
 
@@ -235,14 +206,36 @@ namespace Application.Services.WorldService.Factory.Component
         private TriggeredEffectInstance CreateTriggeredEffect(
             TriggeredEffectSnapshot snapshot)
         {
+            var def = cacheProvider.TriggeredEffect.Get(snapshot.DefinitionID);
+            if (def == null)
+                throw new InternalException(
+                    ApplicationCode.SnapshotComponentFactoryCode.TriggeredEffectDefinitionNotFound,
+                    $"Triggered Effect definition not found: {snapshot.DefinitionID}");
+
+            var validEffects = new List<string>();
+
+            foreach (var effectId in def.EffectDefinitionIDs)
+            {
+                if (cacheProvider.Effect.Get(effectId) != null)
+                {
+                    validEffects.Add(effectId);
+                }
+            }
+
             return new TriggeredEffectInstance(
                 snapshot.DefinitionID,
-                snapshot.EffectDefinitionIDs);
+                validEffects);
         }
 
         private WorldItemPayloadInstance CreateWorldItemPayload(
             WorldItemPayloadSnapshot snapshot)
         {
+            var itemDef = cacheProvider.Item.Get(snapshot.Payload.DefinitionID);
+            if (itemDef == null)
+                throw new InternalException(
+                    ApplicationCode.SnapshotComponentFactoryCode.ItemDefinitionNotFound,
+                    $"Item definition not found for world item payload: {snapshot.Payload.DefinitionID}");
+
             var itemPayload = new ItemInstance(
                 snapshot.Payload.ID,
                 snapshot.Payload.DefinitionID,

@@ -1,6 +1,7 @@
 ﻿using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
-using Contract.DTO.Domain.Definition;
+using Contract.DTO.Abstraction;
+using Contract.DTO.Definition.EntityDomain.Component;
 using Contract.Enum.EntityDomain;
 using Domain.Common;
 using Domain.Definition.EntityDomain.Component;
@@ -10,7 +11,7 @@ using ResponseCode;
 
 namespace Application.Services.DesignService
 {
-    public class DesignerComponentFactory
+    public class DefinitionComponentFactory
     {
         #region Attributes
         private readonly IRelationalUoW relationalUoW;
@@ -19,7 +20,7 @@ namespace Application.Services.DesignService
         #region Properties
         #endregion
 
-        public DesignerComponentFactory(
+        public DefinitionComponentFactory(
             IRelationalUoW relationalUoW)
         {
             this.relationalUoW = relationalUoW;
@@ -46,17 +47,11 @@ namespace Application.Services.DesignService
                 case nameof(CharacteristicDefinitionDTO):
                     await UpsertCharacteristicAsync((CharacteristicDefinitionDTO)dto, entityDefinitionId);
                     break;
-                case nameof(InteractableDefinitionDTO):
-                    await UpsertInteractableAsync((InteractableDefinitionDTO)dto, entityDefinitionId);
-                    break;
                 case nameof(InventoryDefinitionDTO):
                     await UpsertInventoryAsync((InventoryDefinitionDTO)dto, entityDefinitionId);
                     break;
                 case nameof(LifetimeDefinitionDTO):
                     await UpsertLifeTimeAsync((LifetimeDefinitionDTO)dto, entityDefinitionId);
-                    break;
-                case nameof(PortalDefinitionDTO):
-                    await UpsertPortalAsync((PortalDefinitionDTO)dto, entityDefinitionId);
                     break;
                 case nameof(ProjectileDefinitionDTO):
                     await UpsertProjectileAsync((ProjectileDefinitionDTO)dto, entityDefinitionId);
@@ -72,7 +67,8 @@ namespace Application.Services.DesignService
         }
 
         private async Task UpsertAIAsync(
-            AIDefinitionDTO dto, string entityDefinitionId)
+            AIDefinitionDTO dto, 
+            string entityDefinitionId)
         {
             var component = new AIDefinition(
                 Guid.NewGuid(),
@@ -87,7 +83,8 @@ namespace Application.Services.DesignService
         }
 
         private async Task UpsertAppearanceAsync(
-            AppearanceDefinitionDTO dto, string entityDefinitionId)
+            AppearanceDefinitionDTO dto,
+            string entityDefinitionId)
         {
             var component = new AppearanceDefinition(
                 Guid.NewGuid(),
@@ -168,7 +165,8 @@ namespace Application.Services.DesignService
         }
 
         private async Task UpsertCharacteristicAsync(
-            CharacteristicDefinitionDTO dto, string entityDefinitionId)
+            CharacteristicDefinitionDTO dto,
+            string entityDefinitionId)
         {
             var repo = relationalUoW.GetRepository<ICharacteristicDefinitionRepository>();
             var existing = await repo.GetByEntityIdAsync(entityDefinitionId);
@@ -220,20 +218,9 @@ namespace Application.Services.DesignService
             await repo.SaveAttributeGrowthValuesAsync(allGrowthValues);
         }
 
-        private async Task UpsertInteractableAsync(
-            InteractableDefinitionDTO dto, string entityDefinitionId)
-        {
-            var component = new InteractableDefinition(
-                Guid.NewGuid(),
-                entityDefinitionId,
-                dto.Type
-            );
-
-            await relationalUoW.GetRepository<IInteractableDefinitionRepository>().UpsertAsync(component);
-        }
-
         private async Task UpsertInventoryAsync(
-            InventoryDefinitionDTO dto, string entityDefinitionId)
+            InventoryDefinitionDTO dto,
+            string entityDefinitionId)
         {
             var repo = relationalUoW.GetRepository<IInventoryDefinitionRepository>();
             var existing = await repo.GetByEntityIdAsync(entityDefinitionId);
@@ -250,10 +237,8 @@ namespace Application.Services.DesignService
 
             foreach (var entryDto in dto.DefaultItems)
             {
-                var entryId = Guid.NewGuid();
-
                 var entry = new InventoryEntry(
-                    entryId,
+                    Guid.NewGuid(),
                     entryDto.DefinitionID,
                     entryDto.Amount,
                     entryDto.Quality,
@@ -268,32 +253,21 @@ namespace Application.Services.DesignService
         }
 
         private async Task UpsertLifeTimeAsync(
-            LifetimeDefinitionDTO dto, string entityDefinitionId)
+            LifetimeDefinitionDTO dto,
+            string entityDefinitionId)
         {
             var component = new LifetimeDefinition(
                 Guid.NewGuid(),
                 entityDefinitionId,
-                dto.Lifetime
+                dto.Duration
             );
 
             await relationalUoW.GetRepository<ILifetimeDefinitionRepository>().UpsertAsync(component);
         }
 
-        private async Task UpsertPortalAsync(
-            PortalDefinitionDTO dto, string entityDefinitionId)
-        {
-            var component = new PortalDefinition(
-                Guid.NewGuid(),
-                entityDefinitionId,
-                dto.LocalTriggerOffsetX,
-                dto.LocalTriggerOffsetY
-            );
-
-            await relationalUoW.GetRepository<IPortalDefinitionRepository>().UpsertAsync(component);
-        }
-
         private async Task UpsertProjectileAsync(
-            ProjectileDefinitionDTO dto, string entityDefinitionId)
+            ProjectileDefinitionDTO dto,
+            string entityDefinitionId)
         {
             var component = new ProjectileDefinition(
                 Guid.NewGuid(),
@@ -305,7 +279,8 @@ namespace Application.Services.DesignService
         }
 
         private async Task UpsertTriggeredEffectAsync(
-            TriggeredEffectDefinitionDTO dto, string entityDefinitionId)
+            TriggeredEffectDefinitionDTO dto,
+            string entityDefinitionId)
         {
             var component = new TriggeredEffectDefinition(
                 Guid.NewGuid(),

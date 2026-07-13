@@ -1,5 +1,4 @@
-﻿using Application.Features.Abstraction;
-using Contract.DTO.Game;
+﻿using Contract.DTO.Feature.Game.Command;
 
 namespace Application.Features.Game.Commands
 {

@@ -1,6 +1,6 @@
 ﻿using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
-using Contract.DTO.Domain.Definition;
+using Contract.DTO.Abstraction;
 using Domain.Abstraction;
 using System.Reflection;
 

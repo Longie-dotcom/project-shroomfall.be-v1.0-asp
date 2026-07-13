@@ -1,6 +1,6 @@
 ﻿using Application.Services.AttributeService;
 using Application.Services.EntityService;
-using Application.Services.ItemService;
+using Application.Services.UsageService;
 using Application.Services.WorldService;
 using Application.Systems.Queue;
 

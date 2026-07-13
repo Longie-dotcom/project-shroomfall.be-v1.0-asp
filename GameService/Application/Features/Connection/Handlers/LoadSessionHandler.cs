@@ -1,11 +1,11 @@
 ﻿using Application.Features.Abstraction;
 using Application.Features.Connection.Commands;
 using Application.Interfaces.Realtime.Managers;
-using Application.Persistence;
 using Application.Services.WorldService;
 using AutoMapper;
-using Contract.DTO.Connection;
-using Contract.DTO.Domain.Runtime;
+using Contract.DTO.Feature.Connection.Response;
+using Contract.DTO.Runtime.EntityDomain;
+using Contract.DTO.Runtime.WorldDomain;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
@@ -17,9 +17,9 @@ namespace Application.Features.Connection.Handlers
     {
         #region Attributes
         private readonly IMapper mapper;
-        private readonly EntityPersistence entityPersistence;
         private readonly ISessionManager sessionManager;
         private readonly RoomMigrationService roomMigrationService;
+        private readonly ResidencyService residencyService;
         #endregion
 
         #region Properties
@@ -27,14 +27,14 @@ namespace Application.Features.Connection.Handlers
 
         public LoadSessionHandler(
             IMapper mapper,
-            EntityPersistence entityPersistence,
             ISessionManager sessionManager,
-            RoomMigrationService roomMigrationService)
+            RoomMigrationService roomMigrationService,
+            ResidencyService residencyService)
         {
             this.mapper = mapper;
-            this.entityPersistence = entityPersistence;
             this.sessionManager = sessionManager;
             this.roomMigrationService = roomMigrationService;
+            this.residencyService = residencyService;
         }
 
         #region Methods
@@ -43,54 +43,41 @@ namespace Application.Features.Connection.Handlers
         {
             var dto = command.DTO;
 
-            // Prevent duplicate session
+            // Validate session duplication
             if (sessionManager.Get(command.UserID) != null)
                 throw new BadRequest(
                     ApplicationCode.ConnectionHandlerCode.LoadSessionAlreadyExisted,
-                    $"Session of user with user ID: {command.UserID} already existed with player instance ID: {dto.PlayerInstanceID}");
+                    $"Session of user with user ID: {command.UserID} already existed.");
 
-            // Reload player instance from cold persistence storage
-            var player = await entityPersistence.LoadEntityAsync(dto.PlayerInstanceID);
-            if (player == null)
-                throw new InternalException(
-                    ApplicationCode.ConnectionHandlerCode.LoadSessionPlayerNotFoundInPersistence,
-                    $"Player instance on load with instance ID: {dto.PlayerInstanceID} is not found");
+            // Ensure Player is in RAM
+            var player = await residencyService.EnsurePlayerLoaded(dto.PlayerInstanceID);
 
-            // Validate ownership existence
+            // Validate ownership
             var ownership = player.GetComponent<OwnershipInstance>();
-            if (ownership == null)
-                throw new InternalException(
-                    ApplicationCode.ConnectionHandlerCode.LoadSessionOwnershipMissing,
-                    $"Player instance {player.ID} is missing OwnershipInstance component during session load");
-
-            // Authorize session
-            if (command.UserID != ownership.UserID)
+            if (command.UserID != ownership!.UserID)
                 throw new Unauthorized(
                     ApplicationCode.ConnectionHandlerCode.LoadSessionUnauthorizedPlayer,
                     $"Player session is unauthorized");
 
-            // Migrate player safely using calculated blueprint rules
+            // Migrate player to their Personal Room (Handles spawn points, network groups, etc.)
             var snapshot = await roomMigrationService.EnterRoomAsync(
                 player: player,
-                destinationRoomId: ownership.PersonalRoomID,
-                isInitialLogin: true);
+                destinationRoomId: ownership.PersonalRoomID);
 
+            // Add session
             sessionManager.Add(command.UserID, player.ID);
 
-            // Rebuild save game snapshot
-            var saveGame = BuildSaveGame(player, snapshot);
-
-            return saveGame;
+            return BuildSaveGame(player, snapshot);
         }
 
         private SaveGameDTO BuildSaveGame(
             EntityInstance player,
-            RoomSnapshotDTO snapshot)
+            RoomSpatialDTO snapshot)
         {
             var saveGame = new SaveGameDTO()
             {
                 PlayerData = mapper.Map<EntityInstanceDTO>(player),
-                RoomData = snapshot.RoomData
+                RoomData = snapshot
             };
 
             return saveGame;

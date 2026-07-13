@@ -15,11 +15,11 @@ namespace Domain.Runtime.EntityDomain.Component
         public string RoomSpatialID { get; private set; }
         public int LayerZ { get; private set; }
         public Vector2 Position { get; private set; }
-        public bool WantsToMove { get; private set; }
-        public Vector2 MovementVector { get; private set; }
         public EntityDirection FacingDirection { get; private set; }
         public EntityAction CurrentAction { get; private set; }
 
+        public bool WantsToMove { get; private set; }
+        public Vector2 MovementVector { get; private set; }
         public bool PositionChangedThisFrame { get; private set; }
         public bool IsActionLocked { get; private set; }
         #endregion
@@ -32,10 +32,11 @@ namespace Domain.Runtime.EntityDomain.Component
             RoomSpatialID = roomSpatialId;
             LayerZ = layerZ;
             Position = position;
-            WantsToMove = false;
-            MovementVector = Vector2.Zero;
             FacingDirection = EntityDirection.DOWN;
             CurrentAction = EntityAction.IDLE;
+
+            WantsToMove = false;
+            MovementVector = Vector2.Zero;
         }
 
         #region Methods

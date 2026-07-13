@@ -28,7 +28,7 @@ namespace Domain.Definition.EntityDomain.Component
         #endregion
     }
 
-    public class InventoryEntry : IItemStateContract
+    public class InventoryEntry
     {
         #region Attributes
         #endregion
@@ -38,7 +38,6 @@ namespace Domain.Definition.EntityDomain.Component
         public string DefinitionID { get; private set; } = string.Empty;
         public int Amount { get; private set; }
         public ItemQuality Quality { get; private set; }
-        public int? Durability => null;
         
         public Guid InventoryDefinitionID { get; private set; }
         public InventoryDefinition InventoryDefinition { get; private set; }

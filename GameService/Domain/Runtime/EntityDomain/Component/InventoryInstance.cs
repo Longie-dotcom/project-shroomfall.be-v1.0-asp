@@ -1,6 +1,7 @@
 ﻿using Contract.Enum.MetaDomain.Item;
 using Domain.Abstraction;
 using Domain.DomainException;
+using Domain.Runtime.MetaDomain;
 using ResponseCode;
 
 namespace Domain.Runtime.EntityDomain.Component
@@ -8,6 +9,7 @@ namespace Domain.Runtime.EntityDomain.Component
     public class InventoryInstance : ComponentInstance
     {
         #region Attributes
+        private readonly Dictionary<EquipmentSlot, ItemInstance> equippedCache = new();
         #endregion
 
         #region Properties
@@ -19,6 +21,11 @@ namespace Domain.Runtime.EntityDomain.Component
             List<ItemInstance> items) : base(definitionId)
         {
             Items = items;
+
+            foreach (var item in items.Where(i => i.IsEquipped()))
+            {
+                equippedCache[item.EquippedSlot!.Value] = item;
+            }
         }
 
         #region Methods
@@ -27,71 +34,45 @@ namespace Domain.Runtime.EntityDomain.Component
         {
             Items.AddRange(items);
         }
-        #endregion
-    }
 
-    public class ItemInstance : IItemStateContract
-    {
-        #region Attributes
-        #endregion
-
-        #region Properties
-        public string ID { get; } = string.Empty;
-        public string DefinitionID { get; }
-        public int Amount { get; private set; }
-        public ItemQuality Quality { get; private set; }
-        public int? Durability { get; private set; }
-        #endregion
-
-        public ItemInstance(
-            string id,
-            string definitionId,
-            int amount,
-            ItemQuality quality,
-            int? durability = null)
+        public ItemInstance? GetEquipped(
+            EquipmentSlot slot)
         {
-            ID = id;
-            DefinitionID = definitionId;
-            Amount = amount;
-            Quality = quality;
-            Durability = durability;
+            return equippedCache.TryGetValue(slot, out var item) ? item : null;
         }
 
-        #region Methods
-        public void AddAmount(
-            int amountToAdd)
+        public IReadOnlyDictionary<EquipmentSlot, ItemInstance> GetAllEquipped()
         {
-            if (amountToAdd <= 0)
-                throw new BadRequest(
-                    DomainCode.InventoryInstanceCode.AddAmountInvalid,
-                    $"Item mutation failed for instance '{ID}' (Def: '{DefinitionID}'). Amount to add must be greater than zero. Received: {amountToAdd}");
-
-            Amount += amountToAdd;
+            return equippedCache;
         }
 
-        public void RemoveAmount(
-            int amountToRemove)
+        public void Equip(
+            ItemInstance item, 
+            EquipmentSlot slot)
         {
-            if (amountToRemove <= 0)
-                throw new BadRequest(
-                    DomainCode.InventoryInstanceCode.RemoveAmountInvalid,
-                    $"Item mutation failed for instance '{ID}' (Def: '{DefinitionID}'). Amount to remove must be greater than zero. Received: {amountToRemove}");
+            if (!Items.Contains(item))
+                throw new InternalException(
+                    DomainCode.InventoryInstanceCode.EquippedItemNotExistInInventory,
+                    $"Item equipped process failed, inventory instance of entity id: {Entity.ID} has no such item [{item.ID}][{item.DefinitionID}]");
 
-            if (Amount < amountToRemove)
-                throw new BadRequest(
-                    DomainCode.InventoryInstanceCode.InsufficientItemAmount,
-                    $"Item mutation failed for instance '{ID}' (Def: '{DefinitionID}'). Cannot remove {amountToRemove} units. Only {Amount} available.");
+            // If a different item is already in this slot, it must be forcefully un-tagged first
+            if (equippedCache.TryGetValue(slot, out var existingItem))
+            {
+                existingItem.SetEquippedState(null);
+            }
 
-            Amount -= amountToRemove;
+            // Tag the new item and update the cache
+            item.SetEquippedState(slot);
+            equippedCache[slot] = item;
         }
 
-        public bool DegradeDurability(
-            int amountToDegrade)
+        public void Unequip(
+            EquipmentSlot slot)
         {
-            if (!Durability.HasValue) return false;
-
-            Durability = Math.Max(0, Durability.Value - amountToDegrade);
-            return Durability.Value <= 0;
+            if (equippedCache.Remove(slot, out var item))
+            {
+                item.SetEquippedState(null);
+            }
         }
         #endregion
     }

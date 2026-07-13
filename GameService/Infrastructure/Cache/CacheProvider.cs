@@ -23,10 +23,8 @@ namespace Infrastructure.Cache
         private readonly IAppearanceCache appearanceCache;
         private readonly ICollisionCache collisionCache;
         private readonly ICharacteristicCache characteristicCache;
-        private readonly IInteractableCache interactableCache;
         private readonly IInventoryCache inventoryCache;
         private readonly ILifetimeCache lifetimeCache;
-        private readonly IPortalCache portalCache;
         private readonly IProjectileCache projectileCache;
         private readonly ITriggeredEffectCache triggeredEffectCache;
         private readonly IEntityCache entityCache;
@@ -42,10 +40,8 @@ namespace Infrastructure.Cache
         public IAppearanceCache Appearance => appearanceCache;
         public ICollisionCache Collision => collisionCache;
         public ICharacteristicCache Characteristic => characteristicCache;
-        public IInteractableCache Interactable => interactableCache;
         public IInventoryCache Inventory => inventoryCache;
         public ILifetimeCache Lifetime => lifetimeCache;
-        public IPortalCache Portal => portalCache;
         public IProjectileCache Projectile => projectileCache;
         public ITriggeredEffectCache TriggeredEffect => triggeredEffectCache;
         public IEntityCache Entity => entityCache;
@@ -64,10 +60,8 @@ namespace Infrastructure.Cache
             IAppearanceCache appearanceCache,
             ICollisionCache collisionCache,
             ICharacteristicCache characteristicCache,
-            IInteractableCache interactableCache,
             IInventoryCache inventoryCache,
             ILifetimeCache lifetimeCache,
-            IPortalCache portalCache,
             IProjectileCache projectileCache,
             ITriggeredEffectCache triggeredEffectCache,
             IEntityCache entityCache,
@@ -84,10 +78,8 @@ namespace Infrastructure.Cache
             this.appearanceCache = appearanceCache;
             this.collisionCache = collisionCache;
             this.characteristicCache = characteristicCache;
-            this.interactableCache = interactableCache;
             this.inventoryCache = inventoryCache;
             this.lifetimeCache = lifetimeCache;
-            this.portalCache = portalCache;
             this.projectileCache = projectileCache;
             this.triggeredEffectCache = triggeredEffectCache;
             this.entityCache = entityCache;
@@ -112,10 +104,8 @@ namespace Infrastructure.Cache
                     var appearanceRepository = relationalUoW.GetRepository<IAppearanceDefinitionRepository>();
                     var collisionRepository = relationalUoW.GetRepository<ICollisionDefinitionRepository>();
                     var characteristicRepository = relationalUoW.GetRepository<ICharacteristicDefinitionRepository>();
-                    var interactableRepository = relationalUoW.GetRepository<IInteractableDefinitionRepository>();
                     var inventoryRepository = relationalUoW.GetRepository<IInventoryDefinitionRepository>();
                     var lifetimeRepository = relationalUoW.GetRepository<ILifetimeDefinitionRepository>();
-                    var portalRepository = relationalUoW.GetRepository<IPortalDefinitionRepository>();
                     var projectileRepository = relationalUoW.GetRepository<IProjectileDefinitionRepository>();
                     var triggeredEffectRepository = relationalUoW.GetRepository<ITriggeredEffectDefinitionRepository>();
                     var entityRepository = relationalUoW.GetRepository<IEntityDefinitionRepository>();
@@ -130,10 +120,8 @@ namespace Infrastructure.Cache
                     appearanceCache.Load((await appearanceRepository.GetAllAsync()).ToList());
                     collisionCache.Load((await collisionRepository.GetAllAsync()).ToList());
                     characteristicCache.Load((await characteristicRepository.GetAllAsync()).ToList());
-                    interactableCache.Load((await interactableRepository.GetAllAsync()).ToList());
                     inventoryCache.Load((await inventoryRepository.GetAllAsync()).ToList());
                     lifetimeCache.Load((await lifetimeRepository.GetAllAsync()).ToList());
-                    portalCache.Load((await portalRepository.GetAllAsync()).ToList());
                     projectileCache.Load((await projectileRepository.GetAllAsync()).ToList());
                     triggeredEffectCache.Load((await triggeredEffectRepository.GetAllAsync()).ToList());
                     entityCache.Load((await entityRepository.GetAllAsync()).ToList());

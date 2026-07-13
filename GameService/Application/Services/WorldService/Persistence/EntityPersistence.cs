@@ -5,7 +5,7 @@ using AutoMapper;
 using Domain.Runtime.EntityDomain;
 using Domain.Snapshot.EntityDomain;
 
-namespace Application.Persistence
+namespace Application.Services.WorldService.Persistence
 {
     public class EntityPersistence
     {
@@ -37,8 +37,8 @@ namespace Application.Persistence
 
             // Fetch the raw data bag (Snapshot) from Mongo
             var snapshot = await entitySnapshotRepo.GetByIdAsync(entityId);
-
-            if (snapshot == null) return null;
+            if (snapshot == null) 
+                return null;
 
             // Convert Snapshot -> Domain Object
             var entity = entityInstanceFactory.Rehydrate(snapshot);
@@ -49,24 +49,16 @@ namespace Application.Persistence
         public async Task<List<EntityInstance>> LoadByRoomAsync(
             string roomSpatialId)
         {
-            // Resolve repository
             var entitySnapshotRepo = nonRelationalUoW.GetRepository<IEntitySnapshotRepository>();
-
             var snapshots = await entitySnapshotRepo.GetByRoomIdAsync(roomSpatialId);
-
             return snapshots.Select(x => entityInstanceFactory.Rehydrate(x)).ToList();
         }
 
         public async Task SaveManyAsync(
             IEnumerable<EntityInstance> entities)
         {
-            // Resolve repository
             var entitySnapshotRepo = nonRelationalUoW.GetRepository<IEntitySnapshotRepository>();
-
-            // Project the collection of Domain Entities to the collection of Snapshots
             var snapshots = entities.Select(e => mapper.Map<EntitySnapshot>(e));
-
-            // Save all snapshots in one bulk operation
             await entitySnapshotRepo.UpdateManyAsync(snapshots);
         }
         #endregion

@@ -1,4 +1,5 @@
 ﻿using Domain.Abstraction;
+using Domain.Runtime.MetaDomain;
 
 namespace Domain.Runtime.EntityDomain.Component
 {
