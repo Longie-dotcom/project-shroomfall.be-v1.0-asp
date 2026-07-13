@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(RelationalDB))]
-    [Migration("20260713091334_initial")]
+    [Migration("20260713092922_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -631,9 +631,6 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("RoomDefinitionID1")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -643,8 +640,6 @@ namespace Infrastructure.Migrations
                     b.HasIndex("EntityDefinitionID");
 
                     b.HasIndex("RoomDefinitionID");
-
-                    b.HasIndex("RoomDefinitionID1");
 
                     b.ToTable("EntitySpawnRules", (string)null);
                 });
@@ -1041,14 +1036,10 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("Domain.Definition.WorldDomain.RoomDefinition", "RoomDefinition")
-                        .WithMany()
+                        .WithMany("EntitySpawnRules")
                         .HasForeignKey("RoomDefinitionID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("Domain.Definition.WorldDomain.RoomDefinition", null)
-                        .WithMany("EntitySpawnRules")
-                        .HasForeignKey("RoomDefinitionID1");
 
                     b.Navigation("EntityDefinition");
 

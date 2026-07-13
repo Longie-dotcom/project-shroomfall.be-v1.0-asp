@@ -387,8 +387,7 @@ namespace Infrastructure.Migrations
                     MinCount = table.Column<int>(type: "int", nullable: false),
                     MaxCount = table.Column<int>(type: "int", nullable: false),
                     RoomDefinitionID = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    EntityDefinitionID = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    RoomDefinitionID1 = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    EntityDefinitionID = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -405,11 +404,6 @@ namespace Infrastructure.Migrations
                         principalTable: "RoomDefinitions",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_EntitySpawnRules_RoomDefinitions_RoomDefinitionID1",
-                        column: x => x.RoomDefinitionID1,
-                        principalTable: "RoomDefinitions",
-                        principalColumn: "ID");
                 });
 
             migrationBuilder.CreateTable(
@@ -548,11 +542,6 @@ namespace Infrastructure.Migrations
                 name: "IX_EntitySpawnRules_RoomDefinitionID",
                 table: "EntitySpawnRules",
                 column: "RoomDefinitionID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_EntitySpawnRules_RoomDefinitionID1",
-                table: "EntitySpawnRules",
-                column: "RoomDefinitionID1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_InventoryDefinitions_EntityDefinitionID",

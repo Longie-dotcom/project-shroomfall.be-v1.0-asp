@@ -974,7 +974,7 @@ namespace Infrastructure.Persistence
                 // Relationships
                 // ─────────────────────────────
                 entity.HasOne(x => x.RoomDefinition)
-                    .WithMany()
+                    .WithMany(r => r.EntitySpawnRules)
                     .HasForeignKey(x => x.RoomDefinitionID)
                     .OnDelete(DeleteBehavior.Cascade);
                 entity.HasOne(x => x.EntityDefinition)
