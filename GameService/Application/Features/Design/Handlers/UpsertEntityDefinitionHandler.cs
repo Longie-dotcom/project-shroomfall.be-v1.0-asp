@@ -59,13 +59,13 @@ namespace Application.Features.Design.Handlers
             ValidateRequiredComponents(dto.Type, dto.Components);
 
             var entityRepo = relationalUoW.GetRepository<IEntityDefinitionRepository>();
-            var existingEntity = await entityRepo.GetByIdAsync(dto.ID);
+            var existingEntity = await entityRepo.GetByIdAsync(dto.Id);
 
             if (existingEntity == null)
             {
-                var localizedText = LocalizationFactory.ForEntity(dto.ID);
-                var presentation = new EntityPresentationDefinition(localizedText, dto.ID);
-                var entity = new EntityDefinition(dto.ID, dto.Type, presentation);
+                var localizedText = LocalizationFactory.ForEntity(dto.Id);
+                var presentation = new EntityPresentationDefinition(localizedText, dto.Id);
+                var entity = new EntityDefinition(dto.Id, dto.Type, presentation);
 
                 await entityRepo.AddAsync(entity);
                 await localizationEntryFactory.PreSavePlaceholderKeysAsync(localizedText);
@@ -74,7 +74,7 @@ namespace Application.Features.Design.Handlers
             // Pipeline component definitions generation
             foreach (var componentDto in dto.Components)
             {
-                await definitionComponentFactory.UpsertAndSaveAsync(componentDto, dto.Type, dto.ID);
+                await definitionComponentFactory.UpsertAndSaveAsync(componentDto, dto.Type, dto.Id);
             }
 
             int rowsAffected = await relationalUoW.SaveChangesAsync();

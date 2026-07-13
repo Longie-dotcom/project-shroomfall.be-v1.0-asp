@@ -33,16 +33,16 @@ namespace Application.Features.Design.Handlers
             var dto = command.DTO;
 
             var effectRepo = relationalUoW.GetRepository<IEffectDefinitionRepository>();
-            var existingEffect = await effectRepo.GetByIdAsync(dto.ID);
+            var existingEffect = await effectRepo.GetByIdAsync(dto.Id);
 
             if (existingEffect == null)
             {
                 // CREATE FLOW 
-                var localizedText = LocalizationFactory.ForEffect(dto.ID);
-                var presentation = new EffectPresentationDefinition(localizedText, dto.ID);
+                var localizedText = LocalizationFactory.ForEffect(dto.Id);
+                var presentation = new EffectPresentationDefinition(localizedText, dto.Id);
 
                 var effect = new EffectDefinition(
-                    dto.ID,
+                    dto.Id,
                     dto.Type,
                     dto.AttributeType,
                     dto.SourceType,

@@ -40,7 +40,7 @@ namespace Application.Features.Design.Handlers
             ValidateCategoryConfigurations(dto);
 
             var itemRepo = relationalUoW.GetRepository<IItemDefinitionRepository>();
-            var existingItem = await itemRepo.GetByIdAsync(dto.ID);
+            var existingItem = await itemRepo.GetByIdAsync(dto.Id);
 
             // Build category-specific configuration structures
             ConsumableConfig? consumableConfig = null;
@@ -97,11 +97,11 @@ namespace Application.Features.Design.Handlers
             if (existingItem == null)
             {
                 // CREATE FLOW (Set identity, presentation, and icons ONCE)
-                var localizedText = LocalizationFactory.ForItem(dto.ID);
-                var presentation = new ItemPresentationDefinition(localizedText, dto.ID);
+                var localizedText = LocalizationFactory.ForItem(dto.Id);
+                var presentation = new ItemPresentationDefinition(localizedText, dto.Id);
 
                 var item = new ItemDefinition(
-                    dto.ID,
+                    dto.Id,
                     dto.Type,
                     dto.Category,
                     dto.MaxStack,

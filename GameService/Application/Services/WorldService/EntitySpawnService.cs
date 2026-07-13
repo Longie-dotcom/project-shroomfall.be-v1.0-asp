@@ -126,8 +126,7 @@ namespace Application.Services.WorldService
         {
             var transform = entity.GetComponent<TransformInstance>();
             if (transform == null)
-                
-                new InternalException(
+                throw new InternalException(
                     ApplicationCode.EntitySpawnServiceCode.ActivateTransformMissing,
                     $"Cannot activate entity {entity.ID} without a Transform component.");
 
