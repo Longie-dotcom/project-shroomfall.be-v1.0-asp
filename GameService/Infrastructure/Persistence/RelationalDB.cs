@@ -610,6 +610,66 @@ namespace Infrastructure.Persistence
             #endregion
 
             #region Meta Domain
+            modelBuilder.Entity<EffectDefinition>(entity =>
+            {
+                // ─────────────────────────────
+                // Table
+                // ─────────────────────────────
+                entity.ToTable("EffectDefinitions");
+
+                // ─────────────────────────────
+                // Primary Key
+                // ─────────────────────────────
+                entity.HasKey(x => x.ID);
+
+                // ─────────────────────────────
+                // Properties
+                // ─────────────────────────────
+                entity.Property(x => x.Type)
+                    .HasConversion<string>()
+                    .IsRequired();
+
+                entity.Property(x => x.AttributeType)
+                    .HasConversion<string>()
+                    .IsRequired();
+
+                entity.Property(x => x.SourceType)
+                    .HasConversion<string>()
+                    .IsRequired(false);
+
+                entity.Property(x => x.Value)
+                    .IsRequired();
+
+                entity.Property(x => x.Duration)
+                    .IsRequired(false);
+
+                entity.Property(x => x.Interval)
+                    .IsRequired(false);
+
+                // ─────────────────────────────
+                // Owned Types (Presentation & Localization Matrix)
+                // ─────────────────────────────
+                entity.OwnsOne(x => x.Presentation, presentation =>
+                {
+                    presentation.OwnsOne(x => x.LocalizedText, localization =>
+                    {
+                        localization.Property(x => x.NameKey)
+                            .IsRequired();
+                        localization.Property(x => x.DescriptionKey)
+                            .IsRequired();
+                    });
+
+                    presentation.Property(x => x.IconID)
+                        .IsRequired(false);
+                });
+
+                // ─────────────────────────────
+                // Indexes
+                // ─────────────────────────────
+                entity.HasIndex(x => x.Type);
+                entity.HasIndex(x => x.AttributeType);
+            });
+
             modelBuilder.Entity<ItemDefinition>(entity =>
             {
                 // ─────────────────────────────

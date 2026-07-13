@@ -107,7 +107,7 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     ID = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     AttributeType = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     SourceType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Value = table.Column<float>(type: "real", nullable: false),
@@ -138,19 +138,6 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "InteractableDefinitions",
-                columns: table => new
-                {
-                    ID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Type = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    EntityDefinitionID = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_InteractableDefinitions", x => x.ID);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "InventoryDefinitions",
                 columns: table => new
                 {
@@ -176,13 +163,12 @@ namespace Infrastructure.Migrations
                     Presentation_LocalizedText_NameKey = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Presentation_LocalizedText_DescriptionKey = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Presentation_IconID = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    SpawnEntityConfig_EntityDefinitionID = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    SpawnEntityConfig_TargetType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    SpawnEntityConfig_MaxRange = table.Column<float>(type: "real", nullable: true),
-                    EquipConfig_Slot = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PlaceableConfig_EntityDefinitionID = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RangedConfig_EntityDefinitionID = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MeleeConfig_EntityDefinitionID = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CostConfig_Method = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CostConfig_Value = table.Column<int>(type: "int", nullable: false),
-                    ApplyEffectConfig = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    ConsumableConfig = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EquippableConfig = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -194,7 +180,7 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     ID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Lifetime = table.Column<float>(type: "real", nullable: false),
+                    Duration = table.Column<float>(type: "real", nullable: false),
                     EntityDefinitionID = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
@@ -214,22 +200,6 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Locales", x => x.Code);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PortalDefinitions",
-                columns: table => new
-                {
-                    ID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    LocalTriggerOffsetX = table.Column<float>(type: "real", nullable: false),
-                    LocalTriggerOffsetY = table.Column<float>(type: "real", nullable: false),
-                    TriggerWidth = table.Column<float>(type: "real", nullable: false),
-                    TriggerHeight = table.Column<float>(type: "real", nullable: false),
-                    EntityDefinitionID = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PortalDefinitions", x => x.ID);
                 });
 
             migrationBuilder.CreateTable(
@@ -417,7 +387,7 @@ namespace Infrastructure.Migrations
                     MinCount = table.Column<int>(type: "int", nullable: false),
                     MaxCount = table.Column<int>(type: "int", nullable: false),
                     RoomDefinitionID = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    EntityDefinitionID = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    EntityDefinitionID = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     RoomDefinitionID1 = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
@@ -565,6 +535,11 @@ namespace Infrastructure.Migrations
                 column: "AttributeType");
 
             migrationBuilder.CreateIndex(
+                name: "IX_EffectDefinitions_Type",
+                table: "EffectDefinitions",
+                column: "Type");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_EntitySpawnRules_EntityDefinitionID",
                 table: "EntitySpawnRules",
                 column: "EntityDefinitionID");
@@ -578,17 +553,6 @@ namespace Infrastructure.Migrations
                 name: "IX_EntitySpawnRules_RoomDefinitionID1",
                 table: "EntitySpawnRules",
                 column: "RoomDefinitionID1");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_InteractableDefinitions_EntityDefinitionID",
-                table: "InteractableDefinitions",
-                column: "EntityDefinitionID",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_InteractableDefinitions_Type",
-                table: "InteractableDefinitions",
-                column: "Type");
 
             migrationBuilder.CreateIndex(
                 name: "IX_InventoryDefinitions_EntityDefinitionID",
@@ -617,15 +581,15 @@ namespace Infrastructure.Migrations
                 column: "Type");
 
             migrationBuilder.CreateIndex(
+                name: "IX_LifetimeDefinitions_Duration",
+                table: "LifetimeDefinitions",
+                column: "Duration");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_LifetimeDefinitions_EntityDefinitionID",
                 table: "LifetimeDefinitions",
                 column: "EntityDefinitionID",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_LifetimeDefinitions_Lifetime",
-                table: "LifetimeDefinitions",
-                column: "Lifetime");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Locales_Code",
@@ -652,12 +616,6 @@ namespace Infrastructure.Migrations
                 name: "IX_LocalizationEntries_LocaleCode",
                 table: "LocalizationEntries",
                 column: "LocaleCode");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_PortalDefinitions_EntityDefinitionID",
-                table: "PortalDefinitions",
-                column: "EntityDefinitionID",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProjectileDefinitions_EntityDefinitionID",
@@ -722,9 +680,6 @@ namespace Infrastructure.Migrations
                 name: "EntitySpawnRules");
 
             migrationBuilder.DropTable(
-                name: "InteractableDefinitions");
-
-            migrationBuilder.DropTable(
                 name: "InventoryEntries");
 
             migrationBuilder.DropTable(
@@ -735,9 +690,6 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "LocalizationEntries");
-
-            migrationBuilder.DropTable(
-                name: "PortalDefinitions");
 
             migrationBuilder.DropTable(
                 name: "ProjectileDefinitions");

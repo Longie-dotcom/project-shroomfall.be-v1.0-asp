@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(RelationalDB))]
-    [Migration("20260708152633_initial")]
+    [Migration("20260713091334_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -237,30 +237,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("CollisionDefinitions", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.InteractableDefinition", b =>
-                {
-                    b.Property<Guid>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("EntityDefinitionID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("EntityDefinitionID")
-                        .IsUnique();
-
-                    b.HasIndex("Type");
-
-                    b.ToTable("InteractableDefinitions", (string)null);
-                });
-
             modelBuilder.Entity("Domain.Definition.EntityDomain.Component.InventoryDefinition", b =>
                 {
                     b.Property<Guid>("ID")
@@ -317,51 +293,21 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<float>("Duration")
+                        .HasColumnType("real");
+
                     b.Property<string>("EntityDefinitionID")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<float>("Lifetime")
-                        .HasColumnType("real");
-
                     b.HasKey("ID");
+
+                    b.HasIndex("Duration");
 
                     b.HasIndex("EntityDefinitionID")
                         .IsUnique();
-
-                    b.HasIndex("Lifetime");
 
                     b.ToTable("LifetimeDefinitions", (string)null);
-                });
-
-            modelBuilder.Entity("Domain.Definition.EntityDomain.Component.PortalDefinition", b =>
-                {
-                    b.Property<Guid>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("EntityDefinitionID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<float>("LocalTriggerOffsetX")
-                        .HasColumnType("real");
-
-                    b.Property<float>("LocalTriggerOffsetY")
-                        .HasColumnType("real");
-
-                    b.Property<float>("TriggerHeight")
-                        .HasColumnType("real");
-
-                    b.Property<float>("TriggerWidth")
-                        .HasColumnType("real");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("EntityDefinitionID")
-                        .IsUnique();
-
-                    b.ToTable("PortalDefinitions", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Definition.EntityDomain.Component.ProjectileDefinition", b =>
@@ -570,7 +516,7 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<float>("Value")
                         .HasColumnType("real");
@@ -578,6 +524,8 @@ namespace Infrastructure.Migrations
                     b.HasKey("ID");
 
                     b.HasIndex("AttributeType");
+
+                    b.HasIndex("Type");
 
                     b.ToTable("EffectDefinitions", (string)null);
                 });
@@ -658,6 +606,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("EntityDefinitionID")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("MaxCount")
@@ -901,7 +850,7 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Definition.MetaDomain.ItemDefinition", b =>
                 {
-                    b.OwnsOne("Domain.Definition.MetaDomain.ApplyEffectConfig", "ApplyEffectConfig", b1 =>
+                    b.OwnsOne("Domain.Definition.MetaDomain.ConsumableConfig", "ConsumableConfig", b1 =>
                         {
                             b1.Property<string>("ItemDefinitionID")
                                 .HasColumnType("nvarchar(450)");
@@ -915,7 +864,7 @@ namespace Infrastructure.Migrations
                             b1.ToTable("ItemDefinitions");
 
                             b1
-                                .ToJson("ApplyEffectConfig")
+                                .ToJson("ConsumableConfig")
                                 .HasColumnType("nvarchar(max)");
 
                             b1.WithOwner()
@@ -931,9 +880,6 @@ namespace Infrastructure.Migrations
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.Property<int>("Value")
-                                .HasColumnType("int");
-
                             b1.HasKey("ItemDefinitionID");
 
                             b1.ToTable("ItemDefinitions");
@@ -942,10 +888,14 @@ namespace Infrastructure.Migrations
                                 .HasForeignKey("ItemDefinitionID");
                         });
 
-                    b.OwnsOne("Domain.Definition.MetaDomain.EquipConfig", "EquipConfig", b1 =>
+                    b.OwnsOne("Domain.Definition.MetaDomain.EquippableConfig", "EquippableConfig", b1 =>
                         {
                             b1.Property<string>("ItemDefinitionID")
                                 .HasColumnType("nvarchar(450)");
+
+                            b1.PrimitiveCollection<string>("EffectDefinitionIDs")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
 
                             b1.Property<string>("Slot")
                                 .IsRequired()
@@ -954,6 +904,10 @@ namespace Infrastructure.Migrations
                             b1.HasKey("ItemDefinitionID");
 
                             b1.ToTable("ItemDefinitions");
+
+                            b1
+                                .ToJson("EquippableConfig")
+                                .HasColumnType("nvarchar(max)");
 
                             b1.WithOwner()
                                 .HasForeignKey("ItemDefinitionID");
@@ -999,19 +953,12 @@ namespace Infrastructure.Migrations
                                 .IsRequired();
                         });
 
-                    b.OwnsOne("Domain.Definition.MetaDomain.SpawnEntityConfig", "SpawnEntityConfig", b1 =>
+                    b.OwnsOne("Domain.Definition.MetaDomain.MeleeConfig", "MeleeConfig", b1 =>
                         {
                             b1.Property<string>("ItemDefinitionID")
                                 .HasColumnType("nvarchar(450)");
 
                             b1.Property<string>("EntityDefinitionID")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<float>("MaxRange")
-                                .HasColumnType("real");
-
-                            b1.Property<string>("TargetType")
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
@@ -1023,17 +970,55 @@ namespace Infrastructure.Migrations
                                 .HasForeignKey("ItemDefinitionID");
                         });
 
-                    b.Navigation("ApplyEffectConfig");
+                    b.OwnsOne("Domain.Definition.MetaDomain.PlaceableConfig", "PlaceableConfig", b1 =>
+                        {
+                            b1.Property<string>("ItemDefinitionID")
+                                .HasColumnType("nvarchar(450)");
+
+                            b1.Property<string>("EntityDefinitionID")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("ItemDefinitionID");
+
+                            b1.ToTable("ItemDefinitions");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ItemDefinitionID");
+                        });
+
+                    b.OwnsOne("Domain.Definition.MetaDomain.RangedConfig", "RangedConfig", b1 =>
+                        {
+                            b1.Property<string>("ItemDefinitionID")
+                                .HasColumnType("nvarchar(450)");
+
+                            b1.Property<string>("EntityDefinitionID")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("ItemDefinitionID");
+
+                            b1.ToTable("ItemDefinitions");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ItemDefinitionID");
+                        });
+
+                    b.Navigation("ConsumableConfig");
 
                     b.Navigation("CostConfig")
                         .IsRequired();
 
-                    b.Navigation("EquipConfig");
+                    b.Navigation("EquippableConfig");
+
+                    b.Navigation("MeleeConfig");
+
+                    b.Navigation("PlaceableConfig");
 
                     b.Navigation("Presentation")
                         .IsRequired();
 
-                    b.Navigation("SpawnEntityConfig");
+                    b.Navigation("RangedConfig");
                 });
 
             modelBuilder.Entity("Domain.Definition.WorldDomain.Cell", b =>
@@ -1052,7 +1037,8 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.Definition.EntityDomain.EntityDefinition", "EntityDefinition")
                         .WithMany()
                         .HasForeignKey("EntityDefinitionID")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Domain.Definition.WorldDomain.RoomDefinition", "RoomDefinition")
                         .WithMany()
