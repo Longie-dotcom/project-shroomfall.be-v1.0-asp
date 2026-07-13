@@ -1,4 +1,4 @@
-﻿using Contract.DTO.Feature.Design.Command;
+﻿using Contract.DTO.Definition.MetaDomain;
 
 namespace Application.Features.Design.Commands
 {
@@ -9,12 +9,12 @@ namespace Application.Features.Design.Commands
 
         #region Properties
         public string UserID { get; }
-        public UpsertEffectDefinitionDTO DTO { get; }
+        public EffectDefinitionDTO DTO { get; }
         #endregion
 
         public UpsertEffectDefinitionCommand(
             string userId,
-            UpsertEffectDefinitionDTO dto)
+            EffectDefinitionDTO dto)
         {
             UserID = userId;
             DTO = dto;

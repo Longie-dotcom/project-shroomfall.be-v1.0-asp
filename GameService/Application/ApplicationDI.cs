@@ -58,7 +58,7 @@ namespace Application
             // Design
             services.AddScoped<IHandler<FetchEffectDefinitionCommand, PagedResponseDTO<EffectDefinitionDTO>>, FetchEffectDefinitionHandler>();
             services.AddScoped<IHandler<FetchEntityDefinitionCommand, PagedResponseDTO<EntityDefinitionDTO>>, FetchEntityDefinitionHandler>();
-            services.AddScoped<IHandler<FetchEntityDefinitionDetailCommand, EntityDefinitionDetailDTO>, FetchEntityDefinitionDetailHandler>();
+            services.AddScoped<IHandler<FetchEntityDefinitionDetailCommand, EntityDefinitionDTO>, FetchEntityDefinitionDetailHandler>();
             services.AddScoped<IHandler<FetchItemDefinitionCommand, PagedResponseDTO<ItemDefinitionDTO>>, FetchItemDefinitionHandler>();
             services.AddScoped<IHandler<UpdateDefinitionCommand>, UpdateDefinitionHandler>();
             services.AddScoped<IHandler<UpsertEffectDefinitionCommand>, UpsertEffectDefinitionHandler>();

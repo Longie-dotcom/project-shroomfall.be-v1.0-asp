@@ -1,4 +1,4 @@
-﻿using Contract.DTO.Feature.Design.Command;
+﻿using Contract.DTO.Definition.EntityDomain.Component;
 
 namespace Application.Features.Design.Commands
 {
@@ -9,12 +9,12 @@ namespace Application.Features.Design.Commands
 
         #region Properties
         public string UserID { get; }
-        public UpsertEntityDefinitionDTO DTO { get; }
+        public EntityDefinitionDTO DTO { get; }
         #endregion
 
         public UpsertEntityDefinitionCommand(
             string userId,
-            UpsertEntityDefinitionDTO dto)
+            EntityDefinitionDTO dto)
         {
             UserID = userId;
             DTO = dto;

@@ -60,12 +60,12 @@ namespace API.Controllers
 
         [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
         [HttpGet("entities/{id}")]
-        public async Task<ActionResult<EntityDefinitionDetailDTO>> FetchEntityDefinitionDetail(
+        public async Task<ActionResult<EffectDefinitionDTO>> FetchEntityDefinitionDetail(
             [FromRoute] string id)
         {
             var (userId, steamId, role) = ClaimReader.GetIdentity(User);
 
-            var result = await dispatcher.Send<FetchEntityDefinitionDetailCommand, EntityDefinitionDetailDTO?>(
+            var result = await dispatcher.Send<FetchEntityDefinitionDetailCommand, EntityDefinitionDTO?>(
                 new FetchEntityDefinitionDetailCommand(userId, id)
             );
 
@@ -89,7 +89,7 @@ namespace API.Controllers
         [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
         [HttpPost("effect-definition")]
         public async Task<IActionResult> UpsertEffectDefinition(
-            [FromBody] UpsertEffectDefinitionDTO dto)
+            [FromBody] EffectDefinitionDTO dto)
         {
             var (userId, steamId, role) = ClaimReader.GetIdentity(User);
 
@@ -103,7 +103,7 @@ namespace API.Controllers
         [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
         [HttpPost("item-definition")]
         public async Task<IActionResult> UpsertItemDefinition(
-            [FromBody] UpsertItemDefinitionDTO dto)
+            [FromBody] ItemDefinitionDTO dto)
         {
             var (userId, steamId, role) = ClaimReader.GetIdentity(User);
 
@@ -117,7 +117,7 @@ namespace API.Controllers
         [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
         [HttpPost("entity-definition")]
         public async Task<IActionResult> UpsertEntityDefinition(
-            [FromBody] UpsertEntityDefinitionDTO dto)
+            [FromBody] EntityDefinitionDTO dto)
         {
             var (userId, steamId, role) = ClaimReader.GetIdentity(User);
 

@@ -58,8 +58,8 @@ namespace Application.Mapper
 
             // Entity Domain
             CreateMap<EntityPresentationDefinition, EntityPresentationDefinitionDTO>();
-            CreateMap<EntityDefinition, EntityDefinitionDTO>();
-            CreateMap<EntityDefinition, EntityDefinitionDetailDTO>();
+            CreateMap<EntityDefinition, EntityDefinitionDTO>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.ID));
             CreateMap<ComponentDefinition, ComponentDefinitionDTO>()
                 .Include<AIDefinition, AIDefinitionDTO>()
                 .Include<AppearanceDefinition, AppearanceDefinitionDTO>()
@@ -91,7 +91,8 @@ namespace Application.Mapper
 
             // Meta Domain
             CreateMap<EffectPresentationDefinition, EffectPresentationDefinitionDTO>();
-            CreateMap<EffectDefinition, EffectDefinitionDTO>();
+            CreateMap<EffectDefinition, EffectDefinitionDTO>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.ID));
 
             CreateMap<ItemPresentationDefinition, ItemPresentationDefinitionDTO>();
             CreateMap<ConsumableConfig, ConsumableConfigDTO>();
@@ -100,7 +101,8 @@ namespace Application.Mapper
             CreateMap<RangedConfig, RangedConfigDTO>();
             CreateMap<MeleeConfig, MeleeConfigDTO>();
             CreateMap<CostConfig, CostConfigDTO>();
-            CreateMap<ItemDefinition, ItemDefinitionDTO>();
+            CreateMap<ItemDefinition, ItemDefinitionDTO>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.ID));
 
             // World Domain
             CreateMap<CombatRunDefinition, CombatRunDefinitionDTO>();

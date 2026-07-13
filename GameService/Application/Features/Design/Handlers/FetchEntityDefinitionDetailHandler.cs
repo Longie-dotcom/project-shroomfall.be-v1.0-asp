@@ -11,7 +11,7 @@ using ResponseCode;
 
 namespace Application.Features.Design.Handlers
 {
-    public class FetchEntityDefinitionDetailHandler : IHandler<FetchEntityDefinitionDetailCommand, EntityDefinitionDetailDTO>
+    public class FetchEntityDefinitionDetailHandler : IHandler<FetchEntityDefinitionDetailCommand, EntityDefinitionDTO>
     {
         #region Attributes
         private readonly IRelationalUoW relationalUoW;
@@ -33,7 +33,7 @@ namespace Application.Features.Design.Handlers
         }
 
         #region Methods
-        public async Task<EntityDefinitionDetailDTO> Handle(
+        public async Task<EntityDefinitionDTO> Handle(
             FetchEntityDefinitionDetailCommand command)
         {
             var entityRepo = relationalUoW.GetRepository<IEntityDefinitionRepository>();
@@ -44,7 +44,7 @@ namespace Application.Features.Design.Handlers
                     ApplicationCode.DesignHandlerCode.EntityDefinitionNotFound,
                     $"Entity variant definition configuration targets containing the ID '{command.ID}' could not be resolved.");
 
-            var detailDto = mapper.Map<EntityDefinitionDetailDTO>(rootEntity);
+            var detailDto = mapper.Map<EntityDefinitionDTO>(rootEntity);
             var componentList = new List<ComponentDefinitionDTO>();
 
             foreach (var pipeline in discoveryRegistry.GetPipelines())

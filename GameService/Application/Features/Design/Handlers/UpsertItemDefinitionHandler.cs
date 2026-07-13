@@ -3,7 +3,7 @@ using Application.Features.Design.Commands;
 using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
 using Application.Services.DesignService;
-using Contract.DTO.Feature.Design.Command;
+using Contract.DTO.Definition.MetaDomain;
 using Contract.Enum.MetaDomain.Item;
 using Domain.Definition.MetaDomain;
 using Domain.DomainException;
@@ -144,7 +144,7 @@ namespace Application.Features.Design.Handlers
         }
 
         private void ValidateCategoryConfigurations(
-            UpsertItemDefinitionDTO dto)
+            ItemDefinitionDTO dto)
         {
             var category = dto.Category;
             AssertConfigRule(nameof(dto.ConsumableConfig), category == ItemCategory.Consumable, dto.ConsumableConfig != null);
