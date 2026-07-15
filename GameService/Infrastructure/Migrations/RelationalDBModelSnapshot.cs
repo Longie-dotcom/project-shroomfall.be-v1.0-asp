@@ -61,9 +61,16 @@ namespace Infrastructure.Migrations
                     b.Property<float>("AggroRadius")
                         .HasColumnType("real");
 
+                    b.Property<float>("AttackRange")
+                        .HasColumnType("real");
+
                     b.Property<string>("EntityDefinitionID")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("EquippedItemDefinitionID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsAIControlled")
                         .HasColumnType("bit");
@@ -507,9 +514,6 @@ namespace Infrastructure.Migrations
 
                     b.Property<float?>("Interval")
                         .HasColumnType("real");
-
-                    b.Property<string>("SourceType")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Type")
                         .IsRequired()

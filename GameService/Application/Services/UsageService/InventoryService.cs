@@ -1,5 +1,8 @@
 ﻿using Application.Interfaces.Cache;
+using Application.Interfaces.Realtime.Events;
+using Application.Interfaces.Realtime.Events.Game;
 using Contract;
+using Contract.Enum.MetaDomain.Item;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
@@ -12,91 +15,82 @@ namespace Application.Services.UsageService
     {
         #region Attributes
         private readonly ICacheProvider cacheProvider;
+        private readonly IEventBus eventBus;
         #endregion
 
         public InventoryService(
-            ICacheProvider cacheProvider)
+            ICacheProvider cacheProvider,
+            IEventBus eventBus)
         {
             this.cacheProvider = cacheProvider;
+            this.eventBus = eventBus;
         }
 
         #region Methods
         /// <summary>
-        /// Transfers all items from a source entity to a destination entity.
-        /// Returns a list of any item payloads that could not fit into the destination.
+        /// Removes all items from the entity's inventory and returns them as a collection
+        /// for the caller to handle (e.g., spawning world item entities).
         /// </summary>
-        public List<ItemInstance> TransferAllItems(
-            EntityInstance source,
-            EntityInstance destination)
+        /// <param name="entity">The entity whose inventory will be emptied.</param>
+        /// <returns>
+        /// A list containing every item that was removed from the inventory.
+        /// </returns>
+        public List<ItemInstance> DropAllItems(
+            EntityInstance entity)
         {
-            var leftOvers = new List<ItemInstance>();
-
-            var sourceInventory = source.GetComponent<InventoryInstance>();
+            var sourceInventory = entity.GetComponent<InventoryInstance>();
             if (sourceInventory == null)
                 throw new InternalException(
-                    ApplicationCode.InventoryServiceCode.TransferSourceInventoryMissing,
-                    $"Source entity {source.ID} does not possess an InventoryInstance component.");
+                    ApplicationCode.InventoryServiceCode.DropSourceInventoryMissing,
+                    $"Source entity {entity.ID} does not possess an InventoryInstance component.");
 
-            // Snapshot the collection to avoid modification errors during enumeration
-            var itemsToTransfer = sourceInventory.Items.ToList();
+            var drops = sourceInventory.Items.ToList();
+            sourceInventory.Items.Clear();
 
-            foreach (var item in itemsToTransfer)
-            {
-                // Remove from the source container immediately
-                sourceInventory.Items.Remove(item);
+            eventBus.Publish(new InventoryClearedEvent(entity.ID));
 
-                // Attempt to inject into the destination container
-                var remainder = AddItem(destination, item);
-
-                // If the receiver's bag filled up, track the leftover payload
-                if (remainder != null)
-                {
-                    leftOvers.Add(remainder);
-                }
-            }
-
-            return leftOvers;
+            return drops;
         }
 
         /// <summary>
-        /// Attempts to add an item instance to an entity's inventory, respecting stack limits and slot configurations.
-        /// Returns the remaining item payload if the inventory fills up, or null if fully consumed.
+        /// Attempts to transfer a world item payload into an entity's inventory,
+        /// respecting stack limits and inventory slot capacity.
+        /// The payload instance is updated in-place to reflect any remaining amount.
+        /// A remaining amount of zero indicates the world item was fully collected.
         /// </summary>
-        public ItemInstance? AddItem(
+        public bool TryPickItem(
             EntityInstance entity,
-            ItemInstance item)
+            EntityInstance worldItem)
         {
+            var payload = worldItem.GetComponent<WorldItemPayloadInstance>();
+            if (payload == null)
+                return false;
+
             var inventory = entity.GetComponent<InventoryInstance>();
             if (inventory == null)
-                throw new InternalException(
-                    ApplicationCode.InventoryServiceCode.AddTargetInventoryMissing,
-                    $"Target entity {entity.ID} does not possess an InventoryInstance component.");
+                return false;
 
             var inventoryDef = cacheProvider.Inventory.Get(inventory.DefinitionID);
             if (inventoryDef == null)
-                throw new InternalException(
-                    ApplicationCode.InventoryServiceCode.AddInventoryDefinitionNotFound,
-                    $"Inventory definition with ID: {inventory.DefinitionID} was not found in cache");
+                return false;
+
+            var item = payload.Payload;
 
             var itemDef = cacheProvider.Item.Get(item.DefinitionID);
             if (itemDef == null)
-                throw new InternalException(
-                    ApplicationCode.InventoryServiceCode.AddItemDefinitionNotFound,
-                    $"Item definition with ID: {item.DefinitionID} was not found in cache");
+                return false;
 
             int remaining = item.Amount;
-            int maxStack = itemDef.MaxStack ?? 1; // Default non-stackable items to a max stack of 1
+            int maxStack = itemDef.MaxStack ?? 1;
 
-            // ─────────────────────────────
-            // 1. STACK FIRST
-            // ─────────────────────────────
+            //─────────────────────────────
+            // 1. Fill existing stacks
+            //─────────────────────────────
             if (maxStack > 1)
             {
-                // A stack is distinct by its item definition ID and its quality variant
-                foreach (var slot in inventory.Items
-                    .Where(x =>
-                        x.DefinitionID == item.DefinitionID &&
-                        x.Quality == item.Quality))
+                foreach (var slot in inventory.Items.Where(x =>
+                    x.DefinitionID == item.DefinitionID &&
+                    x.Quality == item.Quality))
                 {
                     int canTake = maxStack - slot.Amount;
 
@@ -106,42 +100,41 @@ namespace Application.Services.UsageService
                     int toAdd = Math.Min(canTake, remaining);
 
                     slot.AddAmount(toAdd);
+
+                    eventBus.Publish(new InventoryItemChangedEvent(entity.ID, slot, ItemInventorySyncEvent.Updated));
+
                     remaining -= toAdd;
 
-                    if (remaining <= 0)
-                        return null;
+                    if (remaining == 0)
+                        break;
                 }
             }
 
-            // ─────────────────────────────
-            // 2. FILL NEW SLOTS
-            // ─────────────────────────────
-            while (remaining > 0)
+            //─────────────────────────────
+            // 2. Create new stacks
+            //─────────────────────────────
+            while (remaining > 0 && inventory.Items.Count < inventoryDef.SlotCount)
             {
-                if (inventory.Items.Count >= inventoryDef.SlotCount)
-                {
-                    // Inventory is completely full → return remaining details as a new payload
-                    return new ItemInstance(
-                        id: item.ID,
-                        definitionId: item.DefinitionID,
-                        amount: remaining,
-                        quality: item.Quality,
-                        durability: item.Durability);
-                }
-
                 int toCreate = Math.Min(maxStack, remaining);
 
-                inventory.Items.Add(new ItemInstance(
-                    id: item.ID,
+                var newSlot = new ItemInstance(
+                    id: Guid.NewGuid().ToString(),
                     definitionId: item.DefinitionID,
                     amount: toCreate,
                     quality: item.Quality,
-                    durability: item.Durability));
+                    durability: item.Durability);
+
+                inventory.Items.Add(newSlot);
+
+                eventBus.Publish(new InventoryItemChangedEvent(entity.ID, newSlot, ItemInventorySyncEvent.Added));
 
                 remaining -= toCreate;
             }
 
-            return null;
+            // Update the payload remaining in the world.
+            payload.Payload.SetAmount(remaining);
+
+            return payload.Payload.Amount <= 0;
         }
 
         /// <summary>
@@ -157,45 +150,29 @@ namespace Application.Services.UsageService
                     ApplicationCode.InventoryServiceCode.RemoveTargetInventoryMissing,
                     $"Target entity {entity.ID} does not possess an InventoryInstance component.");
 
-            bool removed = inventory.Items.Remove(item);
-            if (!removed)
-            {
-                throw new InternalException(
-                    ApplicationCode.InventoryServiceCode.RemoveItemNotFound,
-                    $"Critical State Desync: Failed to remove Item Instance from Entity {entity.ID}'s inventory collection.");
-            }
+            if (inventory.Items.Remove(item))
+                eventBus.Publish(new InventoryItemChangedEvent(entity.ID, item, ItemInventorySyncEvent.Removed));
 
             return item;
         }
 
         /// <summary>
-        /// Deducts a (Constraint.ITEM_DEDUCTED_VALUE) quantity unit from an item stack. Splits off and returns a single unit payload, 
-        /// or handles full stack removal if it was the last item.
+        /// Deducts a single quantity unit from an item stack.
+        /// If the stack becomes empty, it is automatically removed from the inventory.
         /// </summary>
-        public ItemInstance DeductItem(
+        public void DeductItem(
             EntityInstance entity,
             ItemInstance item)
         {
-            var inventory = entity.GetComponent<InventoryInstance>();
-            if (inventory == null)
-                throw new InternalException(
-                    ApplicationCode.InventoryServiceCode.DeductTargetInventoryMissing,
-                    $"Target entity {entity.ID} does not possess an InventoryInstance component.");
-
-            if (item.Amount > Constraint.ITEM_DEDUCTED_VALUE)
+            item.RemoveAmount(Constraint.ITEM_DEDUCTED_VALUE);
+            if (entity.GetComponent<InventoryInstance>() != null && item.Amount <= 0)
             {
-                item.RemoveAmount(Constraint.ITEM_DEDUCTED_VALUE);
-
-                return new ItemInstance(
-                    id: item.ID,
-                    definitionId: item.DefinitionID,
-                    amount: Constraint.ITEM_DEDUCTED_VALUE,
-                    quality: item.Quality,
-                    durability: item.Durability);
+                RemoveItem(entity, item);
             }
-
-            inventory.Items.Remove(item);
-            return item;
+            else
+            {
+                eventBus.Publish(new InventoryItemChangedEvent(entity.ID, item, ItemInventorySyncEvent.Updated));
+            }
         }
 
         /// <summary>
@@ -205,73 +182,14 @@ namespace Application.Services.UsageService
             EntityInstance entity,
             ItemInstance item)
         {
-            if (item.Durability.HasValue)
+            if (entity.GetComponent<InventoryInstance>() != null && item.DegradeDurability())
             {
-                bool isShattered = item.DegradeDurability();
-                if (isShattered)
-                {
-                    RemoveItem(entity, item);
-                }
+                RemoveItem(entity, item);
             }
-        }
-
-        /// <summary>
-        /// Simulates item injection to verify if a given item payload completely fits inside the entity container space.
-        /// </summary>
-        public bool CanAddItem(
-            EntityInstance entity,
-            ItemInstance item)
-        {
-            var inventory = entity.GetComponent<InventoryInstance>();
-            if (inventory == null)
-                throw new InternalException(
-                    ApplicationCode.InventoryServiceCode.CanAddTargetInventoryMissing,
-                    $"Target entity {entity.ID} does not possess an InventoryInstance component.");
-
-            var inventoryDef = cacheProvider.Inventory.Get(inventory.DefinitionID);
-            if (inventoryDef == null)
-                throw new InternalException(
-                    ApplicationCode.InventoryServiceCode.CanAddInventoryDefinitionNotFound,
-                    $"Inventory definition with ID: {inventory.DefinitionID} was not found in cache");
-
-            var itemDef = cacheProvider.Item.Get(item.DefinitionID);
-            if (itemDef == null)
-                throw new InternalException(
-                    ApplicationCode.InventoryServiceCode.CanAddItemDefinitionNotFound,
-                    $"Item definition with ID: {item.DefinitionID} was not found in cache");
-
-            int remaining = item.Amount;
-            int maxStack = itemDef.MaxStack ?? 1;
-
-            // ─────────────────────────────
-            // 1. STACK CHECK
-            // ─────────────────────────────
-            if (maxStack > 1)
+            else
             {
-                foreach (var slot in inventory.Items
-                    .Where(x =>
-                        x.DefinitionID == item.DefinitionID &&
-                        x.Quality == item.Quality))
-                {
-                    int canTake = maxStack - slot.Amount;
-
-                    if (canTake <= 0)
-                        continue;
-
-                    remaining -= Math.Min(canTake, remaining);
-
-                    if (remaining <= 0)
-                        return true;
-                }
+                eventBus.Publish(new InventoryItemChangedEvent(entity.ID, item, ItemInventorySyncEvent.Updated));
             }
-
-            // ─────────────────────────────
-            // 2. SLOT CHECK
-            // ─────────────────────────────
-            int freeSlots = inventoryDef.SlotCount - inventory.Items.Count;
-            int neededSlots = (int)Math.Ceiling(remaining / (float)maxStack);
-
-            return neededSlots <= freeSlots;
         }
         #endregion
     }

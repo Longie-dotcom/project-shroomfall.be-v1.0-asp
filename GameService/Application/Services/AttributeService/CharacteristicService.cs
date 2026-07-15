@@ -1,20 +1,35 @@
 ﻿using Application.Interfaces.Cache;
 using Application.Interfaces.Realtime.Events;
 using Application.Interfaces.Realtime.Events.Game;
+using Application.Systems.Abstraction;
+using Application.Systems.Queue;
 using Contract;
 using Contract.Enum.MetaDomain.Effect;
 using Domain.Definition.EntityDomain.Component;
 using Domain.Definition.MetaDomain;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
+using Domain.Runtime.MetaDomain;
+using System.Collections.Concurrent;
 
 namespace Application.Services.AttributeService
 {
-    public class CharacteristicService
+    public sealed class VitalChangedRecord
+    {
+        public required string EntityInstanceID { get; init; }
+        public required AttributeType Vital { get; init; }
+        public required float PreviousValue { get; init; }
+        public required float CurrentValue { get; init; }
+        public required VitalChangeReason Reason { get; init; }
+    }
+
+    public class CharacteristicService : ITickService
     {
         #region Attributes
         private readonly IEventBus eventBus;
         private readonly ICacheProvider cacheProvider;
+        private readonly ConcurrentQueue<VitalChangedRecord> pendingVitalChanges = new();
+        private readonly VitalService vitalService;
         #endregion
 
         #region Properties
@@ -22,13 +37,30 @@ namespace Application.Services.AttributeService
 
         public CharacteristicService(
             IEventBus eventBus,
-            ICacheProvider cacheProvider)
+            ICacheProvider cacheProvider,
+            VitalService vitalService)
         {
             this.eventBus = eventBus;
             this.cacheProvider = cacheProvider;
+            this.vitalService = vitalService;
         }
 
         #region Methods
+        public void Tick(
+            float dt, 
+            CommandBuffer buffer)
+        {
+            while (pendingVitalChanges.TryDequeue(out var change))
+            {
+                buffer.Commands.Enqueue(
+                    new VitalThresholdCommand(
+                        change.EntityInstanceID,
+                        change.Vital,
+                        change.PreviousValue,
+                        change.CurrentValue));
+            }
+        }
+
         public void InitializeVitals(
             EntityInstance entity)
         {
@@ -64,65 +96,68 @@ namespace Application.Services.AttributeService
         }
 
         public void ApplyEffectLogic(
-            EntityInstance entity,
-            EffectDefinition effectDef,
-            float rawDelta)
+            EffectContext context)
         {
-            var attrDef = AttributeDefinitions.Get(effectDef.AttributeType);
+            var effectDef = context.Effect;
+            var attribute = AttributeDefinitions.Get(effectDef.AttributeType);
 
-            switch (attrDef.DomainType)
+            switch (attribute.DomainType)
             {
                 case DomainType.Vital:
-                    ModifyVitalValue(entity, attrDef.Type, rawDelta, effectDef.SourceType ?? AttributeType.AttackDamage);
+                    ApplyVital(context);
                     break;
 
                 case DomainType.Core:
-                    RecalculateCoreValues(entity);
+                    ApplyCore(context.Target);
                     break;
             }
         }
 
-        private void ModifyVitalValue(
-            EntityInstance entity,
-            AttributeType type,
-            float rawDelta,
-            AttributeType damageFlavor)
+        private void ApplyVital(
+            EffectContext effectContext)
         {
-            var characteristic = entity.GetComponent<CharacteristicInstance>();
-            if (characteristic == null) return;
+            // Extract effect context
+            var target = effectContext.Target;
+            var effectDef = effectContext.Effect;
 
-            var transform = entity.GetComponent<TransformInstance>();
-            if (transform == null) return;
-
-            var scaledAttr = GetScaledAttribute(characteristic, type);
-            if (scaledAttr == null) return;
-
-            var attrDef = AttributeDefinitions.Get(type);
-            if (attrDef.DomainType != DomainType.Vital)
+            // Validate target transform for publishing
+            var targetTransform = target.GetComponent<TransformInstance>();
+            if (targetTransform == null)
                 return;
 
-            float finalDelta = rawDelta;
-            if (rawDelta < 0 && type == AttributeType.Health)
+            (VitalChangedRecord? target, VitalChangedRecord? source) result;
+
+            // Dispatch to the proper vital resolver
+            var attribute = AttributeDefinitions.Get(effectDef.AttributeType);
+
+            switch (attribute.Category)
             {
-                finalDelta = CombatService.ResolveMitigatedDamage(entity, Math.Abs(rawDelta), damageFlavor);
-                finalDelta = -finalDelta; // Re-apply the negative
+                case AttributeCategory.OffensiveHealth:
+                    result = vitalService.ApplyHealth(effectContext);
+                    break;
+
+                case AttributeCategory.OffensiveEnergy:
+                    result = vitalService.ApplyEnergy(effectContext);
+                    break;
+
+                default:
+                    return;
             }
 
-            var (config, dynamicCeiling) = scaledAttr.Value;
-            float current = characteristic.GetVital(type);
-            float next = Math.Clamp(current + finalDelta, config.Min, dynamicCeiling);
+            PublishVitalChange(result.target, targetTransform);
 
-            characteristic.SetVital(type, next);
-
-            eventBus.Publish(new EntityVitalChangedEvent(
-                entityInstanceId: entity.ID,
-                roomSpatialId: transform.RoomSpatialID,
-                attributeType: type,
-                newValue: next
-            ));
+            if (result.source != null)
+            {
+                var sourceEntity = effectContext.Source;
+                var sourceTransform = sourceEntity?.GetComponent<TransformInstance>();
+                if (sourceTransform != null)
+                {
+                    PublishVitalChange(result.source, sourceTransform);
+                }
+            }
         }
 
-        private void RecalculateCoreValues(
+        private void ApplyCore(
             EntityInstance entity)
         {
             var characteristic = entity.GetComponent<CharacteristicInstance>();
@@ -146,27 +181,29 @@ namespace Application.Services.AttributeService
         {
             var activeEffectsByAttribute = new Dictionary<AttributeType, List<EffectDefinition>>();
 
-            // Look at how clean this is now! We just grab the unified persistent lists.
-            foreach (var activeEffect in effectContainer.GetAllPersistentEffects())
+            // Grab the unified persistent lists.
+            foreach (var activeEffect in effectContainer.TrackingEffects)
             {
-                var modifier = cacheProvider.Effect.Get(activeEffect.DefinitionID);
-                if (modifier == null) continue;
+                var effectDef = activeEffect.Context.Effect;
 
-                if (!activeEffectsByAttribute.TryGetValue(modifier.AttributeType, out var list))
+                if (!activeEffectsByAttribute.TryGetValue(effectDef.AttributeType, out var list))
                 {
                     list = new List<EffectDefinition>();
-                    activeEffectsByAttribute[modifier.AttributeType] = list;
+                    activeEffectsByAttribute[effectDef.AttributeType] = list;
                 }
-                list.Add(modifier);
+
+                list.Add(effectDef);
             }
 
             // Calculate and assign each Core value
             foreach (var attrDef in AttributeDefinitions.AllList())
             {
-                if (attrDef.DomainType != DomainType.Core) continue;
+                if (attrDef.DomainType != DomainType.Core) 
+                    continue;
 
                 var scaledAttr = GetScaledAttribute(characteristic, attrDef.Type);
-                if (scaledAttr == null) continue;
+                if (scaledAttr == null) 
+                    continue;
 
                 float flat = 0f;
                 float percent = 0f;
@@ -193,7 +230,7 @@ namespace Application.Services.AttributeService
             }
         }
 
-        private (AttributeValue Config, float ScaledValue)? GetScaledAttribute(
+        public (AttributeValue Config, float ScaledValue)? GetScaledAttribute(
             CharacteristicInstance characteristic,
             AttributeType type)
         {
@@ -206,6 +243,23 @@ namespace Application.Services.AttributeService
 
             var (attribute, growth) = attributePair.Value;
             return (attribute, attribute.BaseValue + growth.GrowthValue);
+        }
+
+        private void PublishVitalChange(
+            VitalChangedRecord? record,
+            TransformInstance transform)
+        {
+            if (record == null)
+                return;
+
+            pendingVitalChanges.Enqueue(record);
+
+            eventBus.Publish(new EntityVitalChangedEvent(
+                entityInstanceId: record.EntityInstanceID,
+                roomSpatialId: transform.RoomSpatialID,
+                attributeType: record.Vital,
+                newValue: record.CurrentValue,
+                vitalChangeReason: record.Reason));
         }
         #endregion
     }

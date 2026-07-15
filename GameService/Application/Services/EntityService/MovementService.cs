@@ -45,13 +45,16 @@ namespace Application.Services.EntityService
             EntityInstance entity)
         {
             var transform = entity.GetComponent<TransformInstance>();
-            if (transform == null) return null;
+            if (transform == null) 
+                return null;
 
             var characteristic = entity.GetComponent<CharacteristicInstance>();
-            if (characteristic == null) return null;
+            if (characteristic == null) 
+                return null;
 
             var collision = entity.GetComponent<CollisionInstance>();
-            if (collision == null) return null;
+            if (collision == null) 
+                return null;
 
             if (!transform.WantsToMove)
                 return null;

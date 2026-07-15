@@ -3,7 +3,9 @@ using Application.Systems.Abstraction;
 using Application.Systems.Queue;
 using Contract.Enum.EntityDomain;
 using Contract.Enum.MetaDomain.Effect;
+using Contract.Enum.MetaDomain.Item;
 using Domain.Common;
+using Domain.Definition.EntityDomain.Component;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
 
@@ -97,26 +99,28 @@ namespace Application.Services.EntityService
         }
 
         private void TickChase(
-            EntityInstance entity, 
+            EntityInstance entity,
             AIInstance ai)
         {
-            var transform = entity.GetComponent<TransformInstance>();
-            if (transform == null || string.IsNullOrEmpty(ai.TargetEntityId))
+            if (string.IsNullOrEmpty(ai.TargetEntityId))
             {
                 ai.AIState = AIState.ReturnHome;
                 return;
             }
 
+            var movement = entity.GetComponent<TransformInstance>();
+            if (movement == null || string.IsNullOrEmpty(ai.TargetEntityId))
+                return;
+
             var target = worldContext.GetEntity(ai.TargetEntityId);
             var targetTransform = target?.GetComponent<TransformInstance>();
-
             if (target == null || targetTransform == null)
             {
                 ai.AIState = AIState.ReturnHome;
                 return;
             }
 
-            float distance = Vector2.Distance(transform.Position, targetTransform.Position);
+            float distance = Vector2.Distance(movement.Position, targetTransform.Position);
 
             if (distance > ai.LeashDistance)
             {
@@ -125,14 +129,16 @@ namespace Application.Services.EntityService
                 return;
             }
 
-            if (distance <= 1.5f)
+            // Use the config range instead of hardcoded 1.5f
+            float attackRange = ai.AttackRange;
+            if (distance <= attackRange)
             {
                 ai.AIState = AIState.Attack;
+                movement?.SetMovementIntent(Vector2.Zero); // Stop moving to attack
                 return;
             }
 
-            var movement = entity.GetComponent<TransformInstance>();
-            movement?.SetMovementIntent(Vector2.Normalize(targetTransform.Position - transform.Position));
+            movement?.SetMovementIntent(Vector2.Normalize(targetTransform.Position - movement.Position));
         }
 
         private void TickAttack(
@@ -142,7 +148,6 @@ namespace Application.Services.EntityService
         {
             ai.AttackTimer -= dt;
             if (ai.AttackTimer > 0) return;
-
             if (string.IsNullOrEmpty(ai.TargetEntityId))
             {
                 ai.AIState = AIState.ReturnHome;
@@ -150,23 +155,58 @@ namespace Application.Services.EntityService
             }
 
             var target = worldContext.GetEntity(ai.TargetEntityId);
-            if (target == null)
+            var transform = entity.GetComponent<TransformInstance>();
+            if (target == null || transform == null)
             {
                 ai.AIState = AIState.ReturnHome;
                 return;
             }
 
-            //var attacks = entityRelationshipCache.GetBySourceID(entity.DefinitionID);
-            //var attack = attacks?.FirstOrDefault();
-            //if (attack == null) return;
+            var targetTransform = target.GetComponent<TransformInstance>();
+            if (targetTransform == null)
+            {
+                ai.AIState = AIState.ReturnHome;
+                return;
+            }
 
-            //ExecuteAttack(entity, target, attack);
+            // 1. Stop moving when preparing/executing the attack
+            transform.SetMovementIntent(Vector2.Zero);
 
+            // 2. Trigger the item action if the AI has an item equipped
+            if (!string.IsNullOrEmpty(ai.EquippedItemDefinitionID))
+            {
+                var actionState = entity.GetComponent<ActionInstance>();
+                var inventory = entity.GetComponent<InventoryInstance>();
+
+                if (actionState != null && inventory != null)
+                {
+                    var itemInstance = inventory.Items.FirstOrDefault(i => i.DefinitionID == ai.EquippedItemDefinitionID);
+
+                    if (itemInstance != null)
+                    {
+                        // Register the intent on ActionInstance so ItemService processes it next frame
+                        actionState.SetItemUseIntent(
+                            itemInstance.ID,
+                            targetTransform.Position,
+                            unequippedSlot: null,
+                            ItemUsageAction.Use
+                        );
+                    }
+                }
+            }
+
+            // 3. Reset attack cooldown based on stats
             var characteristic = entity.GetComponent<CharacteristicInstance>();
-            float attackSpeed = characteristic?.GetCore(AttributeType.AttackSpeed) ?? 1f;
+            float attackSpeed = characteristic?.GetCore(AttributeType.CooldownReduction) ?? 1f;
             float interval = attackSpeed <= 0f ? 1f : 1f / attackSpeed;
 
             ai.AttackTimer = interval;
+
+            // If target moved out of range, go back to chasing
+            if (Vector2.Distance(transform.Position, targetTransform.Position) > ai.AttackRange)
+            {
+                ai.AIState = AIState.Chase;
+            }
         }
         #endregion
     }

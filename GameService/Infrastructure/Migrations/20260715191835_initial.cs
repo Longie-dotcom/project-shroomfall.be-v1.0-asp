@@ -20,6 +20,8 @@ namespace Infrastructure.Migrations
                     AggroRadius = table.Column<float>(type: "real", nullable: false),
                     ThinkInterval = table.Column<float>(type: "real", nullable: false),
                     IsAIControlled = table.Column<bool>(type: "bit", nullable: false),
+                    EquippedItemDefinitionID = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AttackRange = table.Column<float>(type: "real", nullable: false),
                     EntityDefinitionID = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
@@ -109,7 +111,6 @@ namespace Infrastructure.Migrations
                     ID = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Type = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     AttributeType = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    SourceType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Value = table.Column<float>(type: "real", nullable: false),
                     Duration = table.Column<float>(type: "real", nullable: true),
                     Interval = table.Column<float>(type: "real", nullable: true),

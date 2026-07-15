@@ -3,9 +3,10 @@ using Domain.Abstraction;
 
 namespace Domain.Runtime.WorldDomain.Run
 {
-    public class CombatRunInstance : IRunInstance
+    public class CombatRunInstance : IRunInstance<CombatRunParticipant>
     {
         #region Attributes
+        private readonly Dictionary<string, CombatRunParticipant> participants;
         #endregion
 
         #region Properties
@@ -14,7 +15,7 @@ namespace Domain.Runtime.WorldDomain.Run
         public int CurrentLevel { get; private set; }
         public string CurrentRoomSpatialID { get; private set; }
         public string LeaderEntityInstanceID { get; private set; }
-        public IReadOnlyCollection<string> PlayerEntityInstanceIDs { get; private set; }
+        public IEnumerable<CombatRunParticipant> Participants => participants.Values;
         public CombatRunStatus Status { get; private set; }
         #endregion
 
@@ -27,7 +28,9 @@ namespace Domain.Runtime.WorldDomain.Run
             ID = id;
             CombatRunDefinitionID = combatRunDefinitionId;
             LeaderEntityInstanceID = leaderEntityInstanceId;
-            PlayerEntityInstanceIDs = playerEntityInstanceIds.ToList();
+            participants = playerEntityInstanceIds.ToDictionary(
+                id => id,
+                id => new CombatRunParticipant(id));
 
             CurrentLevel = 1;
             CurrentRoomSpatialID = string.Empty;
@@ -57,6 +60,32 @@ namespace Domain.Runtime.WorldDomain.Run
         public void Fail()
         {
             Status = CombatRunStatus.Failed;
+        }
+        #endregion
+    }
+
+    public class CombatRunParticipant : IRunParticipant
+    {
+        #region Attributes
+        #endregion
+
+        #region Properties
+        public string EntityInstanceID { get; private set; }
+        public CombatRunParticipantMode Mode { get; private set; }
+        #endregion
+
+        public CombatRunParticipant(
+            string entityInstanceID)
+        {
+            EntityInstanceID = entityInstanceID;
+            Mode = CombatRunParticipantMode.Alive;
+        }
+
+        #region Methods
+        public void SetMode(
+            CombatRunParticipantMode mode)
+        {
+            Mode = mode;
         }
         #endregion
     }

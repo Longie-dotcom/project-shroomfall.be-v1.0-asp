@@ -76,7 +76,9 @@ namespace Application.Services.DesignService
                 dto.LeashDistance,
                 dto.AggroRadius,
                 dto.ThinkInterval,
-                dto.IsAIControlled
+                dto.IsAIControlled,
+                dto.EquippedItemDefinitionID,
+                dto.AttackRange
             );
 
             await relationalUoW.GetRepository<IAIDefinitionRepository>().UpsertAsync(component);
@@ -130,7 +132,6 @@ namespace Application.Services.DesignService
                         finalMask = CollisionPresets.PlayerProjectileMask;
                         break;
 
-                    case EntityType.AreaEffect:
                     case EntityType.Portal:
                         finalLayer = CollisionLayer.TriggerZone;
                         finalMask = CollisionPresets.TriggerZoneMask;

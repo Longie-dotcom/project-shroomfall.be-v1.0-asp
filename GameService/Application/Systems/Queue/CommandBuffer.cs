@@ -16,11 +16,6 @@ namespace Application.Systems.Queue
         public CommandBuffer() { }
 
         #region Methods
-        public void Clear()
-        {
-            Commands.Clear();
-            Results.Clear();
-        }
         #endregion
     }
 }

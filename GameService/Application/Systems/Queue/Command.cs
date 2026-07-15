@@ -1,7 +1,7 @@
 ﻿using Application.Services.UsageService;
 using Application.Services.WorldService;
 using Application.Systems.Abstraction;
-using Contract.Enum.MetaDomain.Item;
+using Contract.Enum.MetaDomain.Effect;
 using Domain.Common;
 
 namespace Application.Systems.Queue
@@ -25,8 +25,10 @@ namespace Application.Systems.Queue
 
     public readonly struct ItemActionCommand : IEntityCommand
     {
+        #region Properties
         public string EntityInstanceID { get; }
         public ItemUsageActionContext Context { get; }
+        #endregion
 
         public ItemActionCommand(
             string entityInstanceId,
@@ -39,12 +41,52 @@ namespace Application.Systems.Queue
 
     public struct EntityExpiredCommand : IEntityCommand
     {
+        #region Properties
         public string EntityInstanceID { get; }
+        #endregion
 
         public EntityExpiredCommand(
             string entityInstanceId)
         {
             EntityInstanceID = entityInstanceId;
+        }
+    }
+
+    public class VitalThresholdCommand : IEntityCommand
+    {
+        #region Properties
+        public string EntityInstanceID { get; } = string.Empty;
+        public AttributeType Vital { get; }
+        public float PreviousValue { get; }
+        public float CurrentValue { get; }
+        #endregion
+    
+        public VitalThresholdCommand(
+            string entityInstanceId,
+            AttributeType vitals,
+            float previousValue,
+            float currentValue)
+        {
+            EntityInstanceID = entityInstanceId;
+            Vital = vitals;
+            PreviousValue = previousValue;
+            CurrentValue = currentValue;
+        }
+    }
+
+    public class EntityDespawnCommand : IEntityCommand
+    {
+        #region Properties
+        public string EntityInstanceID { get; } = string.Empty;
+        public bool TriggerDeathLogic { get; }
+        #endregion
+
+        public EntityDespawnCommand(
+            string entityInstanceId,
+            bool triggerDeathLogic)
+        {
+            EntityInstanceID = entityInstanceId;
+            TriggerDeathLogic = triggerDeathLogic;
         }
     }
 }

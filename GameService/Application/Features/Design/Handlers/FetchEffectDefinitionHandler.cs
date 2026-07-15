@@ -42,7 +42,6 @@ namespace Application.Features.Design.Handlers
                 queries?.SearchTerm,
                 queries?.Type,
                 queries?.AttributeType,
-                queries?.SourceType,
                 pageNumber,
                 pageSize
             );
@@ -50,8 +49,8 @@ namespace Application.Features.Design.Handlers
             var dtos = mapper.Map<List<EffectDefinitionDTO>>(entities);
 
             return new PagedResponseDTO<EffectDefinitionDTO>(
-                dtos, 
-                totalCount, 
+                dtos,
+                totalCount,
                 pageNumber,
                 pageSize);
         }

@@ -5,6 +5,7 @@ using Contract.Enum.EntityDomain;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
+using Domain.Runtime.MetaDomain;
 using Domain.Snapshot.EntityDomain;
 using ResponseCode;
 
@@ -56,10 +57,25 @@ namespace Application.Services.WorldService.Factory
                 foreach (var equippedItem in inventory.GetAllEquipped().Values)
                 {
                     var itemDef = cacheProvider.Item.Get(equippedItem.DefinitionID);
-                    var config = itemDef?.EquippableConfig;
-                    if (config != null)
+                    if (itemDef == null)
+                        continue;
+
+                    var config = itemDef.EquippableConfig;
+                    if (config == null)
+                        continue;
+
+                    foreach (var effectId in config.EffectDefinitionIDs)
                     {
-                        config.EffectDefinitionIDs.ForEach(e => effectService.ApplyEffect(entity, e));
+                        var effectDef = cacheProvider.Effect.Get(effectId);
+                        if (effectDef == null)
+                            continue;
+
+                        effectService.ApplyEffect(new EffectContext()
+                        {
+                            Target = entity,
+                            Source = null,
+                            Effect = effectDef,
+                        });
                     }
                 }
             }
@@ -85,9 +101,6 @@ namespace Application.Services.WorldService.Factory
 
             switch (entityDef.Type)
             {
-                case EntityType.AreaEffect:
-                    ConstructAreaEffect(entity, context);
-                    break;
                 case EntityType.Portal:
                     ConstructPortal(entity, context);
                     break;
@@ -136,27 +149,9 @@ namespace Application.Services.WorldService.Factory
 
         }
 
-        private void ConstructAreaEffect(
-            EntityInstance entity,
+        private void ConstructProjectile(
+            EntityInstance entity, 
             WorldEntityCreateContext context)
-        {
-            var lifetime = cacheProvider.Lifetime.GetByEntity(entity.DefinitionID);
-            if (lifetime == null)
-                throw new InternalException(
-                    ApplicationCode.EntityInstanceFactoryCode.LifetimeDefinitionNotFound,
-                    $"AreaEffect '{entity.DefinitionID}' missing Lifetime definition in cache.");
-
-            var triggeredEffect = cacheProvider.TriggeredEffect.GetByEntity(entity.DefinitionID);
-            if (triggeredEffect == null)
-                throw new InternalException(
-                    ApplicationCode.EntityInstanceFactoryCode.TriggeredEffectDefinitionNotFound,
-                    $"AreaEffect '{entity.DefinitionID}' missing Triggered Effect configuration.");
-
-            entity.AddComponent(definitionRuntimeFactory.CreateLifeTime(lifetime));
-            entity.AddComponent(definitionRuntimeFactory.CreateTriggeredEffect(triggeredEffect));
-        }
-
-        private void ConstructProjectile(EntityInstance entity, WorldEntityCreateContext context)
         {
             if (context is not ProjectileEntityCreateContext projectileContext)
                 throw new InternalException(
@@ -182,7 +177,7 @@ namespace Application.Services.WorldService.Factory
                     $"Projectile '{entity.DefinitionID}' missing Projectile configuration.");
 
             entity.AddComponent(definitionRuntimeFactory.CreateLifeTime(lifetime));
-            entity.AddComponent(definitionRuntimeFactory.CreateTriggeredEffect(triggeredEffect));
+            entity.AddComponent(definitionRuntimeFactory.CreateTriggeredEffect(triggeredEffect, projectileContext.SourceEntityID));
             entity.AddComponent(definitionRuntimeFactory.CreateProjectile(projectile));
 
             // Set direction
@@ -227,9 +222,9 @@ namespace Application.Services.WorldService.Factory
             entity.AddComponent(definitionRuntimeFactory.CreateCharacteristic(characteristic));
             entity.AddComponent(definitionRuntimeFactory.CreateInventory(inventory));
             entity.AddComponent(definitionRuntimeFactory.CreateAppearance(appearance));
-            entity.AddComponent(definitionRuntimeFactory.CreateAI(ai));
-            entity.AddComponent(definitionRuntimeFactory.CreateEffectContainer());
             entity.AddComponent(definitionRuntimeFactory.CreateAction());
+            entity.AddComponent(definitionRuntimeFactory.CreateEffectContainer());
+            entity.AddComponent(definitionRuntimeFactory.CreateAI(ai));
 
             // Initialize
             characteristicService.InitializeVitals(entity);
@@ -266,8 +261,8 @@ namespace Application.Services.WorldService.Factory
             entity.AddComponent(definitionRuntimeFactory.CreateCharacteristic(characteristic));
             entity.AddComponent(definitionRuntimeFactory.CreateInventory(inventory));
             entity.AddComponent(definitionRuntimeFactory.CreateAppearance(appearance));
-            entity.AddComponent(definitionRuntimeFactory.CreateEffectContainer());
             entity.AddComponent(definitionRuntimeFactory.CreateAction());
+            entity.AddComponent(definitionRuntimeFactory.CreateEffectContainer());
             entity.AddComponent(definitionRuntimeFactory.CreateOwnership(playerContext.UserID, playerContext.PersonalRoomID));
 
             // Initialize
@@ -279,7 +274,7 @@ namespace Application.Services.WorldService.Factory
             EntityInstance entity,
             WorldEntityCreateContext context)
         {
-            if (context is not InventoryEntityCreateContext itemContext)
+            if (context is not WorldItemCreateContext itemContext)
                 throw new InternalException(
                     ApplicationCode.EntityInstanceFactoryCode.InvalidContextType,
                     $"Expected InventoryEntityCreateContext for Item entity, but got {context.GetType().Name}.");

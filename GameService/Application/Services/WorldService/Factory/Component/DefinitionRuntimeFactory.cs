@@ -32,7 +32,9 @@ namespace Application.Services.WorldService.Factory.Component
                 def.LeashDistance,
                 def.AggroRadius,
                 def.IsAIControlled,
-                def.ThinkInterval);
+                def.ThinkInterval,
+                def.EquippedItemDefinitionID,
+                def.AttackRange);
         }
 
         public AppearanceInstance CreateAppearance(
@@ -68,17 +70,28 @@ namespace Application.Services.WorldService.Factory.Component
         {
             var validDefaultItems = new List<ItemInstance>();
 
-            foreach(var entry in def.DefaultItems)
+            foreach (var entry in def.DefaultItems)
             {
                 var itemDef = cacheProvider.Item.Get(entry.DefinitionID);
-                if (itemDef != null)
-                    validDefaultItems.Add(
-                        new ItemInstance(
-                            Guid.NewGuid().ToString(),
-                            itemDef.ID,
-                            entry.Amount,
-                            entry.Quality,
-                            itemDef.MaxDurability));
+                if (itemDef == null)
+                    continue;
+
+                int remaining = entry.Amount;
+                int maxStack = itemDef.MaxStack ?? 1;
+
+                while (remaining > 0)
+                {
+                    int amount = Math.Min(remaining, maxStack);
+
+                    validDefaultItems.Add(new ItemInstance(
+                        Guid.NewGuid().ToString(),
+                        itemDef.ID,
+                        amount,
+                        entry.Quality,
+                        itemDef.MaxDurability));
+
+                    remaining -= amount;
+                }
             }
 
             var inventory = new InventoryInstance(
@@ -106,7 +119,8 @@ namespace Application.Services.WorldService.Factory.Component
         }
 
         public TriggeredEffectInstance CreateTriggeredEffect(
-            TriggeredEffectDefinition def)
+            TriggeredEffectDefinition def,
+            string sourceEntityId)
         {
             var validEffects = new List<string>();
 
@@ -119,7 +133,8 @@ namespace Application.Services.WorldService.Factory.Component
 
             return new TriggeredEffectInstance(
                 def.ID,
-                validEffects);
+                validEffects,
+                sourceEntityId);
         }
 
         public ActionInstance CreateAction()

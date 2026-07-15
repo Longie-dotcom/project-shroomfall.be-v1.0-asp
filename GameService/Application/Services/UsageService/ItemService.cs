@@ -3,6 +3,8 @@ using Application.Services.AttributeService;
 using Application.Services.WorldService;
 using Application.Systems.Abstraction;
 using Application.Systems.Queue;
+using Contract;
+using Contract.Enum.MetaDomain.Effect;
 using Contract.Enum.MetaDomain.Item;
 using Domain.Common;
 using Domain.Definition.MetaDomain;
@@ -14,7 +16,7 @@ using ResponseCode;
 
 namespace Application.Services.UsageService
 {
-    public class ItemUsageActionContext
+    public readonly struct ItemUsageActionContext
     {
         public ItemInstance Item { get; }
         public ItemDefinition ItemDef { get; }
@@ -73,32 +75,74 @@ namespace Application.Services.UsageService
 
             foreach (var entity in entities)
             {
-                var actionState = entity.GetComponent<ActionInstance>();
+                var characteristic = entity.GetComponent<CharacteristicInstance>();
+                if (characteristic == null)
+                    continue;
 
-                if (actionState != null && actionState.PendingItemUseID != null)
+                var actionState = entity.GetComponent<ActionInstance>();
+                if (actionState == null)
+                    continue; 
+
+                // 1. Update active cooldown timers on the instance
+                if (actionState.ActiveCooldowns.Count > 0)
+                {
+                    var keys = actionState.ActiveCooldowns.Keys.ToList();
+                    foreach (var key in keys)
+                    {
+                        actionState.ActiveCooldowns[key] -= dt;
+                        if (actionState.ActiveCooldowns[key] <= 0f)
+                        {
+                            actionState.ActiveCooldowns.Remove(key);
+                        }
+                    }
+                }
+
+                // 2. Process pending item uses
+                if (actionState.PendingItemUseID != null)
                 {
                     var inventory = entity.GetComponent<InventoryInstance>();
                     var item = inventory?.Items.FirstOrDefault(i => i.ID == actionState.PendingItemUseID);
 
-                    if (item != null)
+                    // If the item isn't in their inventory, clear the intent and jump to the next entity
+                    if (item == null)
                     {
-                        var itemDef = cacheProvider.Item.Get(item.DefinitionID);
-                        if (itemDef != null)
-                        {
-                            // Create the correct usage action object based on the enum intent and available data
-                            ItemUsageActionContext context = new ItemUsageActionContext(
-                                item, 
-                                itemDef,
-                                actionState.ItemUsageAction, 
-                                actionState.PendingTargetPosition,
-                                actionState.PendingUnequippedSlot);
-
-                            // Enqueue the command with the typed action object
-                            commandBuffer.Commands.Enqueue(new ItemActionCommand(
-                                entity.ID,
-                                context));
-                        }
+                        actionState.ClearItemUseIntent();
+                        continue; // CRITICAL: Use 'continue' instead of 'return'
                     }
+
+                    // 3. Cooldown Gatekeeper Check
+                    if (actionState.IsOnCooldown(item.ID))
+                    {
+                        actionState.ClearItemUseIntent();
+                        continue;
+                    }
+
+                    var itemDef = cacheProvider.Item.Get(item.DefinitionID);
+                    if (itemDef == null)
+                    {
+                        actionState.ClearItemUseIntent();
+                        continue; // CRITICAL: Use 'continue' instead of 'return'
+                    }
+
+                    // Create the correct usage action object based on the enum intent and available data
+                    ItemUsageActionContext context = new ItemUsageActionContext(
+                        item,
+                        itemDef,
+                        actionState.ItemUsageAction,
+                        actionState.PendingTargetPosition,
+                        actionState.PendingUnequippedSlot);
+
+                    // Enqueue the command with the typed action object
+                    commandBuffer.Commands.Enqueue(new ItemActionCommand(
+                        entity.ID,
+                        context));
+
+                    var cdr = characteristic.GetCore(AttributeType.CooldownReduction); // e.g., 0.20 for 20% reduction
+
+                    // Calculate actual duration: e.g., Cooldown * (1 - 0.20)
+                    float modifiedCooldown = Constraint.ITEM_COOLDOWN_VALUE * (1f - cdr);
+
+                    actionState.ApplyCooldown(item.ID, MathF.Max(0f, modifiedCooldown));
 
                     // Clear the intent
                     actionState.ClearItemUseIntent();
@@ -208,7 +252,16 @@ namespace Application.Services.UsageService
 
             foreach (var effectId in config.EffectDefinitionIDs)
             {
-                effectService.ApplyEffect(entity, effectId);
+                var effectDef = cacheProvider.Effect.Get(effectId);
+                if (effectDef == null) 
+                    continue;
+
+                effectService.ApplyEffect(new EffectContext()
+                {
+                    Target = entity,
+                    Source = null,
+                    Effect = effectDef,
+                });
             }
 
             // Equip the new item
@@ -233,7 +286,16 @@ namespace Application.Services.UsageService
             {
                 foreach (var effectId in itemDef.EquippableConfig.EffectDefinitionIDs)
                 {
-                    effectService.RemoveEffect(entity, effectId);
+                    var effectDef = cacheProvider.Effect.Get(effectId);
+                    if (effectDef == null)
+                        continue;
+
+                    effectService.RemoveEffect(new EffectContext()
+                    {
+                        Target = entity,
+                        Source = null,
+                        Effect = effectDef,
+                    });
                 }
             }
 
@@ -273,13 +335,16 @@ namespace Application.Services.UsageService
                     ApplicationCode.ItemServiceCode.RangedMissingTransform,
                     $"Entity {entity.ID} missing TransformInstance for using ranged.");
 
+            var (projectileSpawnPos, finalDirection) = ResolveProjectileSpawn(entity, transform, targetVector);
+
             var spawnContext = new ProjectileEntityCreateContext(
                 Guid.NewGuid().ToString(),
                 config.EntityDefinitionID,
                 transform.RoomSpatialID,
                 transform.LayerZ,
-                transform.Position,
-                targetVector
+                projectileSpawnPos,
+                finalDirection,
+                entity.ID
             );
 
             entitySpawnService.Spawn(spawnContext);
@@ -296,12 +361,16 @@ namespace Application.Services.UsageService
                     ApplicationCode.ItemServiceCode.MeleeMissingTransform,
                     $"Entity {entity.ID} missing TransformInstance for using melee.");
 
-            var spawnContext = new WorldEntityCreateContext(
+            var (projectileSpawnPos, finalDirection) = ResolveProjectileSpawn(entity, transform, targetVector);
+
+            var spawnContext = new ProjectileEntityCreateContext(
                 Guid.NewGuid().ToString(),
                 config.EntityDefinitionID,
                 transform.RoomSpatialID,
                 transform.LayerZ,
-                targetVector
+                projectileSpawnPos,
+                finalDirection,
+                entity.ID
             );
 
             entitySpawnService.Spawn(spawnContext);
@@ -311,7 +380,19 @@ namespace Application.Services.UsageService
             EntityInstance entity,
             ConsumableConfig config)
         {
-            config.EffectDefinitionIDs.ForEach(e => effectService.ApplyEffect(entity, e));
+            foreach (var effectId in config.EffectDefinitionIDs)
+            {
+                var effectDef = cacheProvider.Effect.Get(effectId);
+                if (effectDef == null)
+                    continue;
+
+                effectService.ApplyEffect(new EffectContext()
+                {
+                    Target = entity,
+                    Source = null,
+                    Effect = effectDef,
+                });
+            }
         }
         #endregion
 
@@ -340,6 +421,68 @@ namespace Application.Services.UsageService
                     inventoryService.RemoveItem(entity, item);
                     break;
             }
+        }
+
+        private (Vector2 startPos, Vector2 direction) ResolveProjectileSpawn(
+            EntityInstance entity,
+            TransformInstance transform,
+            Vector2 targetVector)
+        {
+            var collision = entity.GetComponent<CollisionInstance>();
+
+            // 1. Calculate caster's true collision center (incorporating the collision offset)
+            Vector2 casterCenter = transform.Position;
+            if (collision != null)
+            {
+                casterCenter += collision.CollisionOffset;
+            }
+
+            Vector2 targetPos = targetVector;
+
+            // 2. Calculate and normalize the projectile direction
+            Vector2 rawDir = targetPos - casterCenter;
+            Vector2 finalDirection = Vector2.Normalize(rawDir);
+
+            // 3. Dynamic Spawn Offset based on Caster's Collision Shape
+            float spawnOffsetDist = 0.5f; // Fallback distance
+
+            if (collision != null)
+            {
+                switch (collision.CollisionShape)
+                {
+                    case CircleShape circle:
+                        // Spawn just outside the circle's radius
+                        spawnOffsetDist = circle.Radius + 0.1f;
+                        break;
+
+                    case BoxShape box:
+                        // Project direction vector onto the box edges to find the boundary distance
+                        float halfW = box.Width / 2f;
+                        float halfH = box.Height / 2f;
+
+                        float absDirX = MathF.Abs(finalDirection.X);
+                        float absDirY = MathF.Abs(finalDirection.Y);
+
+                        // Find intersection of direction ray with AABB boundary
+                        float safeDirX = MathF.Max(absDirX, 0.00001f);
+                        float safeDirY = MathF.Max(absDirY, 0.00001f);
+
+                        float distToXEdge = halfW / safeDirX;
+                        float distToYEdge = halfH / safeDirY;
+
+                        spawnOffsetDist = MathF.Min(distToXEdge, distToYEdge) + 0.1f; // Add a tiny 0.1 padding
+                        break;
+
+                    case PointShape:
+                        spawnOffsetDist = 0.1f; // Points have no volume, spawn almost instantly at center
+                        break;
+                }
+            }
+
+            // 4. Calculate final Spawn Position
+            Vector2 projectileSpawnPos = casterCenter + (finalDirection * spawnOffsetDist);
+
+            return (projectileSpawnPos, finalDirection);
         }
         #endregion
     }

@@ -37,6 +37,7 @@ namespace Application.Services.WorldService
     public class ProjectileEntityCreateContext : WorldEntityCreateContext
     {
         public Vector2 Direction { get; }
+        public string SourceEntityID { get; }
 
         public ProjectileEntityCreateContext(
             string instanceId,
@@ -44,7 +45,8 @@ namespace Application.Services.WorldService
             string roomSpatialId,
             int layerZ,
             Vector2 position,
-            Vector2 direction) : base(
+            Vector2 direction,
+            string sourceEntityId) : base(
                 instanceId, 
                 definitionId,
                 roomSpatialId, 
@@ -52,14 +54,15 @@ namespace Application.Services.WorldService
                 position)
         {
             Direction = direction;
+            SourceEntityID = sourceEntityId;
         }
     }
 
-    public class InventoryEntityCreateContext : WorldEntityCreateContext
+    public class WorldItemCreateContext : WorldEntityCreateContext
     {
         public ItemInstance Payload { get; }
 
-        public InventoryEntityCreateContext(
+        public WorldItemCreateContext(
             string instanceId,
             string roomSpatialId,
             int layerZ,
@@ -121,9 +124,15 @@ namespace Application.Services.WorldService
         }
 
         #region Methods
-        public void Activate(
-            EntityInstance entity)
+        public void Spawn(
+            WorldEntityCreateContext context)
         {
+            var entity = entityInstanceFactory.Create(context);
+            if (entity == null)
+                throw new InternalException(
+                    ApplicationCode.EntitySpawnServiceCode.SpawnEntityCreationFailed,
+                    $"Failed to create entity instance from definition ID: {context.DefinitionID}");
+
             var transform = entity.GetComponent<TransformInstance>();
             if (transform == null)
                 throw new InternalException(
@@ -140,7 +149,7 @@ namespace Application.Services.WorldService
                 EntityLifecycleType.Spawn));
         }
 
-        public void Deactivate(
+        public void Despawn(
             EntityInstance entity)
         {
             var transform = entity.GetComponent<TransformInstance>();
@@ -154,31 +163,6 @@ namespace Application.Services.WorldService
                 entity,
                 transform.RoomSpatialID,
                 EntityLifecycleType.Despawn));
-        }
-
-        public void Spawn(
-            WorldEntityCreateContext context)
-        {
-            var entity = entityInstanceFactory.Create(context);
-            if (entity == null)
-                throw new InternalException(
-                    ApplicationCode.EntitySpawnServiceCode.SpawnEntityCreationFailed,
-                    $"Failed to create entity instance from definition ID: {context.DefinitionID}");
-
-            Activate(entity);
-        }
-
-        public void Despawn(
-            EntityInstance entity)
-        {
-            if (entity == null)
-                throw new InternalException(
-                    ApplicationCode.EntitySpawnServiceCode.DespawnEntityMissing,
-                    "Cannot despawn null entity instance");
-
-            Deactivate(entity);
-
-            // Note: Handle any permanent garbage collection or data-purging here if required
         }
 
         public void TransitionRoom(

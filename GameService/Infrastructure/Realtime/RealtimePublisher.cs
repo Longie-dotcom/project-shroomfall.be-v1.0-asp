@@ -6,7 +6,9 @@ using Contract.DTO.Feature.Design.Response;
 using Contract.DTO.Feature.Game.Response;
 using Contract.DTO.Runtime.EntityDomain;
 using Contract.DTO.Runtime.EntityDomain.Component;
+using Contract.DTO.Runtime.MetaDomain;
 using Contract.DTO.Runtime.WorldDomain;
+using Contract.Enum.MetaDomain.Item;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Infrastructure.Realtime
@@ -61,6 +63,24 @@ namespace Infrastructure.Realtime
             return hub.Clients
                 .Client(connectionId)
                 .SendAsync(NetworkMethod.OnPlayerCharacteristicSync, payload);
+        }
+
+        public Task SendInventoryItemChanged(
+            string connectionId,
+            ItemInstanceDTO item,
+            ItemInventorySyncEvent changeType)
+        {
+            return hub.Clients
+                .Client(connectionId)
+                .SendAsync(NetworkMethod.OnInventoryItemChanged, item, changeType);
+        }
+
+        public Task SendInventoryCleared(
+            string connectionId)
+        {
+            return hub.Clients
+                .Client(connectionId)
+                .SendAsync(NetworkMethod.OnInventoryCleared);
         }
 
         // ─────────────────────────────
@@ -138,9 +158,7 @@ namespace Infrastructure.Realtime
         {
             return hub.Clients
                 .Group(Constraint.ADMIN_REALTIME_GROUP)
-                .SendAsync(
-                    NetworkMethod.OnRoomResidencyChanged,
-                    payload);
+                .SendAsync(NetworkMethod.OnRoomResidencyChanged, payload);
         }
 
         public Task SendUserConnectionChanged(
@@ -148,9 +166,7 @@ namespace Infrastructure.Realtime
         {
             return hub.Clients
                 .Group(Constraint.ADMIN_REALTIME_GROUP)
-                .SendAsync(
-                    NetworkMethod.OnUserConnectionChanged,
-                    payload);
+                .SendAsync(NetworkMethod.OnUserConnectionChanged, payload);
         }
 
         public Task SendUserSessionChanged(
@@ -158,9 +174,7 @@ namespace Infrastructure.Realtime
         {
             return hub.Clients
                 .Group(Constraint.ADMIN_REALTIME_GROUP)
-                .SendAsync(
-                    NetworkMethod.OnUserSessionChanged,
-                    payload);
+                .SendAsync(NetworkMethod.OnUserSessionChanged, payload);
         }
         #endregion
     }

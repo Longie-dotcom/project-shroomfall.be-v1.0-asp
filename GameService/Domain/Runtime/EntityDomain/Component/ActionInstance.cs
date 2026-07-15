@@ -14,6 +14,7 @@ namespace Domain.Runtime.EntityDomain.Component
         public Vector2 PendingTargetPosition { get; private set; } = Vector2.Zero;
         public EquipmentSlot? PendingUnequippedSlot { get; private set; }
         public ItemUsageAction ItemUsageAction { get; private set; }
+        public Dictionary<string, float> ActiveCooldowns { get; private set; } = new();
         #endregion
 
         public ActionInstance() : base(Guid.Empty) { }
@@ -37,6 +38,22 @@ namespace Domain.Runtime.EntityDomain.Component
             PendingTargetPosition = Vector2.Zero;
             PendingUnequippedSlot = null;
             ItemUsageAction = ItemUsageAction.None;
+        }
+
+        public bool IsOnCooldown(
+            string itemInstanceId)
+        {
+            return ActiveCooldowns.TryGetValue(itemInstanceId, out var timeLeft) && timeLeft > 0f;
+        }
+
+        public void ApplyCooldown(
+            string itemInstanceId,
+            float duration)
+        {
+            if (duration > 0f)
+            {
+                ActiveCooldowns[itemInstanceId] = duration;
+            }
         }
         #endregion
     }

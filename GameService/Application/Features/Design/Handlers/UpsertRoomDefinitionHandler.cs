@@ -83,8 +83,8 @@ namespace Application.Features.Design.Handlers
             if (existingRoom == null)
             {
                 var newRoom = new RoomDefinition(
-                    dto.ID, 
-                    dto.Type, 
+                    dto.ID,
+                    dto.Type,
                     new RoomPresentationDefinition(localizedText, dto.ID));
                 await repo.AddAsync(newRoom);
             }

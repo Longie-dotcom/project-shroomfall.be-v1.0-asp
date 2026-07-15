@@ -1,7 +1,7 @@
-﻿using Application.Interfaces.Cache;
-using Application.Interfaces.Realtime.Events;
+﻿using Application.Interfaces.Realtime.Events;
 using Application.Interfaces.Realtime.Events.Game;
 using Application.Services.AttributeService;
+using Application.Services.EntityService;
 using Application.Services.UsageService;
 using Application.Services.WorldService;
 using Application.Systems.Queue;
@@ -13,27 +13,30 @@ namespace Application.Systems.System
     {
         #region Attributes
         private readonly WorldContext worldContext;
-        private readonly ICacheProvider cacheProvider;
         private readonly IEventBus eventBus;
-        private readonly EntitySpawnService entitySpawnService;
-        private readonly EffectService effectService;
         private readonly ItemService itemService;
+        private readonly ProjectileService projectileService;
+        private readonly TriggeredEffectService triggeredEffectService;
+        private readonly EntitySpawnService entitySpawnService;
+        private readonly InventoryService inventoryService;
         #endregion
 
         public EntityTrigger(
             WorldContext worldContext,
-            ICacheProvider cacheProvider,
             IEventBus eventBus,
+            ItemService itemService,
+            ProjectileService projectileService,
+            TriggeredEffectService triggeredEffectService,
             EntitySpawnService entitySpawnService,
-            EffectService effectService,
-            ItemService itemService)
+            InventoryService inventoryService)
         {
             this.worldContext = worldContext;
-            this.cacheProvider = cacheProvider;
             this.eventBus = eventBus;
-            this.entitySpawnService = entitySpawnService;
-            this.effectService = effectService;
             this.itemService = itemService;
+            this.projectileService = projectileService;
+            this.triggeredEffectService = triggeredEffectService;
+            this.entitySpawnService = entitySpawnService;
+            this.inventoryService = inventoryService;
         }
 
         #region Methods
@@ -44,29 +47,40 @@ namespace Application.Systems.System
             {
                 switch (result)
                 {
-                    case MovementResult moveRes:
-                        ApplyMovement(moveRes);
+                    case MovementResult movementRes:
+                        ApplyMovement(movementRes, commandBuffer);
                         break;
 
-                    case ItemActionResult itemRes:
-                        ApplyItemAction(itemRes);
+                    case ItemActionResult itemActionRes:
+                        ApplyItemAction(itemActionRes);
                         break;
 
-                    case DespawnResult despawnRes:
-                        ApplyDespawn(despawnRes);
+                    case EntityExpiredResult entityExpiredRes:
+                        ApplyEntityExpired(entityExpiredRes, commandBuffer);
+                        break;
+
+                    case VitalThresholdResult vitalThresholdRes:
+                        ApplyVitalThreshold(vitalThresholdRes, commandBuffer);
+                        break;
+
+                    case EntityDespawnResult entityDespawnRes:
+                        ApplyEntityDespawn(entityDespawnRes);
                         break;
                 }
             }
         }
 
         private void ApplyMovement(
-            MovementResult result)
+            MovementResult result,
+            CommandBuffer commandBuffer)
         {
             var entity = worldContext.GetEntity(result.EntityInstanceID);
-            if (entity == null) return;
+            if (entity == null)
+                return;
 
             var transform = entity.GetComponent<TransformInstance>();
-            if (transform == null) return;
+            if (transform == null)
+                return;
 
             // Cache state before updating position index
             bool wasMoving = transform.WantsToMove || transform.PositionChangedThisFrame;
@@ -92,24 +106,16 @@ namespace Application.Systems.System
 
             foreach (var touched in result.TriggeredEntities)
             {
-                // Scenario A: The entity we stepped on has the effect payload (e.g., Player walks into a Spike Trap)
-                var trapEffect = touched.GetComponent<TriggeredEffectInstance>();
-                if (trapEffect != null)
+                triggeredEffectService.OnEntityTouched(touched, entity);
+
+                if (projectileService.TryHandleImpact(entity))
                 {
-                    foreach (var effectId in trapEffect.EffectDefinitionIDs)
-                    {
-                        effectService.ApplyEffect(entity, effectId);
-                    }
+                    commandBuffer.Commands.Enqueue(new EntityDespawnCommand(entity.ID, false));
                 }
 
-                // Scenario B: WE are the ones carrying the effect payload (e.g., Fireball flies into a stationary Player)
-                var myEffect = entity.GetComponent<TriggeredEffectInstance>();
-                if (myEffect != null)
+                if (inventoryService.TryPickItem(entity, touched))
                 {
-                    foreach (var effectId in myEffect.EffectDefinitionIDs)
-                    {
-                        effectService.ApplyEffect(entity, effectId);
-                    }
+                    commandBuffer.Commands.Enqueue(new EntityDespawnCommand(touched.ID, false));
                 }
             }
         }
@@ -118,7 +124,8 @@ namespace Application.Systems.System
             ItemActionResult result)
         {
             var entity = worldContext.GetEntity(result.EntityInstanceID);
-            if (entity == null) return;
+            if (entity == null) 
+                return;
 
             // Execute the item usage logic
             itemService.Execute(entity, result.Context);
@@ -138,29 +145,69 @@ namespace Application.Systems.System
             }
         }
 
-        private void ApplyDespawn(
-            DespawnResult result)
+        private void ApplyEntityExpired(
+            EntityExpiredResult result,
+            CommandBuffer commandBuffer)
         {
             var entity = worldContext.GetEntity(result.EntityInstanceID);
-            if (entity == null) return;
+            if (entity == null) 
+                return;
 
-            var transform = entity.GetComponent<TransformInstance>();
-            var projectile = entity.GetComponent<ProjectileInstance>();
+            // Apply projectile logic
+            projectileService.TryHandleImpact(entity);
 
-            // Handle Projectile side effects (e.g., throwing a weapon that transitions to an AOE)
-            if (projectile != null && transform != null && !string.IsNullOrEmpty(projectile.OnImpactSpawnEntityDefinitionID))
+            commandBuffer.Commands.Enqueue(new EntityDespawnCommand(entity.ID, false));
+        }
+
+        private void ApplyVitalThreshold(
+            VitalThresholdResult result,
+            CommandBuffer commandBuffer)
+        {
+            switch (result.Outcome)
             {
-                var spawnContext = new WorldEntityCreateContext(
-                    Guid.NewGuid().ToString(),
-                    projectile.OnImpactSpawnEntityDefinitionID,
-                    transform.RoomSpatialID,
-                    transform.LayerZ,
-                    transform.Position
-                );
+                case DeathOutcome.Entity:
+                    commandBuffer.Commands.Enqueue(new EntityDespawnCommand(result.EntityInstanceID, true));
+                    break;
 
-                // Trigger the new spawn instantly in the execution phase
-                entitySpawnService.Spawn(spawnContext);
+                case DeathOutcome.Player:
+                    // publish the Run mode of that participant
+                    break; 
+
+                case DeathOutcome.None:
+                default:
+                    break;
             }
+        }
+
+        private void ApplyEntityDespawn(
+            EntityDespawnResult result)
+        {
+            var entity = worldContext.GetEntity(result.EntityInstanceID);
+            if (entity == null)
+                return;
+
+            if (result.TriggerDeathLogic)
+            {
+                var transform = entity.GetComponent<TransformInstance>();
+
+                if (transform != null)
+                {
+                    var drops = inventoryService.DropAllItems(entity);
+
+                    foreach (var item in drops)
+                    {
+                        entitySpawnService.Spawn(
+                            new WorldItemCreateContext(
+                                Guid.NewGuid().ToString(),
+                                transform.RoomSpatialID,
+                                transform.LayerZ,
+                                transform.Position,
+                                item));
+                    }
+                }
+            }
+
+            entitySpawnService.Despawn(entity);
         }
         #endregion
     }

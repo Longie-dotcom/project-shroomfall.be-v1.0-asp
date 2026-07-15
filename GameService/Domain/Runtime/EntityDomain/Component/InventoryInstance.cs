@@ -51,9 +51,7 @@ namespace Domain.Runtime.EntityDomain.Component
             EquipmentSlot slot)
         {
             if (!Items.Contains(item))
-                throw new InternalException(
-                    DomainCode.InventoryInstanceCode.EquippedItemNotExistInInventory,
-                    $"Item equipped process failed, inventory instance of entity id: {Entity.ID} has no such item [{item.ID}][{item.DefinitionID}]");
+                return;
 
             // If a different item is already in this slot, it must be forcefully un-tagged first
             if (equippedCache.TryGetValue(slot, out var existingItem))

@@ -10,15 +10,18 @@ namespace Application.Services.EntityService
     {
         #region Attributes
         private readonly WorldContext worldContext;
+        private readonly EntitySpawnService entitySpawnService;
         #endregion
 
         #region Properties
         #endregion
 
         public ProjectileService(
-            WorldContext worldContext)
+            WorldContext worldContext, 
+            EntitySpawnService entitySpawnService)
         {
             this.worldContext = worldContext;
+            this.entitySpawnService = entitySpawnService;
         }
 
         #region Methods
@@ -37,6 +40,29 @@ namespace Application.Services.EntityService
                     commandBuffer.Commands.Enqueue(command.Value);
                 }
             }
+        }
+
+        public bool TryHandleImpact(
+            EntityInstance entity)
+        {
+            var projectile = entity.GetComponent<ProjectileInstance>();
+            if (projectile == null)
+                return false;
+
+            var transform = entity.GetComponent<TransformInstance>();
+            if (transform == null)
+                return false;
+
+            if (!string.IsNullOrEmpty(projectile.OnImpactSpawnEntityDefinitionID))
+                entitySpawnService.Spawn(
+                    new WorldEntityCreateContext(
+                        Guid.NewGuid().ToString(),
+                        projectile.OnImpactSpawnEntityDefinitionID,
+                        transform.RoomSpatialID,
+                        transform.LayerZ,
+                        transform.Position));
+
+            return true;
         }
 
         private MovementCommand? CreateProjectileMovementCommand(

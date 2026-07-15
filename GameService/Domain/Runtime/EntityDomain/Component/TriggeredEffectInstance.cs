@@ -9,13 +9,16 @@ namespace Domain.Runtime.EntityDomain.Component
 
         #region Properties
         public List<string> EffectDefinitionIDs { get; }
+        public string SourceEntityID { get; }
         #endregion
 
         public TriggeredEffectInstance(
             Guid definitionId, 
-            List<string> effectDefinitionIds) : base(definitionId)
+            List<string> effectDefinitionIds,
+            string sourceEntityId) : base(definitionId)
         {
             EffectDefinitionIDs = effectDefinitionIds;
+            SourceEntityID = sourceEntityId;
         }
 
         #region Methods

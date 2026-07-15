@@ -1,5 +1,15 @@
-﻿namespace Domain.Runtime.MetaDomain
+﻿using Domain.Definition.MetaDomain;
+using Domain.Runtime.EntityDomain;
+
+namespace Domain.Runtime.MetaDomain
 {
+    public class EffectContext
+    {
+        public required EntityInstance Target { get; init; }
+        public EntityInstance? Source { get; init; } // null mean effect belong to target (self consume)
+        public required EffectDefinition Effect { get; init; }
+    }
+
     public class EffectInstance
     {
         #region Attributes
@@ -7,6 +17,7 @@
 
         #region Properties
         public string DefinitionID { get; }
+        public EffectContext Context { get; }
         public float? RemainingTime { get; private set; }
         public float? IntervalDuration { get; }
         public float IntervalAccumulator { get; private set; }
@@ -14,11 +25,13 @@
 
         public EffectInstance(
             string definitionId,
+            EffectContext effectContext,
             float? remainingTime,
             float? intervalDuration,
             float intervalAccumulator = 0f)
         {
             DefinitionID = definitionId;
+            Context = effectContext;
             RemainingTime = remainingTime;
             IntervalDuration = intervalDuration;
             IntervalAccumulator = intervalAccumulator;

@@ -145,9 +145,7 @@ namespace Application.Mapper
                 .ForMember(dest => dest.Vitals, opt => opt.MapFrom(src =>
                     src.GetVitals().Select(kvp => new AttributeValueInstanceDTO { AttributeType = kvp.Key, Value = kvp.Value })));
 
-            CreateMap<EffectContainerInstance, EffectContainerInstanceDTO>()
-                .ForMember(dest => dest.ActiveEffects, opt => opt.MapFrom(src =>
-                    src.GetAllPersistentEffects()));
+            CreateMap<EffectContainerInstance, EffectContainerInstanceDTO>();
 
             CreateMap<InventoryInstance, InventoryInstanceDTO>();
 

@@ -4,7 +4,9 @@ using Contract.DTO.Feature.Design.Response;
 using Contract.DTO.Feature.Game.Response;
 using Contract.DTO.Runtime.EntityDomain;
 using Contract.DTO.Runtime.EntityDomain.Component;
+using Contract.DTO.Runtime.MetaDomain;
 using Contract.DTO.Runtime.WorldDomain;
+using Contract.Enum.MetaDomain.Item;
 
 namespace Application.Interfaces.Realtime
 {
@@ -30,6 +32,14 @@ namespace Application.Interfaces.Realtime
         Task SendPlayerCharacteristicSync(
             string connectionId,
             CharacteristicInstanceDTO payload);
+
+        Task SendInventoryItemChanged(
+            string connectionId,
+            ItemInstanceDTO item,
+            ItemInventorySyncEvent changeType);
+
+        Task SendInventoryCleared(
+            string connectionId);
 
         // ─────────────────────────────
         // Lifecycle (spawn / despawn)

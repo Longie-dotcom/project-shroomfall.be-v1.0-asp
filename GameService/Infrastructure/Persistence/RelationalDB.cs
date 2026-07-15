@@ -74,6 +74,10 @@ namespace Infrastructure.Persistence
                     .IsRequired();
                 entity.Property(x => x.IsAIControlled)
                     .IsRequired();
+                entity.Property(x => x.EquippedItemDefinitionID)
+                    .IsRequired();
+                entity.Property(x => x.AttackRange)
+                    .IsRequired();
 
                 // ─────────────────────────────
                 // Indexes
@@ -632,10 +636,6 @@ namespace Infrastructure.Persistence
                 entity.Property(x => x.AttributeType)
                     .HasConversion<string>()
                     .IsRequired();
-
-                entity.Property(x => x.SourceType)
-                    .HasConversion<string>()
-                    .IsRequired(false);
 
                 entity.Property(x => x.Value)
                     .IsRequired();

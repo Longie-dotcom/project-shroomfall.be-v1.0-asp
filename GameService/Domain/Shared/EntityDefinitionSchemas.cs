@@ -10,15 +10,6 @@ namespace Domain.Shared
         private static readonly Dictionary<EntityType, List<Type>> SchemaRules = new()
         {
             {
-                EntityType.AreaEffect, new()
-                {
-                    typeof(CollisionDefinition),
-                    typeof(LifetimeDefinition),
-                    typeof(TriggeredEffectDefinition)
-                }
-            },
-
-            {
                 EntityType.Portal, new()
                 {
                     typeof(CollisionDefinition),

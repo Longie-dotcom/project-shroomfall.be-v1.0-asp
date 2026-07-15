@@ -1,7 +1,6 @@
-﻿using Application.Interfaces.Cache;
+﻿using Application.Services.AttributeService;
 using Application.Services.WorldService;
 using Application.Systems.Queue;
-using Domain.Runtime.EntityDomain.Component;
 
 namespace Application.Systems.System
 {
@@ -9,9 +8,8 @@ namespace Application.Systems.System
     {
         #region Attributes
         private readonly WorldContext worldContext;
-        private readonly ICacheProvider cacheProvider;
         private readonly CollisionService collisionService;
-        private readonly EntitySpawnService entitySpawnService;
+        private readonly DeathService deathService;
         #endregion
 
         #region Properties
@@ -19,14 +17,12 @@ namespace Application.Systems.System
 
         public EntityResolver(
             WorldContext worldContext,
-            ICacheProvider cacheProvider,
             CollisionService collisionService,
-            EntitySpawnService entitySpawnService)
+            DeathService deathService)
         {
             this.worldContext = worldContext;
-            this.cacheProvider = cacheProvider;
             this.collisionService = collisionService;
-            this.entitySpawnService = entitySpawnService;
+            this.deathService = deathService;
         }
 
         #region Methods
@@ -48,6 +44,14 @@ namespace Application.Systems.System
                     case EntityExpiredCommand entityExpiredCmd:
                         ResolveEntityExpired(entityExpiredCmd, commandBuffer);
                         break;
+
+                    case VitalThresholdCommand vitalThresholdCmd:
+                        ResolveVitalThreshold(vitalThresholdCmd, commandBuffer);
+                        break;
+
+                    case EntityDespawnCommand entityDespawnCmd:
+                        ResolveEntityDespawn(entityDespawnCmd, commandBuffer);
+                        break;
                 }
             }
         }
@@ -57,7 +61,8 @@ namespace Application.Systems.System
             CommandBuffer commandBuffer)
         {
             var roomSpatial = worldContext.GetRoom(cmd.Body.RoomSpatialID);
-            if (roomSpatial == null) return;
+            if (roomSpatial == null) 
+                return;
 
             // Query the spatial hash/grid for collisions
             var collision = collisionService.QueryMovement(cmd.Body, cmd.DesiredPosition);
@@ -79,10 +84,6 @@ namespace Application.Systems.System
             ItemActionCommand cmd, 
             CommandBuffer commandBuffer)
         {
-            var entity = worldContext.GetEntity(cmd.EntityInstanceID);
-            if (entity == null) return;
-
-            // Push to the trigger phase to actually consume and spawn
             commandBuffer.Results.Enqueue(new ItemActionResult(
                 cmd.EntityInstanceID,
                 cmd.Context));
@@ -92,13 +93,36 @@ namespace Application.Systems.System
             EntityExpiredCommand cmd,
             CommandBuffer commandBuffer)
         {
+            commandBuffer.Results.Enqueue(new EntityExpiredResult(
+                cmd.EntityInstanceID));
+        }
+
+        private void ResolveVitalThreshold(
+            VitalThresholdCommand cmd,
+            CommandBuffer commandBuffer)
+        {
             var entity = worldContext.GetEntity(cmd.EntityInstanceID);
-            if (entity == null) return;
+            if (entity == null)
+                return;
 
-            // Perform the Despawn
-            entitySpawnService.Despawn(entity);
+            var deathOutcome = deathService.CheckDeath(
+                entity,
+                cmd.Vital,
+                cmd.PreviousValue,
+                cmd.CurrentValue);
 
-            commandBuffer.Results.Enqueue(new DespawnResult(cmd.EntityInstanceID));
+            commandBuffer.Results.Enqueue(new VitalThresholdResult(
+                cmd.EntityInstanceID,
+                deathOutcome));
+        }
+
+        private void ResolveEntityDespawn(
+            EntityDespawnCommand cmd,
+            CommandBuffer commandBuffer)
+        {
+            commandBuffer.Results.Enqueue(new EntityDespawnResult(
+                cmd.EntityInstanceID,
+                cmd.TriggerDeathLogic));
         }
         #endregion
     }

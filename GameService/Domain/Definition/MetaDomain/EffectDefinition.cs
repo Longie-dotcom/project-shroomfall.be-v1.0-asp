@@ -12,7 +12,6 @@ namespace Domain.Definition.MetaDomain
         public string ID { get; private set; } = string.Empty;
         public EffectType Type { get; private set; }
         public AttributeType AttributeType { get; private set; }
-        public AttributeType? SourceType { get; private set; }
         public float Value { get; private set; }
         public float? Duration { get; private set; } // Apply for both
         public float? Interval { get; private set; } // Applied for attribute type == vital only
@@ -25,7 +24,6 @@ namespace Domain.Definition.MetaDomain
             string id,
             EffectType type,
             AttributeType attributeType,
-            AttributeType? sourceType,
             float value,
             float? duration,
             float? interval,
@@ -34,7 +32,6 @@ namespace Domain.Definition.MetaDomain
             ID = id;
             Type = type;
             AttributeType = attributeType;
-            SourceType = sourceType;
             Value = value;
             Duration = duration;
             Interval = interval;
@@ -45,14 +42,12 @@ namespace Domain.Definition.MetaDomain
         public void UpdateFields(
             EffectType type,
             AttributeType attributeType,
-            AttributeType? sourceType,
             float value,
             float? duration,
             float? interval)
         {
             Type = type;
             AttributeType = attributeType;
-            SourceType = sourceType;
             Value = value;
             Duration = duration;
             Interval = interval;

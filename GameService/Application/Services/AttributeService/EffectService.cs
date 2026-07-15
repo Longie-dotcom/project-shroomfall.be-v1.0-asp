@@ -1,9 +1,6 @@
-﻿using Application.Interfaces.Cache;
-using Application.Services.WorldService;
+﻿using Application.Services.WorldService;
 using Application.Systems.Abstraction;
 using Application.Systems.Queue;
-using Domain.Definition.MetaDomain;
-using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
 using Domain.Runtime.MetaDomain;
 
@@ -13,136 +10,134 @@ namespace Application.Services.AttributeService
     {
         #region Attributes
         private readonly WorldContext worldContext;
-        private readonly ICacheProvider cacheProvider;
         private readonly CharacteristicService characteristicService;
         #endregion
 
         public EffectService(
             WorldContext worldContext,
-            ICacheProvider cacheProvider,
             CharacteristicService characteristicService)
         {
             this.worldContext = worldContext;
-            this.cacheProvider = cacheProvider;
             this.characteristicService = characteristicService;
         }
 
         #region Methods
         public void ApplyEffect(
-            EntityInstance target, 
-            string effectDefinitionId)
+            EffectContext effectContext)
         {
-            var container = target.GetComponent<EffectContainerInstance>();
-            var effectDef = cacheProvider.Effect.Get(effectDefinitionId);
+            var container = effectContext.Target.GetComponent<EffectContainerInstance>();
+            if (container == null)
+                return;
 
-            if (container == null || effectDef == null) return;
+            var effect = effectContext.Effect;
 
-            // INSTANT (e.g. direct damage, instant heal) - Apply and discard immediately!
-            if (effectDef.Duration == 0)
+            // Instant
+            if (effect.Duration == 0)
             {
-                characteristicService.ApplyEffectLogic(target, effectDef, effectDef.Value);
+                characteristicService.ApplyEffectLogic(effectContext);
                 return;
             }
 
-            // TEMPORARY (e.g. 10s buff or 5s poison)
-            if (effectDef.Duration > 0)
+            // Temporary
+            if (effect.Duration > 0)
             {
-                if (container.TemporaryEffects.TryGetValue(effectDef.ID, out var existing))
-                {
-                    existing.ResetTimer(effectDef.Duration.Value);
-                }
-                else
-                {
-                    container.TemporaryEffects[effectDef.ID] = new EffectInstance(effectDef.ID, effectDef.Duration, effectDef.Interval);
-                    characteristicService.ApplyEffectLogic(target, effectDef, effectDef.Value);
-                }
+                ApplyTemporary(container, effectContext);
                 return;
             }
 
-            // PERMANENT (e.g. equipped armor stats, passive traits)
-            if (!effectDef.Duration.HasValue)
-            {
-                if (!container.PermanentEffects.ContainsKey(effectDef.ID))
-                {
-                    container.PermanentEffects[effectDef.ID] = new EffectInstance(effectDef.ID, null, effectDef.Interval);
-                    characteristicService.ApplyEffectLogic(target, effectDef, effectDef.Value);
-                }
-            }
+            // Permanent
+            ApplyPermanent(container, effectContext);
         }
 
         public void RemoveEffect(
-            EntityInstance target,
-            string effectDefinitionId)
+            EffectContext effectContext)
         {
-            var container = target.GetComponent<EffectContainerInstance>();
-            if (container == null) return;
+            var effectDef = effectContext.Effect;
 
-            bool removed = container.TemporaryEffects.Remove(effectDefinitionId) ||
-                           container.PermanentEffects.Remove(effectDefinitionId);
+            var container = effectContext.Target.GetComponent<EffectContainerInstance>();
+            if (container == null)
+                return;
 
-            if (removed)
+            var existing = container.TrackingEffects.FirstOrDefault(e => e.DefinitionID == effectDef.ID);
+            if (existing != null)
             {
-                var effectDef = cacheProvider.Effect.Get(effectDefinitionId);
-                if (effectDef != null)
-                {
-                    characteristicService.ApplyEffectLogic(target, effectDef, effectDef.Value);
-                }
+                container.TrackingEffects.Remove(existing);
+                characteristicService.ApplyEffectLogic(effectContext);
             }
         }
 
         public void Tick(
-            float dt, 
+            float dt,
             CommandBuffer commandBuffer)
         {
             foreach (var entity in worldContext.GetEntities())
             {
                 var container = entity.GetComponent<EffectContainerInstance>();
-                if (container == null) continue;
+                if (container == null)
+                    continue;
 
-                // --- PROCESS TEMPORARY EFFECTS ---
-                if (container.TemporaryEffects.Count > 0)
+                // Iterate on a copy since effects may expire during iteration
+                foreach (var effect in container.TrackingEffects.ToList())
                 {
-                    var tempKeys = container.TemporaryEffects.Keys.ToList();
-                    foreach (var key in tempKeys)
+                    effect.TickDuration(dt);
+
+                    if (effect.TickInterval(dt))
                     {
-                        var effect = container.TemporaryEffects[key];
-                        var effectDef = cacheProvider.Effect.Get(effect.DefinitionID);
-                        if (effectDef == null) continue;
-
-                        effect.TickDuration(dt);
-
-                        // If it's a DoT (Damage over Time) / HoT (Heal over Time), tick the interval
-                        if (effect.TickInterval(dt))
-                        {
-                            characteristicService.ApplyEffectLogic(entity, effectDef, effectDef.Value);
-                        }
-
-                        // Handle Expiration
-                        if (effect.IsExpired())
-                        {
-                            container.TemporaryEffects.Remove(key);
-                            characteristicService.ApplyEffectLogic(entity, effectDef, effectDef.Value);
-                        }
+                        // Vital effects need to be ticking
+                        characteristicService.ApplyEffectLogic(effect.Context);
                     }
-                }
 
-                // --- PROCESS PERMANENT EFFECTS ---
-                // Permanent effects don't expire, but they might have intervals (e.g. permanent passive health regen)
-                if (container.PermanentEffects.Count > 0)
-                {
-                    foreach (var effect in container.PermanentEffects.Values)
+                    if (effect.IsExpired())
                     {
-                        if (effect.TickInterval(dt))
-                        {
-                            var effectDef = cacheProvider.Effect.Get(effect.DefinitionID);
-                            if (effectDef != null)
-                            {
-                                characteristicService.ApplyEffectLogic(entity, effectDef, effectDef.Value);
-                            }
-                        }
+                        container.TrackingEffects.Remove(effect);
+
+                        // Core effects need recalculation after disappearing.
+                        // Vital effects with duration simply stop ticking.
+                        characteristicService.ApplyEffectLogic(effect.Context);
                     }
                 }
             }
+        }
+
+        private void ApplyTemporary(
+            EffectContainerInstance container,
+            EffectContext context)
+        {
+            var definition = context.Effect;
+
+            var existing = container.TrackingEffects.FirstOrDefault(e => e.DefinitionID == definition.ID);
+            if (existing != null)
+            {
+                existing.ResetTimer(definition.Duration!.Value);
+                return;
+            }
+
+            container.TrackingEffects.Add(new EffectInstance(
+                definition.ID,
+                context,
+                definition.Duration,
+                definition.Interval));
+
+            characteristicService.ApplyEffectLogic(context);
+        }
+
+        private void ApplyPermanent(
+            EffectContainerInstance container,
+            EffectContext context)
+        {
+            var definition = context.Effect;
+
+            var existing = container.TrackingEffects.FirstOrDefault(e => e.DefinitionID == definition.ID);
+            if (existing != null)
+                return;
+
+            container.TrackingEffects.Add(new EffectInstance(
+                definition.ID,
+                context,
+                null,
+                definition.Interval));
+
+            characteristicService.ApplyEffectLogic(context);
         }
         #endregion
     }

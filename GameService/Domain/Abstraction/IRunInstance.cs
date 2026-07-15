@@ -1,9 +1,10 @@
 ﻿namespace Domain.Abstraction
 {
-    public interface IRunInstance
+    public interface IRunInstance<TParticipant> 
+        where TParticipant : IRunParticipant
     {
         string ID { get; }
         string LeaderEntityInstanceID { get; }
-        IReadOnlyCollection<string> PlayerEntityInstanceIDs { get; }
+        IEnumerable<TParticipant> Participants { get; }
     }
 }

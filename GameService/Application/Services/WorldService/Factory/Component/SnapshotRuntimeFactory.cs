@@ -80,7 +80,9 @@ namespace Application.Services.WorldService.Factory.Component
                 def.LeashDistance,
                 def.AggroRadius,
                 def.IsAIControlled,
-                def.ThinkInterval);
+                def.ThinkInterval,
+                def.EquippedItemDefinitionID,
+                def.AttackRange);
         }
 
         private AppearanceInstance CreateAppearance(
@@ -224,7 +226,8 @@ namespace Application.Services.WorldService.Factory.Component
 
             return new TriggeredEffectInstance(
                 snapshot.DefinitionID,
-                validEffects);
+                validEffects,
+                snapshot.SourceEntityID);
         }
 
         private WorldItemPayloadInstance CreateWorldItemPayload(

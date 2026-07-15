@@ -1,7 +1,5 @@
 ﻿using Contract;
 using Contract.Enum.MetaDomain.Item;
-using Domain.DomainException;
-using ResponseCode;
 
 namespace Domain.Runtime.MetaDomain
 {
@@ -40,9 +38,7 @@ namespace Domain.Runtime.MetaDomain
             int amountToAdd)
         {
             if (amountToAdd <= 0)
-                throw new BadRequest(
-                    DomainCode.ItemInstanceCode.AddAmountInvalid,
-                    $"Item mutation failed for instance '{ID}' (Def: '{DefinitionID}'). Amount to add must be greater than zero. Received: {amountToAdd}");
+                return;
 
             Amount += amountToAdd;
         }
@@ -51,16 +47,18 @@ namespace Domain.Runtime.MetaDomain
             int amountToRemove)
         {
             if (amountToRemove <= 0)
-                throw new BadRequest(
-                    DomainCode.ItemInstanceCode.RemoveAmountInvalid,
-                    $"Item mutation failed for instance '{ID}' (Def: '{DefinitionID}'). Amount to remove must be greater than zero. Received: {amountToRemove}");
+                return;
 
             if (Amount < amountToRemove)
-                throw new BadRequest(
-                    DomainCode.ItemInstanceCode.InsufficientItemAmount,
-                    $"Item mutation failed for instance '{ID}' (Def: '{DefinitionID}'). Cannot remove {amountToRemove} units. Only {Amount} available.");
+                return;
 
             Amount -= amountToRemove;
+        }
+
+        public void SetAmount(
+            int amount)
+        {
+            Amount = amount;
         }
 
         public bool DegradeDurability()

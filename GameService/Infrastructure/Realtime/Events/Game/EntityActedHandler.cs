@@ -35,7 +35,8 @@ namespace Infrastructure.Realtime.Events.Game
                     Y = acted.Position.Y,
                     Direction = acted.Direction,
                     Action = acted.Action,
-                    EntityInstanceID = acted.EntityInstanceID
+                    EntityInstanceID = acted.EntityInstanceID,
+                    UsedItemDefinitionID = acted.UsedItemDefinitionID,
                 });
         }
         #endregion

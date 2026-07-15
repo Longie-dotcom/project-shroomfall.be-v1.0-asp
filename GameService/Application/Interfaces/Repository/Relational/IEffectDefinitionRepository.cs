@@ -10,7 +10,6 @@ namespace Application.Interfaces.Repository.Relational
             string? searchTerm,
             EffectType? type,
             AttributeType? attributeType,
-            AttributeType? sourceType,
             int pageNumber,
             int pageSize);
     }

@@ -9,21 +9,15 @@ namespace Domain.Runtime.EntityDomain.Component
         #endregion
 
         #region Properties
-        public Dictionary<string, EffectInstance> TemporaryEffects { get; private set; }
-        public Dictionary<string, EffectInstance> PermanentEffects { get; private set; }
+        public List<EffectInstance> TrackingEffects { get; } = new List<EffectInstance>();
         #endregion
 
         public EffectContainerInstance() : base(Guid.Empty)
         {
-            TemporaryEffects = new Dictionary<string, EffectInstance>();
-            PermanentEffects = new Dictionary<string, EffectInstance>();
+            TrackingEffects = new List<EffectInstance>();
         }
 
         #region Methods
-        public IEnumerable<EffectInstance> GetAllPersistentEffects()
-        {
-            return TemporaryEffects.Values.Concat(PermanentEffects.Values);
-        }
         #endregion
     }
 }

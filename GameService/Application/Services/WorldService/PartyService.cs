@@ -4,10 +4,12 @@ using ResponseCode;
 
 namespace Application.Services.WorldService
 {
-    public class PartyService
+    public class PartyService<TRun, TParticipant>
+        where TRun : IRunInstance<TParticipant>
+        where TParticipant : IRunParticipant
     {
         #region Attributes
-        private readonly Dictionary<string, IRunInstance> activeRuns = new();
+        private readonly Dictionary<string, TRun> activeRuns = new();
         private readonly Dictionary<string, string> playerToRun = new();
         #endregion
 
@@ -18,7 +20,7 @@ namespace Application.Services.WorldService
 
         #region Commands
         public void RegisterRun(
-            IRunInstance run)
+            TRun run)
         {
             if (activeRuns.ContainsKey(run.ID))
                 throw new InternalException(
@@ -27,14 +29,16 @@ namespace Application.Services.WorldService
 
             activeRuns.Add(run.ID, run);
 
-            foreach (var playerId in run.PlayerEntityInstanceIDs)
+            foreach (var participant in run.Participants)
             {
-                if (playerToRun.ContainsKey(playerId))
+                if (playerToRun.ContainsKey(participant.EntityInstanceID))
                     throw new InternalException(
                         ApplicationCode.PartyServiceCode.PlayerAlreadyInRun,
-                        $"Player '{playerId}' is already participating in another run.");
+                        $"Player '{participant.EntityInstanceID}' is already participating in another run.");
 
-                playerToRun.Add(playerId, run.ID);
+                playerToRun.Add(
+                    participant.EntityInstanceID,
+                    run.ID);
             }
         }
 
@@ -44,9 +48,9 @@ namespace Application.Services.WorldService
             if (!activeRuns.TryGetValue(runId, out var run))
                 return false;
 
-            foreach (var playerId in run.PlayerEntityInstanceIDs)
+            foreach (var participant in run.Participants)
             {
-                playerToRun.Remove(playerId);
+                playerToRun.Remove(participant.EntityInstanceID);
             }
 
             return activeRuns.Remove(runId);
@@ -54,17 +58,19 @@ namespace Application.Services.WorldService
         #endregion
 
         #region Query
-        public IRunInstance? GetRun(
+        public TRun? GetRun(
             string runId)
         {
-            return activeRuns.TryGetValue(runId, out var run) ? run : null;
+            return activeRuns.TryGetValue(runId, out var run)
+                ? run
+                : default;
         }
 
-        public IRunInstance? GetRunByPlayer(
+        public TRun? GetRunByPlayer(
             string playerEntityInstanceId)
         {
             if (!playerToRun.TryGetValue(playerEntityInstanceId, out var runId))
-                return null;
+                return default;
 
             return GetRun(runId);
         }
@@ -75,7 +81,7 @@ namespace Application.Services.WorldService
             return playerToRun.ContainsKey(playerEntityInstanceId);
         }
 
-        public IEnumerable<IRunInstance> GetAllRuns()
+        public IEnumerable<TRun> GetAllRuns()
         {
             return activeRuns.Values;
         }

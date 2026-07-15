@@ -2,30 +2,22 @@
 using Application.Interfaces.Realtime.Events;
 using Application.Interfaces.Realtime.Events.Game;
 using Application.Interfaces.Realtime.Managers;
-using AutoMapper;
-using Contract.DTO.Runtime.EntityDomain.Component;
 
 namespace Infrastructure.Realtime.Events.Game
 {
-    public class PlayerCharacteristicSyncHandler : IEventHandler
+    public class InventoryClearedHandler : IEventHandler
     {
         #region Attributes
-        private readonly IMapper mapper;
         private readonly IRealtimePublisher publisher;
         private readonly ISessionManager sessionManager;
         private readonly IConnectionManager connectionManager;
         #endregion
 
-        #region Properties
-        #endregion
-
-        public PlayerCharacteristicSyncHandler(
-            IMapper mapper,
+        public InventoryClearedHandler(
             IRealtimePublisher publisher,
             ISessionManager sessionManager,
             IConnectionManager connectionManager)
         {
-            this.mapper = mapper;
             this.publisher = publisher;
             this.sessionManager = sessionManager;
             this.connectionManager = connectionManager;
@@ -35,10 +27,10 @@ namespace Infrastructure.Realtime.Events.Game
         public async Task Handle(
             IEvent @event)
         {
-            if (@event is not PlayerCharacteristicSyncEvent syncEvent)
+            if (@event is not InventoryClearedEvent clearedEvent)
                 return;
 
-            var userId = sessionManager.GetUserIdByPlayerId(syncEvent.EntityInstanceID);
+            var userId = sessionManager.GetUserIdByPlayerId(clearedEvent.EntityInstanceID);
             if (userId == null)
                 return;
 
@@ -46,9 +38,7 @@ namespace Infrastructure.Realtime.Events.Game
             if (connectionId == null)
                 return;
 
-            await publisher.SendPlayerCharacteristicSync(
-                connectionId,
-                mapper.Map<CharacteristicInstanceDTO>(syncEvent.CharacteristicInstance));
+            await publisher.SendInventoryCleared(connectionId);
         }
         #endregion
     }

@@ -95,7 +95,7 @@ namespace Application.Services.WorldService
             EntityInstance player)
         {
             // Freeze active engine loops first
-            entitySpawnService.Deactivate(player);
+            entitySpawnService.Despawn(player);
 
             // Sever this specific connection from SignalR updates and clear it from our tracking state
             await connectionManager.Ungroup(connectionId, roomId);

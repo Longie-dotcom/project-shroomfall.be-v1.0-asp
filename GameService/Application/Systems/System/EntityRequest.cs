@@ -15,6 +15,7 @@ namespace Application.Systems.System
         private readonly ProjectileService projectileService;
         private readonly LifetimeService lifetimeService;
         private readonly ItemService itemService;
+        private readonly CharacteristicService characteristicService;
 
         private readonly ResidencyService residencyService;
         #endregion
@@ -29,6 +30,7 @@ namespace Application.Systems.System
             ProjectileService projectileService,
             LifetimeService lifetimeService,
             ItemService itemService,
+            CharacteristicService characteristicService,
 
             ResidencyService residencyService)
         {
@@ -38,6 +40,7 @@ namespace Application.Systems.System
             this.projectileService = projectileService;
             this.lifetimeService = lifetimeService;
             this.itemService = itemService;
+            this.characteristicService = characteristicService;
 
             this.residencyService = residencyService;
         }
@@ -53,6 +56,7 @@ namespace Application.Systems.System
             projectileService.Tick(dt, commandBuffer);
             lifetimeService.Tick(dt, commandBuffer);
             itemService.Tick(dt, commandBuffer);
+            characteristicService.Tick(dt, commandBuffer);
 
             await residencyService.Tick(dt);
         }

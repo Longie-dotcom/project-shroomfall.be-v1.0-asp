@@ -22,7 +22,6 @@ namespace Infrastructure.Repository.Relational
             string? searchTerm,
             EffectType? type,
             AttributeType? attributeType,
-            AttributeType? sourceType,
             int pageNumber,
             int pageSize)
         {
@@ -36,12 +35,6 @@ namespace Infrastructure.Repository.Relational
             if (attributeType.HasValue)
             {
                 query = query.Where(x => x.AttributeType == attributeType.Value);
-            }
-
-            // Source Type Filtering
-            if (sourceType.HasValue)
-            {
-                query = query.Where(x => x.SourceType == sourceType.Value);
             }
 
             if (!string.IsNullOrWhiteSpace(searchTerm))

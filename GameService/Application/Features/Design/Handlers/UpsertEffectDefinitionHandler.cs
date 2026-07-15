@@ -45,7 +45,6 @@ namespace Application.Features.Design.Handlers
                     dto.Id,
                     dto.Type,
                     dto.AttributeType,
-                    dto.SourceType,
                     dto.Value,
                     dto.Duration,
                     dto.Interval,
@@ -61,7 +60,6 @@ namespace Application.Features.Design.Handlers
                 existingEffect.UpdateFields(
                     dto.Type,
                     dto.AttributeType,
-                    dto.SourceType,
                     dto.Value,
                     dto.Duration,
                     dto.Interval);

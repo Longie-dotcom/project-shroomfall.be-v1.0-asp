@@ -4,6 +4,6 @@ namespace Domain.Snapshot.EntityDomain.Component
 {
     public class TriggeredEffectSnapshot : ComponentSnapshot
     {
-
+        public string SourceEntityID { get; } = string.Empty;
     }
 }

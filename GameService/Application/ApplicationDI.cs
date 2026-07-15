@@ -27,6 +27,7 @@ using Contract.DTO.Feature.Connection.Response;
 using Contract.DTO.Feature.Design.Response;
 using Contract.DTO.Feature.Identity.Response;
 using Contract.DTO.Runtime.WorldDomain;
+using Domain.Runtime.WorldDomain.Run;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Application
@@ -91,9 +92,10 @@ namespace Application
             // SERVICES
             // ─────────────────────────────
             // Attribute service
-            services.AddSingleton<CombatService>();
             services.AddSingleton<CharacteristicService>();
+            services.AddSingleton<DeathService>();
             services.AddSingleton<EffectService>();
+            services.AddSingleton<VitalService>();
 
             // Design service
             services.AddSingleton<ComponentDiscoveryRegistry>();
@@ -106,6 +108,7 @@ namespace Application
             services.AddSingleton<LifetimeService>();
             services.AddSingleton<MovementService>();
             services.AddSingleton<ProjectileService>();
+            services.AddSingleton<TriggeredEffectService>();
 
             // Identity service
             services.AddSingleton<TokenService>();
@@ -128,7 +131,7 @@ namespace Application
             services.AddSingleton<CollisionService>();
             services.AddSingleton<EntitySpawnService>();
             services.AddSingleton<InitializationService>();
-            services.AddSingleton<PartyService>();
+            services.AddSingleton<PartyService<CombatRunInstance, CombatRunParticipant>>();
             services.AddSingleton<ResidencyService>();
             services.AddSingleton<RoomMigrationService>();
             services.AddSingleton<WorldContext>();

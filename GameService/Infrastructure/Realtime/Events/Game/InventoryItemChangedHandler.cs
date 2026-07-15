@@ -3,11 +3,11 @@ using Application.Interfaces.Realtime.Events;
 using Application.Interfaces.Realtime.Events.Game;
 using Application.Interfaces.Realtime.Managers;
 using AutoMapper;
-using Contract.DTO.Runtime.EntityDomain.Component;
+using Contract.DTO.Runtime.MetaDomain;
 
 namespace Infrastructure.Realtime.Events.Game
 {
-    public class PlayerCharacteristicSyncHandler : IEventHandler
+    public class InventoryItemChangedHandler : IEventHandler
     {
         #region Attributes
         private readonly IMapper mapper;
@@ -16,10 +16,7 @@ namespace Infrastructure.Realtime.Events.Game
         private readonly IConnectionManager connectionManager;
         #endregion
 
-        #region Properties
-        #endregion
-
-        public PlayerCharacteristicSyncHandler(
+        public InventoryItemChangedHandler(
             IMapper mapper,
             IRealtimePublisher publisher,
             ISessionManager sessionManager,
@@ -35,10 +32,10 @@ namespace Infrastructure.Realtime.Events.Game
         public async Task Handle(
             IEvent @event)
         {
-            if (@event is not PlayerCharacteristicSyncEvent syncEvent)
+            if (@event is not InventoryItemChangedEvent changedEvent)
                 return;
 
-            var userId = sessionManager.GetUserIdByPlayerId(syncEvent.EntityInstanceID);
+            var userId = sessionManager.GetUserIdByPlayerId(changedEvent.EntityInstanceID);
             if (userId == null)
                 return;
 
@@ -46,9 +43,10 @@ namespace Infrastructure.Realtime.Events.Game
             if (connectionId == null)
                 return;
 
-            await publisher.SendPlayerCharacteristicSync(
+            await publisher.SendInventoryItemChanged(
                 connectionId,
-                mapper.Map<CharacteristicInstanceDTO>(syncEvent.CharacteristicInstance));
+                mapper.Map<ItemInstanceDTO>(changedEvent.ItemInstance),
+                changedEvent.ChangeType);
         }
         #endregion
     }

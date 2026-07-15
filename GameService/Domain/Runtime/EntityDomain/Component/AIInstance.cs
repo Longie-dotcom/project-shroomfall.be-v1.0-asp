@@ -21,6 +21,9 @@ namespace Domain.Runtime.EntityDomain.Component
         // Configuration (Behavioral limits)
         public float LeashDistance { get; set; } = 10.0f;
         public float AggroRadius { get; set; } = 5.0f;
+        // Attack
+        public string EquippedItemDefinitionID { get; private set; }
+        public float AttackRange { get; private set; }
         #endregion
 
         public AIInstance(
@@ -28,12 +31,16 @@ namespace Domain.Runtime.EntityDomain.Component
             float leashDistance,
             float aggroRadius,
             bool isAIControlled,
-            float thinkInterval) : base(definitionId)
+            float thinkInterval,
+            string equippedItemDefinitionId,
+            float attackRange) : base(definitionId)
         {
             LeashDistance = leashDistance;
             AggroRadius = aggroRadius;
             IsAIControlled = isAIControlled;
             ThinkCooldownRemaining = thinkInterval;
+            EquippedItemDefinitionID = equippedItemDefinitionId;
+            AttackRange = attackRange;
         }
 
         #region Methods
