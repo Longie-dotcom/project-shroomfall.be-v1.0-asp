@@ -132,11 +132,6 @@ namespace Application.Services.DesignService
                         finalMask = CollisionPresets.PlayerProjectileMask;
                         break;
 
-                    case EntityType.Portal:
-                        finalLayer = CollisionLayer.TriggerZone;
-                        finalMask = CollisionPresets.TriggerZoneMask;
-                        break;
-
                     case EntityType.Item:
                         finalLayer = CollisionLayer.Collectible;
                         finalMask = CollisionPresets.CollectibleMask;

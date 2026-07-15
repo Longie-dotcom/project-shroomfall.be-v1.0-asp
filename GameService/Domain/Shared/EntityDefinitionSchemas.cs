@@ -10,13 +10,6 @@ namespace Domain.Shared
         private static readonly Dictionary<EntityType, List<Type>> SchemaRules = new()
         {
             {
-                EntityType.Portal, new()
-                {
-                    typeof(CollisionDefinition),
-                }
-            },
-
-            {
                 EntityType.Projectile, new()
                 {
                     typeof(CollisionDefinition),

@@ -11,12 +11,12 @@ namespace Domain.Shared
         // Players bump into walls, enemies, enemy bullets, step on traps, and pick up items.
         // (They ignore ally players and their own bullets!)
         public const CollisionLayer PlayerMask =
-            CollisionLayer.Wall | CollisionLayer.Player | CollisionLayer.Enemy | CollisionLayer.EnemyProjectile | CollisionLayer.TriggerZone | CollisionLayer.Collectible;
+            CollisionLayer.Wall | CollisionLayer.Player | CollisionLayer.Enemy | CollisionLayer.EnemyProjectile | CollisionLayer.Collectible;
 
         // Enemies bump into walls, players, player bullets, and step on traps.
         // (They ignore other enemies, enemy bullets, and dropped items on the floor!)
         public const CollisionLayer EnemyMask =
-            CollisionLayer.Wall | CollisionLayer.Player | CollisionLayer.Enemy | CollisionLayer.PlayerProjectile | CollisionLayer.TriggerZone;
+            CollisionLayer.Wall | CollisionLayer.Player | CollisionLayer.Enemy | CollisionLayer.PlayerProjectile;
 
         // Player Projectiles only care about slamming into walls or popping enemies.
         public const CollisionLayer PlayerProjectileMask =
@@ -25,10 +25,6 @@ namespace Domain.Shared
         // Enemy Projectiles only care about slamming into walls or hurting players.
         public const CollisionLayer EnemyProjectileMask =
             CollisionLayer.Wall | CollisionLayer.Player;
-
-        // Trigger Zones (like a floor spike trap) only care when a solid body steps on them.
-        public const CollisionLayer TriggerZoneMask =
-            CollisionLayer.Player | CollisionLayer.Enemy;
 
         // Collectibles (like items on the floor) only care when a player walks over them.
         public const CollisionLayer CollectibleMask =

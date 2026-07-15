@@ -101,9 +101,6 @@ namespace Application.Services.WorldService.Factory
 
             switch (entityDef.Type)
             {
-                case EntityType.Portal:
-                    ConstructPortal(entity, context);
-                    break;
                 case EntityType.Projectile:
                     ConstructProjectile(entity, context);
                     break;
@@ -140,13 +137,6 @@ namespace Application.Services.WorldService.Factory
 
             entity.AddComponent(definitionRuntimeFactory.CreateCollision(collision));
             entity.AddComponent(definitionRuntimeFactory.CreateTransform(context.RoomSpatialID, context.LayerZ, context.Position));
-        }
-
-        private void ConstructPortal(
-            EntityInstance entity,
-            WorldEntityCreateContext context)
-        {
-
         }
 
         private void ConstructProjectile(
