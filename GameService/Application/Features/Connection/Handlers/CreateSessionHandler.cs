@@ -29,7 +29,8 @@ namespace Application.Features.Connection.Handlers
             initializationService.InitializeRoom(
                 roomDefinitionId: dto.RoomDefinitionID,
                 roomSpatialId: $"PLAYER_ROOM_{command.UserID}_{Guid.NewGuid():N}",
-                userId: command.UserID);
+                userId: command.UserID,
+                lifecyclePolicy: RoomLifecyclePolicy.Persistent);
         }
         #endregion
     }

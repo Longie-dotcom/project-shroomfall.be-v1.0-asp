@@ -50,6 +50,7 @@ namespace Application.Services.WorldService
         public void InitializeRoom(
             string roomDefinitionId,
             string roomSpatialId,
+            RoomLifecyclePolicy lifecyclePolicy,
             string? userId = null)
         {
             // Spawn Entities
@@ -62,7 +63,7 @@ namespace Application.Services.WorldService
             // Register creation on RAM
             residencyService.RegisterRuntimeRoom(
                 new RoomInstance { Room = room, Entities = pendingEntities },
-                RoomLifecyclePolicy.Persistent);
+                lifecyclePolicy);
         }
 
         private string? SpawnEntities(
