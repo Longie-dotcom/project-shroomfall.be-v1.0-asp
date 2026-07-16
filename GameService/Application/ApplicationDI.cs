@@ -27,6 +27,7 @@ using Contract.DTO.Definition.EntityDomain.Component;
 using Contract.DTO.Definition.LocalizationDomain;
 using Contract.DTO.Definition.MetaDomain;
 using Contract.DTO.Definition.WorldDomain;
+using Contract.DTO.Feature.Admin.Response;
 using Contract.DTO.Feature.Connection.Response;
 using Contract.DTO.Feature.Design.Response;
 using Contract.DTO.Feature.Identity.Response;
@@ -54,7 +55,7 @@ namespace Application
             services.AddScoped<IDispatcher, Dispatcher>();
 
             // Admin
-            services.AddScoped<IHandler<FetchRoomInstanceCommand, List<RoomInstance>>, FetchRoomInstanceHandler>();
+            services.AddScoped<IHandler<FetchRoomInstanceCommand, List<RoomInstanceDTO>>, FetchRoomInstanceHandler>();
 
             // Connection
             services.AddScoped<IHandler<CreateSessionCommand>, CreateSessionHandler>();

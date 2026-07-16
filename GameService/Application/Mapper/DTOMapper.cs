@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using Application.Services.WorldService;
+using AutoMapper;
 using Contract.DTO.Abstraction;
 using Contract.DTO.Common;
 using Contract.DTO.Definition;
@@ -7,6 +8,7 @@ using Contract.DTO.Definition.IdentityDomain;
 using Contract.DTO.Definition.LocalizationDomain;
 using Contract.DTO.Definition.MetaDomain;
 using Contract.DTO.Definition.WorldDomain;
+using Contract.DTO.Feature.Admin.Response;
 using Contract.DTO.Runtime.EntityDomain;
 using Contract.DTO.Runtime.EntityDomain.Component;
 using Contract.DTO.Runtime.MetaDomain;
@@ -170,6 +172,7 @@ namespace Application.Mapper
             // World Domain
             CreateMap<RoomSpatial, RoomSpatialDTO>();
             CreateMap<CombatRunInstance, CombatRunInstanceDTO>();
+            CreateMap<RoomInstance, RoomInstanceDTO>();
         }
     }
 }

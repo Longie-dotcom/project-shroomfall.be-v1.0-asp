@@ -2,6 +2,7 @@
 using Application.Features.Abstraction;
 using Application.Features.Admin.Commands;
 using Application.Services.WorldService;
+using Contract.DTO.Feature.Admin.Response;
 using Contract.Enum.IdentityDomain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -33,7 +34,7 @@ namespace API.Controllers
         {
             var (userId, steamId, role) = ClaimReader.GetIdentity(User);
 
-            var result = await dispatcher.Send<FetchRoomInstanceCommand, List<RoomInstance>>(
+            var result = await dispatcher.Send<FetchRoomInstanceCommand, List<RoomInstanceDTO>>(
                 new FetchRoomInstanceCommand(userId)
             );
 
