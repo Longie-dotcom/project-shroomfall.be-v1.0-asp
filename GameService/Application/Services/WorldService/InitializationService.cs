@@ -54,6 +54,7 @@ namespace Application.Services.WorldService
             string? userId = null)
         {
             Console.WriteLine($"[InitializationService] Initializing Room -> DefId: {roomDefinitionId}, SpatialId: {roomSpatialId}, UserId: {userId ?? "None"}");
+            Console.WriteLine($"[InitializationService] Initializing Room -> DefId: {roomDefinitionId}, SpatialId: {roomSpatialId}, UserId: {userId ?? "None"}");
 
             // Spawn Entities
             var pendingEntities = new List<EntityInstance>();
