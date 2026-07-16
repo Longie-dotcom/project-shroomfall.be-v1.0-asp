@@ -124,6 +124,7 @@ namespace Domain.Definition.EntityDomain.Component
                     break;
             }
 
+            CollisionRole = collisionRole;
             ShapeType = shapeType;
             Width = width;
             Height = height;
