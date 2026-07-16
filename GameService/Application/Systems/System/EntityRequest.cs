@@ -11,7 +11,7 @@ namespace Application.Systems.System
         #region Attributes
         private readonly EffectService effectService;
         private readonly AIService aiService;
-        private readonly MovementService movementService;
+        private readonly TransformService transformService;
         private readonly ProjectileService projectileService;
         private readonly LifetimeService lifetimeService;
         private readonly ItemService itemService;
@@ -26,7 +26,7 @@ namespace Application.Systems.System
         public EntityRequest(
             EffectService effectService,
             AIService aiService,
-            MovementService movementService,
+            TransformService transformService,
             ProjectileService projectileService,
             LifetimeService lifetimeService,
             ItemService itemService,
@@ -36,7 +36,7 @@ namespace Application.Systems.System
         {
             this.effectService = effectService;
             this.aiService = aiService;
-            this.movementService = movementService;
+            this.transformService = transformService;
             this.projectileService = projectileService;
             this.lifetimeService = lifetimeService;
             this.itemService = itemService;
@@ -52,7 +52,7 @@ namespace Application.Systems.System
         {
             aiService.Tick(dt, commandBuffer);
             effectService.Tick(dt, commandBuffer);
-            movementService.Tick(dt, commandBuffer);
+            transformService.Tick(dt, commandBuffer);
             projectileService.Tick(dt, commandBuffer);
             lifetimeService.Tick(dt, commandBuffer);
             itemService.Tick(dt, commandBuffer);

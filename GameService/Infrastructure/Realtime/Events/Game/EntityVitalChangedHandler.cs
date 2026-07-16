@@ -34,6 +34,7 @@ namespace Infrastructure.Realtime.Events.Game
                     EntityInstanceID = vitalChanged.EntityInstanceID,
                     AttributeType = vitalChanged.AttributeType,
                     NewValue = vitalChanged.NewValue,
+                    VitalChangeReason = vitalChanged.VitalChangeReason,
                 });
         }
         #endregion

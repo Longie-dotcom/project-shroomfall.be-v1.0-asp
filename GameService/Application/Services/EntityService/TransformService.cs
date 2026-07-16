@@ -7,7 +7,7 @@ using Domain.Runtime.EntityDomain.Component;
 
 namespace Application.Services.EntityService
 {
-    public class MovementService : ITickService
+    public class TransformService : ITickService
     {
         #region Attributes
         private readonly WorldContext worldContext;
@@ -16,7 +16,7 @@ namespace Application.Services.EntityService
         #region Properties
         #endregion
 
-        public MovementService(
+        public TransformService(
             WorldContext worldContext)
         {
             this.worldContext = worldContext;

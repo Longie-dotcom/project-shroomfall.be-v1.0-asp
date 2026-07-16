@@ -119,41 +119,51 @@ namespace Application.Services.AttributeService
             // Extract effect context
             var target = effectContext.Target;
             var effectDef = effectContext.Effect;
+            var source = effectContext.Source;
 
-            // Validate target transform for publishing
-            var targetTransform = target.GetComponent<TransformInstance>();
-            if (targetTransform == null)
-                return;
+            (VitalChangedRecord? targetRecord, VitalChangedRecord? sourceRecord) result = (null, null);
 
-            (VitalChangedRecord? target, VitalChangedRecord? source) result;
-
-            // Dispatch to the proper vital resolver
+            // Dispatch to the proper vital resolver based on the semantic Category
             var attribute = AttributeDefinitions.Get(effectDef.AttributeType);
 
             switch (attribute.Category)
             {
                 case AttributeCategory.OffensiveHealth:
-                    result = vitalService.ApplyHealth(effectContext);
+                    result = vitalService.ApplyOffensiveHealth(effectContext);
+                    break;
+
+                case AttributeCategory.RestorativeHealth:
+                    result = vitalService.ApplyRestorativeHealth(effectContext);
                     break;
 
                 case AttributeCategory.OffensiveEnergy:
-                    result = vitalService.ApplyEnergy(effectContext);
+                    result = vitalService.ApplyOffensiveEnergy(effectContext);
                     break;
 
-                default:
-                    return;
+                case AttributeCategory.RestorativeEnergy:
+                    result = vitalService.ApplyRestorativeEnergy(effectContext);
+                    break;
             }
 
-            PublishVitalChange(result.target, targetTransform);
-
-            if (result.source != null)
+            // Queue valid records into the Command buffer cycle
+            if (result.targetRecord != null)
             {
-                var sourceEntity = effectContext.Source;
-                var sourceTransform = sourceEntity?.GetComponent<TransformInstance>();
-                if (sourceTransform != null)
-                {
-                    PublishVitalChange(result.source, sourceTransform);
-                }
+                // Validate transform for publishing
+                var targetTransform = target.GetComponent<TransformInstance>();
+                if (targetTransform == null)
+                    return;
+
+                PublishVitalChange(result.targetRecord, targetTransform);
+            }
+
+            if (result.sourceRecord != null && source != null)
+            {
+                // Validate transform for publishing
+                var sourceTransform = source.GetComponent<TransformInstance>();
+                if (sourceTransform == null)
+                    return;
+
+                PublishVitalChange(result.sourceRecord, sourceTransform);
             }
         }
 

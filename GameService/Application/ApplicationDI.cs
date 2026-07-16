@@ -106,8 +106,8 @@ namespace Application
             // Entity service
             services.AddSingleton<AIService>();
             services.AddSingleton<LifetimeService>();
-            services.AddSingleton<MovementService>();
             services.AddSingleton<ProjectileService>();
+            services.AddSingleton<TransformService>();
             services.AddSingleton<TriggeredEffectService>();
 
             // Identity service
