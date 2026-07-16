@@ -90,6 +90,15 @@ namespace Domain.Definition.LocalizationDomain
         }
 
         #region Methods
+        public void Update(
+            string? value, 
+            string? description)
+        {
+            Value = value ?? string.Empty;
+            Description = description;
+            Version++;
+            UpdatedAt = DateTime.UtcNow;
+        }
         #endregion
     }
 

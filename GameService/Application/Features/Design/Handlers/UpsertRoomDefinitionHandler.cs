@@ -38,11 +38,9 @@ namespace Application.Features.Design.Handlers
             UpsertRoomDefinitionCommand command)
         {
             if (command.File == null || command.File.Length == 0)
-            {
                 throw new BadRequest(
                     ApplicationCode.DesignHandlerCode.RoomFilePayloadEmpty,
                     "The uploaded room definition file is null or empty.");
-            }
 
             RoomDefinitionPayload? payload;
 
@@ -63,11 +61,9 @@ namespace Application.Features.Design.Handlers
 
             // Data Invariant Verification
             if (payload == null || payload.Room == null)
-            {
                 throw new BadRequest(
                     ApplicationCode.DesignHandlerCode.RoomFileSchemaParseFailed,
                     "The file was parsed but contains an invalid root payload structure or missing 'Room' schema definition.");
-            }
 
             // Extract our clean, validated objects
             var dto = payload.Room;

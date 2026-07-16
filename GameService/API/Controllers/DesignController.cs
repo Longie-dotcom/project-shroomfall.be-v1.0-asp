@@ -3,6 +3,7 @@ using Application.Features.Abstraction;
 using Application.Features.Design.Commands;
 using Contract.DTO.Common;
 using Contract.DTO.Definition.EntityDomain.Component;
+using Contract.DTO.Definition.LocalizationDomain;
 using Contract.DTO.Definition.MetaDomain;
 using Contract.DTO.Definition.WorldDomain;
 using Contract.DTO.Feature.Design.Command;
@@ -102,6 +103,33 @@ namespace API.Controllers
         }
 
         [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
+        [HttpGet("locales")]
+        public async Task<ActionResult<List<LocaleDTO>>> GetAllLocales()
+        {
+            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
+
+            var result = await dispatcher.Send<FetchLocaleCommand, List<LocaleDTO>>(
+                new FetchLocaleCommand(userId)
+            );
+
+            return Ok(result);
+        }
+
+        [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
+        [HttpGet("localization-entries")]
+        public async Task<ActionResult<PagedResponseDTO<LocalizationEntryDTO>>> GetLocalizationEntries(
+            [FromQuery] LocalizationEntryQueryDTO queries)
+        {
+            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
+
+            var result = await dispatcher.Send<FetchLocalizationEntryCommand, PagedResponseDTO<LocalizationEntryDTO>>(
+                new FetchLocalizationEntryCommand(userId, queries)
+            );
+
+            return Ok(result);
+        }
+
+        [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
         [HttpPost("effect-definition")]
         public async Task<IActionResult> UpsertEffectDefinition(
             [FromBody] EffectDefinitionDTO dto)
@@ -152,6 +180,20 @@ namespace API.Controllers
 
             await dispatcher.Send<UpsertRoomDefinitionCommand>(
                 new UpsertRoomDefinitionCommand(file)
+            );
+
+            return Ok();
+        }
+
+        [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
+        [HttpPost("localization-entries")]
+        public async Task<IActionResult> UpdateLocalizationEntries(
+            [FromBody] LocalizationEntryDTO updates)
+        {
+            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
+
+            await dispatcher.Send<UpdateLocalizationEntryCommand>(
+                new UpdateLocalizationEntryCommand(userId, updates)
             );
 
             return Ok();

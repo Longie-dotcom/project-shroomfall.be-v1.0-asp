@@ -13,7 +13,7 @@ namespace Application.Features.Design.Handlers
     public class UpdateDefinitionHandler : IHandler<UpdateDefinitionCommand>
     {
         #region Attributes
-        private readonly IRelationalUoW relational;
+        private readonly IRelationalUoW relationalUoW;
         private readonly ICacheProvider cacheLoader;
         private readonly IEventBus eventBus;
         #endregion
@@ -22,11 +22,11 @@ namespace Application.Features.Design.Handlers
         #endregion
 
         public UpdateDefinitionHandler(
-            IRelationalUoW relational,
+            IRelationalUoW relationalUoW,
             ICacheProvider cacheLoader,
             IEventBus eventBus)
         {
-            this.relational = relational;
+            this.relationalUoW = relationalUoW;
             this.cacheLoader = cacheLoader;
             this.eventBus = eventBus;
         }
@@ -38,8 +38,7 @@ namespace Application.Features.Design.Handlers
             var dto = command.DTO;
 
             // Resolve repository
-            var definitionVersionLogRepo =
-                relational.GetRepository<IDefinitionVersionLogRepository>();
+            var definitionVersionLogRepo = relationalUoW.GetRepository<IDefinitionVersionLogRepository>();
 
             // Generate latest version for this key
             var key = dto.Key ?? Constraint.GLOBAL_DEFINITION_VERSION;
@@ -56,6 +55,7 @@ namespace Application.Features.Design.Handlers
 
             // Apply peristence - Save changes
             await definitionVersionLogRepo.AddAsync(log);
+            await relationalUoW.SaveChangesAsync();
 
             // Reload cache - Note: improve by using key to reload needed cache only
             await cacheLoader.LoadAllAsync();

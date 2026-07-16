@@ -11,7 +11,7 @@ namespace Application.Features.Design.Handlers
     public class UserRefreshHandler : IHandler<UserRefreshCommand, DefinitionSnapshotDTO?>
     {
         #region Attributes
-        private readonly IRelationalUoW relational;
+        private readonly IRelationalUoW relationalUoW;
         private readonly DefinitionService builderService;
         #endregion
 
@@ -19,10 +19,10 @@ namespace Application.Features.Design.Handlers
         #endregion
 
         public UserRefreshHandler(
-            IRelationalUoW relational,
+            IRelationalUoW relationalUoW,
             DefinitionService builderService)
         {
-            this.relational = relational;
+            this.relationalUoW = relationalUoW;
             this.builderService = builderService;
         }
 
@@ -33,7 +33,7 @@ namespace Application.Features.Design.Handlers
             var dto = command.DTO;
 
             // Resolve repository
-            var definitionVersionLogRepo = relational.GetRepository<IDefinitionVersionLogRepository>();
+            var definitionVersionLogRepo = relationalUoW.GetRepository<IDefinitionVersionLogRepository>();
 
             // Get latest global definition version
             var latest = await definitionVersionLogRepo.GetLatest(Constraint.GLOBAL_DEFINITION_VERSION);
