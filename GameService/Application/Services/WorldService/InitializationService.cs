@@ -53,8 +53,6 @@ namespace Application.Services.WorldService
             RoomLifecyclePolicy lifecyclePolicy,
             string? userId = null)
         {
-            Console.WriteLine($"[InitializationService] Initializing Room -> DefId: {roomDefinitionId}, SpatialId: {roomSpatialId}, UserId: {userId ?? "None"}");
-
             // Spawn Entities
             var pendingEntities = new List<EntityInstance>();
             var ownerId = SpawnEntities(roomDefinitionId, roomSpatialId, pendingEntities, userId);
@@ -66,8 +64,6 @@ namespace Application.Services.WorldService
             residencyService.RegisterRuntimeRoom(
                 new RoomInstance { Room = room, Entities = pendingEntities },
                 lifecyclePolicy);
-
-            Console.WriteLine($"[InitializationService] Room '{roomSpatialId}' successfully registered. Total spawned entities: {pendingEntities.Count}");
         }
 
         private string? SpawnEntities(
@@ -83,20 +79,15 @@ namespace Application.Services.WorldService
                     $"Room generation aborted. Master definition blueprint for ID '{roomDefId}' could not be loaded from store.");
 
             string? ownerId = null;
-            Console.WriteLine($"[InitializationService] Spawning entities for room blueprint '{roomDefId}'. Total spawn rules: {roomDef.EntitySpawnRules.Count}");
 
             foreach (var rule in roomDef.EntitySpawnRules)
             {
                 // Prevent spawning players if no userId is provided, or if already spawned one
                 if (rule.Type == SpawnRuleType.Player && (string.IsNullOrEmpty(userId) || ownerId != null))
-                {
-                    Console.WriteLine($"[InitializationService] Skipping player spawn rule for EntityDef '{rule.EntityDefinitionID}' (UserId is null or player already spawned).");
                     continue;
-                }
 
                 // Enforce exactly 1 spawn for Players, regardless of what the blueprint says.
                 int count = rule.Type == SpawnRuleType.Player ? 1 : random.Next(rule.MinCount, rule.MaxCount + 1);
-                Console.WriteLine($"[InitializationService] Processing rule: Type={rule.Type}, EntityDef={rule.EntityDefinitionID}, Count={count}");
 
                 for (int i = 0; i < count; i++)
                 {
@@ -109,12 +100,12 @@ namespace Application.Services.WorldService
                     {
                         ownerId = $"{userId}_{Guid.NewGuid()}_{rule.EntityDefinitionID}";
                         context = new PlayerEntityCreateContext(
-                            ownerId,
+                            ownerId, 
                             rule.EntityDefinitionID,
                             roomSpatialId,
                             layerZ,
-                            pos,
-                            userId,
+                            pos, 
+                            userId, 
                             roomSpatialId);
                     }
                     else
@@ -123,13 +114,12 @@ namespace Application.Services.WorldService
                             $"{Guid.NewGuid()}_{rule.EntityDefinitionID}",
                             rule.EntityDefinitionID,
                             roomSpatialId,
-                            layerZ,
+                            layerZ, 
                             pos);
                     }
 
                     // Create entity based on context and validate spawn position
                     var entity = entityInstanceFactory.Create(context);
-                    Console.WriteLine($"[InitializationService] -> Created entity ID: {entity.ID} | Def: {rule.EntityDefinitionID} at Pos: ({pos.X}, {pos.Y}), Z: {layerZ}");
 
                     var transform = entity.GetComponent<TransformInstance>();
                     if (transform == null)
