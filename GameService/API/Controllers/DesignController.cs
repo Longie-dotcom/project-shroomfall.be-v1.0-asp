@@ -186,8 +186,8 @@ namespace API.Controllers
         }
 
         [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
-        [HttpPost("localization-entries")]
-        public async Task<IActionResult> UpdateLocalizationEntries(
+        [HttpPost("localization-entry")]
+        public async Task<IActionResult> UpdateLocalizationEntry(
             [FromBody] LocalizationEntryDTO updates)
         {
             var (userId, steamId, role) = ClaimReader.GetIdentity(User);
