@@ -62,6 +62,7 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     ID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CollisionRole = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ShapeType = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Width = table.Column<float>(type: "real", nullable: false),
                     Height = table.Column<float>(type: "real", nullable: false),

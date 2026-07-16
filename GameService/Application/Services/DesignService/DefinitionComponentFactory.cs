@@ -102,57 +102,15 @@ namespace Application.Services.DesignService
             CollisionDefinitionDTO dto,
             string entityDefinitionId)
         {
-            CollisionLayer finalLayer;
-            CollisionLayer finalMask;
-
-            switch (dto.CollisionRole)
-            {
-                case CollisionRole.Player:
-                    finalLayer = CollisionLayer.Player;
-                    finalMask = CollisionPresets.PlayerMask;
-                    break;
-
-                case CollisionRole.Enemy:
-                    finalLayer = CollisionLayer.Enemy;
-                    finalMask = CollisionPresets.EnemyMask;
-                    break;
-
-                case CollisionRole.PlayerProjectile:
-                    finalLayer = CollisionLayer.PlayerProjectile;
-                    finalMask = CollisionPresets.PlayerProjectileMask;
-                    break;
-
-                case CollisionRole.EnemyProjectile:
-                    finalLayer = CollisionLayer.EnemyProjectile;
-                    finalMask = CollisionPresets.EnemyProjectileMask;
-                    break;
-
-                case CollisionRole.Collectible:
-                    finalLayer = CollisionLayer.Collectible;
-                    finalMask = CollisionPresets.CollectibleMask;
-                    break;
-
-                case CollisionRole.Wall:
-                    finalLayer = CollisionLayer.Wall;
-                    finalMask = CollisionPresets.WallMask;
-                    break;
-
-                default:
-                    finalLayer = CollisionLayer.None;
-                    finalMask = CollisionLayer.None;
-                    break;
-            }
-
             var component = new CollisionDefinition(
                 Guid.NewGuid(),
                 entityDefinitionId,
+                dto.CollisionRole,
                 dto.ShapeType,
                 dto.Width,
                 dto.Height,
                 dto.Radius,
                 dto.IsBlocking,
-                finalLayer,
-                finalMask,
                 dto.OffsetX,
                 dto.OffsetY
             );

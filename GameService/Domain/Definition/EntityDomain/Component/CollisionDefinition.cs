@@ -1,6 +1,7 @@
 ﻿using Contract.Enum.EntityDomain;
 using Domain.Abstraction;
 using Domain.DomainException;
+using Domain.Shared;
 using ResponseCode;
 
 namespace Domain.Definition.EntityDomain.Component
@@ -11,6 +12,7 @@ namespace Domain.Definition.EntityDomain.Component
         #endregion
 
         #region Properties
+        public CollisionRole CollisionRole { get; set; }
         public CollisionShapeType ShapeType { get; private set; }
         public float Width { get; private set; }
         public float Height { get; private set; }
@@ -27,13 +29,12 @@ namespace Domain.Definition.EntityDomain.Component
         public CollisionDefinition(
             Guid id,
             string entityDefinitionId,
+            CollisionRole collisionRole,
             CollisionShapeType shapeType,
             float width,
             float height,
             float radius,
             bool isBlocking,
-            CollisionLayer layer,
-            CollisionLayer mask,
             float offsetX = 0f,
             float offsetY = 0f) : base(id, entityDefinitionId)
         {
@@ -82,13 +83,54 @@ namespace Domain.Definition.EntityDomain.Component
                         $"Collision definition creation failed for entity '{entityDefinitionId}'. The shape type value '{(int)shapeType}' is not supported.");
             }
 
+            CollisionLayer finalLayer;
+            CollisionLayer finalMask;
+
+            switch (collisionRole)
+            {
+                case CollisionRole.Player:
+                    finalLayer = CollisionLayer.Player;
+                    finalMask = CollisionPresets.PlayerMask;
+                    break;
+
+                case CollisionRole.Enemy:
+                    finalLayer = CollisionLayer.Enemy;
+                    finalMask = CollisionPresets.EnemyMask;
+                    break;
+
+                case CollisionRole.PlayerProjectile:
+                    finalLayer = CollisionLayer.PlayerProjectile;
+                    finalMask = CollisionPresets.PlayerProjectileMask;
+                    break;
+
+                case CollisionRole.EnemyProjectile:
+                    finalLayer = CollisionLayer.EnemyProjectile;
+                    finalMask = CollisionPresets.EnemyProjectileMask;
+                    break;
+
+                case CollisionRole.Collectible:
+                    finalLayer = CollisionLayer.Collectible;
+                    finalMask = CollisionPresets.CollectibleMask;
+                    break;
+
+                case CollisionRole.Wall:
+                    finalLayer = CollisionLayer.Wall;
+                    finalMask = CollisionPresets.WallMask;
+                    break;
+
+                default:
+                    finalLayer = CollisionLayer.None;
+                    finalMask = CollisionLayer.None;
+                    break;
+            }
+
             ShapeType = shapeType;
             Width = width;
             Height = height;
             Radius = radius;
             IsBlocking = isBlocking;
-            Layer = layer;
-            Mask = mask;
+            Layer = finalLayer;
+            Mask = finalMask;
             OffsetX = offsetX;
             OffsetY = offsetY;
         }

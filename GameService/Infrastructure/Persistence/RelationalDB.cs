@@ -141,6 +141,9 @@ namespace Infrastructure.Persistence
                 // ─────────────────────────────
                 entity.Property(x => x.EntityDefinitionID)
                     .IsRequired();
+                entity.Property(x => x.CollisionRole)
+                    .HasConversion<string>()
+                    .IsRequired();
                 entity.Property(x => x.ShapeType)
                     .HasConversion<string>()
                     .IsRequired();

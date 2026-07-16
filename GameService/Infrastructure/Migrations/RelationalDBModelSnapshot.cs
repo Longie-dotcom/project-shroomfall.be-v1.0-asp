@@ -195,6 +195,10 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("CollisionRole")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("EntityDefinitionID")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");

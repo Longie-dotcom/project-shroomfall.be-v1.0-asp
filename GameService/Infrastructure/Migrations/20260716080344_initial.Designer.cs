@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(RelationalDB))]
-    [Migration("20260715191835_initial")]
+    [Migration("20260716080344_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -197,6 +197,10 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("ID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CollisionRole")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("EntityDefinitionID")
                         .IsRequired()
