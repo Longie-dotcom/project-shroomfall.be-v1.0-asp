@@ -74,6 +74,7 @@ namespace Application.Features.Design.Handlers
 
             // Resolve repository
             var repo = relationalUoW.GetRepository<IRoomDefinitionRepository>();
+            await relationalUoW.BeginTransactionAsync();
 
             // Generate core localization & presentation setup safely via Definition ID
             var localizedText = LocalizationFactory.ForRoom(dto.Id);
@@ -113,7 +114,7 @@ namespace Application.Features.Design.Handlers
 
             // Wipe old children and save current configuration state atomically
             await repo.UpsertChildrenAsync(dto.Id, domainCells, domainRules);
-            await relationalUoW.SaveChangesAsync();
+            await relationalUoW.CommitAsync();
         }
         #endregion
     }

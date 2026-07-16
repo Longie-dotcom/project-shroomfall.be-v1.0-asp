@@ -7,6 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="EFCore.BulkExtensions" Version="9.0.2" />
+    <PackageReference Include="EFCore.BulkExtensions.SqlServer" Version="9.0.2" />
     <PackageReference Include="EntityFramework" Version="6.5.2" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.10" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.2.9" />

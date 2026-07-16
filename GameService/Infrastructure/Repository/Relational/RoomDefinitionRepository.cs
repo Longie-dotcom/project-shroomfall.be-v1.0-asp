@@ -1,7 +1,6 @@
 ﻿using Application.Interfaces.Repository.Relational;
-using Contract.Enum.MetaDomain.Item;
 using Contract.Enum.WorldDomain;
-using Domain.Definition.MetaDomain;
+using EFCore.BulkExtensions;
 using Domain.Definition.WorldDomain;
 using Infrastructure.Persistence;
 using Infrastructure.Repository.Base;
@@ -69,34 +68,24 @@ namespace Infrastructure.Repository.Relational
             IEnumerable<Cell> cells,
             IEnumerable<EntitySpawnRule> spawnRules)
         {
-            // Handle Cells collection replacement
-            var oldCells = await context.Set<Cell>()
+            // Executes immediately as a single SQL statement. Zero memory overhead.
+            await context.Set<Cell>()
                 .Where(x => x.RoomDefinitionID == roomDefinitionId)
-                .ToListAsync();
+                .ExecuteDeleteAsync();
 
-            if (oldCells.Any())
-            {
-                context.Set<Cell>().RemoveRange(oldCells);
-            }
+            await context.Set<EntitySpawnRule>()
+                .Where(x => x.RoomDefinitionID == roomDefinitionId)
+                .ExecuteDeleteAsync();
 
+            // Bypasses the EF Change Tracker entirely.
             if (cells != null && cells.Any())
             {
-                await context.Set<Cell>().AddRangeAsync(cells);
-            }
-
-            // Handle EntitySpawnRules collection replacement
-            var oldRules = await context.Set<EntitySpawnRule>()
-                .Where(x => x.RoomDefinitionID == roomDefinitionId)
-                .ToListAsync();
-
-            if (oldRules.Any())
-            {
-                context.Set<EntitySpawnRule>().RemoveRange(oldRules);
+                await context.BulkInsertAsync(cells.ToList());
             }
 
             if (spawnRules != null && spawnRules.Any())
             {
-                await context.Set<EntitySpawnRule>().AddRangeAsync(spawnRules);
+                await context.BulkInsertAsync(spawnRules.ToList());
             }
         }
         #endregion
