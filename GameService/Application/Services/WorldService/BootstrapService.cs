@@ -23,14 +23,14 @@ namespace Application.Services.WorldService
         #region Methods
         public async Task LoadAsync()
         {
-            //foreach (var hub in Constraint.STATIC_HUB_ROOM_MAPS)
-            //{
-            //    initializationService.InitializeRoom(
-            //        hub.DefinitionKey,
-            //        hub.SpatialId,
-            //        RoomLifecyclePolicy.Permanent,
-            //        null);
-            //}
+            foreach (var hub in Constraint.STATIC_HUB_ROOM_MAPS)
+            {
+                initializationService.InitializeRoom(
+                    hub.DefinitionKey,
+                    hub.SpatialId,
+                    RoomLifecyclePolicy.Permanent,
+                    null);
+            }
         }
         #endregion
     }
