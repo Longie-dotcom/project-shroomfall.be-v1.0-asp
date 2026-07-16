@@ -1,5 +1,7 @@
 ﻿using Application.Features;
 using Application.Features.Abstraction;
+using Application.Features.Admin.Commands;
+using Application.Features.Admin.Handlers;
 using Application.Features.Connection.Commands;
 using Application.Features.Connection.Handlers;
 using Application.Features.Design.Commands;
@@ -50,6 +52,9 @@ namespace Application
             // ─────────────────────────────
             // Core
             services.AddScoped<IDispatcher, Dispatcher>();
+
+            // Admin
+            services.AddScoped<IHandler<FetchRoomInstanceCommand, List<RoomInstance>>, FetchRoomInstanceHandler>();
 
             // Connection
             services.AddScoped<IHandler<CreateSessionCommand>, CreateSessionHandler>();

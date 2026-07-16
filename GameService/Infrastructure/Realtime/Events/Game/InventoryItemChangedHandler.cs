@@ -3,6 +3,7 @@ using Application.Interfaces.Realtime.Events;
 using Application.Interfaces.Realtime.Events.Game;
 using Application.Interfaces.Realtime.Managers;
 using AutoMapper;
+using Contract.DTO.Feature.Game.Response;
 using Contract.DTO.Runtime.MetaDomain;
 
 namespace Infrastructure.Realtime.Events.Game
@@ -43,10 +44,15 @@ namespace Infrastructure.Realtime.Events.Game
             if (connectionId == null)
                 return;
 
+            var item = mapper.Map<ItemInstanceDTO>(changedEvent.ItemInstance);
+
             await publisher.SendInventoryItemChanged(
                 connectionId,
-                mapper.Map<ItemInstanceDTO>(changedEvent.ItemInstance),
-                changedEvent.ChangeType);
+                new InventoryItemChangedDTO()
+                {
+                    Item = item,
+                    EventType = changedEvent.ChangeType
+                });
         }
         #endregion
     }

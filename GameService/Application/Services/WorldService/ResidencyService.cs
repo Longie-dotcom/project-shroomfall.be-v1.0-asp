@@ -5,7 +5,6 @@ using Application.Services.WorldService.Persistence;
 using Contract;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
-using Domain.Runtime.EntityDomain.Component;
 using ResponseCode;
 using System.Collections.Concurrent;
 
@@ -80,6 +79,25 @@ namespace Application.Services.WorldService
         }
 
         #region Methods
+        public List<RoomInstance> GetRunningRoomInstances()
+        {
+            var runningRooms = new List<RoomInstance>();
+
+            foreach (var node in nodes.Values)
+            {
+                if (node.State != RoomResidencyState.Cold)
+                {
+                    var roomInstance = TryGetRoomInstance(node.RoomSpatialID);
+                    if (roomInstance != null)
+                    {
+                        runningRooms.Add(roomInstance);
+                    }
+                }
+            }
+
+            return runningRooms;
+        }
+
         public async Task PlayerJoinRoomAsync(
             string roomId, 
             string playerInstanceId)

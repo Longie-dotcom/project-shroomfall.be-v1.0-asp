@@ -6,9 +6,7 @@ using Contract.DTO.Feature.Design.Response;
 using Contract.DTO.Feature.Game.Response;
 using Contract.DTO.Runtime.EntityDomain;
 using Contract.DTO.Runtime.EntityDomain.Component;
-using Contract.DTO.Runtime.MetaDomain;
 using Contract.DTO.Runtime.WorldDomain;
-using Contract.Enum.MetaDomain.Item;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Infrastructure.Realtime
@@ -67,12 +65,11 @@ namespace Infrastructure.Realtime
 
         public Task SendInventoryItemChanged(
             string connectionId,
-            ItemInstanceDTO item,
-            ItemInventorySyncEvent changeType)
+            InventoryItemChangedDTO payload)
         {
             return hub.Clients
                 .Client(connectionId)
-                .SendAsync(NetworkMethod.OnInventoryItemChanged, item, changeType);
+                .SendAsync(NetworkMethod.OnInventoryItemChanged, payload);
         }
 
         public Task SendInventoryCleared(

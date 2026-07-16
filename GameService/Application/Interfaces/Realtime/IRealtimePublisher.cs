@@ -35,8 +35,7 @@ namespace Application.Interfaces.Realtime
 
         Task SendInventoryItemChanged(
             string connectionId,
-            ItemInstanceDTO item,
-            ItemInventorySyncEvent changeType);
+            InventoryItemChangedDTO payload);
 
         Task SendInventoryCleared(
             string connectionId);
