@@ -42,7 +42,7 @@ namespace Application.Services.DesignService
                     await UpsertAppearanceAsync((AppearanceDefinitionDTO)dto, entityDefinitionId);
                     break;
                 case nameof(CollisionDefinitionDTO):
-                    await UpsertCollisionAsync((CollisionDefinitionDTO)dto, entityDefinitionId, entityType);
+                    await UpsertCollisionAsync((CollisionDefinitionDTO)dto, entityDefinitionId);
                     break;
                 case nameof(CharacteristicDefinitionDTO):
                     await UpsertCharacteristicAsync((CharacteristicDefinitionDTO)dto, entityDefinitionId);
@@ -100,47 +100,47 @@ namespace Application.Services.DesignService
 
         private async Task UpsertCollisionAsync(
             CollisionDefinitionDTO dto,
-            string entityDefinitionId,
-            EntityType entityType)
+            string entityDefinitionId)
         {
-            var finalLayer = dto.Layer;
-            var finalMask = dto.Mask;
+            CollisionLayer finalLayer;
+            CollisionLayer finalMask;
 
-            // Fallback Preset Engine: If 0/None, infer correct defaults from the concrete EntityType
-            if (finalLayer == CollisionLayer.None || finalMask == CollisionLayer.None)
+            switch (dto.CollisionRole)
             {
-                switch (entityType)
-                {
-                    case EntityType.Player:
-                        finalLayer = CollisionLayer.Player;
-                        finalMask = CollisionPresets.PlayerMask;
-                        break;
+                case CollisionRole.Player:
+                    finalLayer = CollisionLayer.Player;
+                    finalMask = CollisionPresets.PlayerMask;
+                    break;
 
-                    case EntityType.Creature:
-                        finalLayer = CollisionLayer.Enemy;
-                        finalMask = CollisionPresets.EnemyMask;
-                        break;
+                case CollisionRole.Enemy:
+                    finalLayer = CollisionLayer.Enemy;
+                    finalMask = CollisionPresets.EnemyMask;
+                    break;
 
-                    case EntityType.WorldObject:
-                        finalLayer = CollisionLayer.Wall;
-                        finalMask = CollisionPresets.WallMask;
-                        break;
+                case CollisionRole.PlayerProjectile:
+                    finalLayer = CollisionLayer.PlayerProjectile;
+                    finalMask = CollisionPresets.PlayerProjectileMask;
+                    break;
 
-                    case EntityType.Projectile:
-                        // Defaulting to Player-sourced projectiles; game rules can override manually via frontend
-                        finalLayer = CollisionLayer.PlayerProjectile;
-                        finalMask = CollisionPresets.PlayerProjectileMask;
-                        break;
+                case CollisionRole.EnemyProjectile:
+                    finalLayer = CollisionLayer.EnemyProjectile;
+                    finalMask = CollisionPresets.EnemyProjectileMask;
+                    break;
 
-                    case EntityType.Item:
-                        finalLayer = CollisionLayer.Collectible;
-                        finalMask = CollisionPresets.CollectibleMask;
-                        break;
+                case CollisionRole.Collectible:
+                    finalLayer = CollisionLayer.Collectible;
+                    finalMask = CollisionPresets.CollectibleMask;
+                    break;
 
-                    default:
-                        // No mapping found: maintain structural values as passed from client
-                        break;
-                }
+                case CollisionRole.Wall:
+                    finalLayer = CollisionLayer.Wall;
+                    finalMask = CollisionPresets.WallMask;
+                    break;
+
+                default:
+                    finalLayer = CollisionLayer.None;
+                    finalMask = CollisionLayer.None;
+                    break;
             }
 
             var component = new CollisionDefinition(
@@ -157,7 +157,9 @@ namespace Application.Services.DesignService
                 dto.OffsetY
             );
 
-            await relationalUoW.GetRepository<ICollisionDefinitionRepository>().UpsertAsync(component);
+            await relationalUoW
+                .GetRepository<ICollisionDefinitionRepository>()
+                .UpsertAsync(component);
         }
 
         private async Task UpsertCharacteristicAsync(
@@ -268,6 +270,7 @@ namespace Application.Services.DesignService
             var component = new ProjectileDefinition(
                 Guid.NewGuid(),
                 entityDefinitionId,
+                dto.OnImpactSpawnEntityDefinitionID,
                 dto.Velocity
             );
 

@@ -17,9 +17,11 @@ namespace Domain.Definition.EntityDomain.Component
         public ProjectileDefinition(
             Guid id,
             string entityDefinitionId,
+            string? onImpactSpawnEntityDefinitionId,
             float velocity) : base(id, entityDefinitionId)
         {
             Velocity = velocity;
+            OnImpactSpawnEntityDefinitionID = onImpactSpawnEntityDefinitionId;
         }
 
         #region Methods
