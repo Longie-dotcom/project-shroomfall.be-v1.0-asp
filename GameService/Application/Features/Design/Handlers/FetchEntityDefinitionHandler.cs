@@ -40,6 +40,7 @@ namespace Application.Features.Design.Handlers
 
             var (entities, totalCount) = await entityRepo.GetPagedDefinitionsAsync(
                 queries.SearchTerm,
+                queries.EntityType,
                 pageNumber,
                 pageSize
             );
