@@ -83,8 +83,6 @@ namespace Application.Services.WorldService
         {
             var runningRooms = new List<RoomInstance>();
 
-            Console.WriteLine($"[ResidencyService] Scanning nodes for running room instances. Total nodes tracked: {nodes.Count}");
-
             foreach (var node in nodes.Values)
             {
                 if (node.State != RoomResidencyState.Cold)
@@ -92,17 +90,11 @@ namespace Application.Services.WorldService
                     var roomInstance = TryGetRoomInstance(node.RoomSpatialID);
                     if (roomInstance != null)
                     {
-                        Console.WriteLine($"[ResidencyService] -> Found active room '{node.RoomSpatialID}' (State: {node.State}) with {roomInstance.Entities.Count} entities.");
                         runningRooms.Add(roomInstance);
-                    }
-                    else
-                    {
-                        Console.WriteLine($"[ResidencyService] -> Warning: Node '{node.RoomSpatialID}' is not Cold, but TryGetRoomInstance returned null.");
                     }
                 }
             }
 
-            Console.WriteLine($"[ResidencyService] Total running rooms successfully gathered: {runningRooms.Count}");
             return runningRooms;
         }
 
