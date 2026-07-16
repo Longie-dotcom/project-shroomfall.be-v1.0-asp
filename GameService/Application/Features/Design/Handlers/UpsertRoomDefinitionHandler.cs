@@ -76,22 +76,22 @@ namespace Application.Features.Design.Handlers
             var repo = relationalUoW.GetRepository<IRoomDefinitionRepository>();
 
             // Generate core localization & presentation setup safely via Definition ID
-            var localizedText = LocalizationFactory.ForRoom(dto.ID);
+            var localizedText = LocalizationFactory.ForRoom(dto.Id);
 
             // Process Parent Entity (Create or Track Update)
-            var existingRoom = await repo.GetByIdAsync(dto.ID);
+            var existingRoom = await repo.GetByIdAsync(dto.Id);
             if (existingRoom == null)
             {
                 var newRoom = new RoomDefinition(
-                    dto.ID,
+                    dto.Id,
                     dto.Type,
-                    new RoomPresentationDefinition(localizedText, dto.ID));
+                    new RoomPresentationDefinition(localizedText, dto.Id));
                 await repo.AddAsync(newRoom);
             }
 
             // Map Child Collections directly using your shared project DTOs
             var domainCells = payload.Cells.Select(c => new Cell(
-                roomDefinitionId: dto.ID,
+                roomDefinitionId: dto.Id,
                 type: c.Type,
                 x: c.X,
                 y: c.Y,
@@ -107,12 +107,12 @@ namespace Application.Features.Design.Handlers
                 maxY: r.MaxY,
                 minCount: r.MinCount,
                 maxCount: r.MaxCount,
-                roomDefinitionId: dto.ID,
+                roomDefinitionId: dto.Id,
                 entityDefinitionId: r.EntityDefinitionID
             )).ToList();
 
             // Wipe old children and save current configuration state atomically
-            await repo.UpsertChildrenAsync(dto.ID, domainCells, domainRules);
+            await repo.UpsertChildrenAsync(dto.Id, domainCells, domainRules);
             await relationalUoW.SaveChangesAsync();
         }
         #endregion
