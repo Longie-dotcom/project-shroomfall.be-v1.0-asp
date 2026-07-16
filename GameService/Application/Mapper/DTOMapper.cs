@@ -105,8 +105,10 @@ namespace Application.Mapper
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.ID));
 
             // World Domain
-            CreateMap<CombatRunDefinition, CombatRunDefinitionDTO>();
-            CreateMap<RoomDefinition, RoomDefinitionDTO>();
+            CreateMap<CombatRunDefinition, CombatRunDefinitionDTO>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.ID));
+            CreateMap<RoomDefinition, RoomDefinitionDTO>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.ID));
             CreateMap<RoomPresentationDefinition, RoomPresentationDefinitionDTO>();
             CreateMap<EntitySpawnRule, EntitySpawnRuleDTO>();
             CreateMap<Cell, CellDTO>();
