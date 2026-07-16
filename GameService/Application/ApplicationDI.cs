@@ -23,6 +23,7 @@ using Application.Systems.System;
 using Contract.DTO.Common;
 using Contract.DTO.Definition.EntityDomain.Component;
 using Contract.DTO.Definition.MetaDomain;
+using Contract.DTO.Definition.WorldDomain;
 using Contract.DTO.Feature.Connection.Response;
 using Contract.DTO.Feature.Design.Response;
 using Contract.DTO.Feature.Identity.Response;
@@ -61,6 +62,7 @@ namespace Application
             services.AddScoped<IHandler<FetchEntityDefinitionCommand, PagedResponseDTO<EntityDefinitionDTO>>, FetchEntityDefinitionHandler>();
             services.AddScoped<IHandler<FetchEntityDefinitionDetailCommand, EntityDefinitionDTO>, FetchEntityDefinitionDetailHandler>();
             services.AddScoped<IHandler<FetchItemDefinitionCommand, PagedResponseDTO<ItemDefinitionDTO>>, FetchItemDefinitionHandler>();
+            services.AddScoped<IHandler<FetchRoomDefinitionCommand, PagedResponseDTO<RoomDefinitionDTO>>, FetchRoomDefinitionHandler>();
             services.AddScoped<IHandler<UpdateDefinitionCommand>, UpdateDefinitionHandler>();
             services.AddScoped<IHandler<UpsertEffectDefinitionCommand>, UpsertEffectDefinitionHandler>();
             services.AddScoped<IHandler<UpsertEntityDefinitionCommand>, UpsertEntityDefinitionHandler>();

@@ -4,6 +4,7 @@ using Application.Features.Design.Commands;
 using Contract.DTO.Common;
 using Contract.DTO.Definition.EntityDomain.Component;
 using Contract.DTO.Definition.MetaDomain;
+using Contract.DTO.Definition.WorldDomain;
 using Contract.DTO.Feature.Design.Command;
 using Contract.DTO.Feature.Design.Response;
 using Contract.Enum.IdentityDomain;
@@ -81,6 +82,20 @@ namespace API.Controllers
 
             var result = await dispatcher.Send<FetchEntityDefinitionCommand, PagedResponseDTO<EntityDefinitionDTO>>(
                 new FetchEntityDefinitionCommand(userId, queries)
+            );
+
+            return Ok(result);
+        }
+
+        [Authorize(Roles = nameof(Role.Designer) + "," + nameof(Role.Admin))]
+        [HttpGet("rooms")]
+        public async Task<ActionResult<PagedResponseDTO<RoomDefinitionDTO>>> GetAllRooms(
+            [FromQuery] RoomDefinitionQueryDTO queries)
+        {
+            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
+
+            var result = await dispatcher.Send<FetchRoomDefinitionCommand, PagedResponseDTO<RoomDefinitionDTO>>(
+                new FetchRoomDefinitionCommand(userId, queries)
             );
 
             return Ok(result);
