@@ -76,6 +76,7 @@ namespace API
 
                         ValidIssuer = issuer,
                         ValidAudience = audience,
+
                         IssuerSigningKey = new SymmetricSecurityKey(
                             Encoding.UTF8.GetBytes(jwtKey)
                         ),
@@ -90,10 +91,63 @@ namespace API
                             var accessToken = context.Request.Query["access_token"];
                             var path = context.HttpContext.Request.Path;
 
+                            Console.WriteLine($"[JWT] Request Path: {path}");
+
                             if (!string.IsNullOrEmpty(accessToken) &&
-                                (path.StartsWithSegments("/hubs/game") || path.StartsWithSegments("/hubs/admin")))
+                                (path.StartsWithSegments("/hubs/game") ||
+                                 path.StartsWithSegments("/hubs/admin")))
                             {
                                 context.Token = accessToken;
+                                Console.WriteLine("[JWT] Access token received from SignalR query string.");
+                            }
+                            else
+                            {
+                                Console.WriteLine("[JWT] No SignalR access token found.");
+                            }
+
+                            return Task.CompletedTask;
+                        },
+
+                        OnTokenValidated = context =>
+                        {
+                            Console.WriteLine("[JWT] Token validated successfully.");
+
+                            foreach (var claim in context.Principal!.Claims)
+                            {
+                                Console.WriteLine($"[JWT] Claim: {claim.Type} = {claim.Value}");
+                            }
+
+                            return Task.CompletedTask;
+                        },
+
+                        OnAuthenticationFailed = context =>
+                        {
+                            Console.WriteLine("[JWT] Authentication FAILED!");
+                            Console.WriteLine(context.Exception);
+
+                            return Task.CompletedTask;
+                        },
+
+                        OnChallenge = context =>
+                        {
+                            Console.WriteLine("[JWT] Authorization Challenge");
+
+                            Console.WriteLine($"Error: {context.Error}");
+                            Console.WriteLine($"Description: {context.ErrorDescription}");
+
+                            return Task.CompletedTask;
+                        },
+
+                        OnForbidden = context =>
+                        {
+                            Console.WriteLine("[JWT] Forbidden (authenticated but authorization failed).");
+
+                            if (context.HttpContext.User.Identity?.IsAuthenticated == true)
+                            {
+                                foreach (var claim in context.HttpContext.User.Claims)
+                                {
+                                    Console.WriteLine($"[JWT] User Claim: {claim.Type} = {claim.Value}");
+                                }
                             }
 
                             return Task.CompletedTask;
