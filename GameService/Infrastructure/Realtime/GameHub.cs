@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Infrastructure.Realtime
 {
-    [Authorize(Roles = nameof(Role.Player) + "," + nameof(Role.Admin) + "," + nameof(Role.Designer))]
+    //[Authorize(Roles = nameof(Role.Player) + "," + nameof(Role.Admin) + "," + nameof(Role.Designer))]
     public class GameHub : Hub
     {
         #region Attributes
