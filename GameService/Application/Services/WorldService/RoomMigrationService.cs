@@ -54,6 +54,9 @@ namespace Application.Services.WorldService
             // Bring target room into memory
             var roomSnapshot = await residencyService.EnsureRoomLoaded(destinationRoomId);
 
+            // Ensure player loaded
+            residencyService.EnsurePlayerResident(player);
+
             // Resolve valid spawn by rules
             var (spawnPosition, layerZ) = ResolvePlayerSpawn(roomSnapshot.Room, player, transform, roomSnapshot.Entities);
 

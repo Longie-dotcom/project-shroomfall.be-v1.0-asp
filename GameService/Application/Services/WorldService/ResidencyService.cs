@@ -160,7 +160,7 @@ namespace Application.Services.WorldService
             await entityPersistence.SaveManyAsync(new List<EntityInstance>() { player });
         }
 
-        public async Task<EntityInstance> EnsurePlayerLoaded(
+        public async Task<EntityInstance> EnsurePlayerExisted(
             string playerInstanceId)
         {
             // Try to get the LIVE player from RAM
@@ -176,6 +176,15 @@ namespace Application.Services.WorldService
             throw new InternalException(
                 ApplicationCode.ResidencyServiceCode.PlayerNotFoundInSystem,
                 $"Player instance {playerInstanceId} not found in memory or database.");
+        }
+
+        public void EnsurePlayerResident(
+            EntityInstance player)
+        {
+            if (worldContext.GetEntity(player.ID) != null)
+                return;
+
+            worldContext.AddEntity(player);
         }
 
         public async Task<RoomInstance> EnsureRoomLoaded(

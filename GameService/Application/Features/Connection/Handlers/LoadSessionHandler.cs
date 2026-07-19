@@ -44,7 +44,7 @@ namespace Application.Features.Connection.Handlers
             var dto = command.DTO;
 
             // Ensure Player is in RAM
-            var player = await residencyService.EnsurePlayerLoaded(dto.PlayerInstanceID);
+            var player = await residencyService.EnsurePlayerExisted(dto.PlayerInstanceID);
 
             // Validate ownership
             var ownership = player.GetComponent<OwnershipInstance>();
