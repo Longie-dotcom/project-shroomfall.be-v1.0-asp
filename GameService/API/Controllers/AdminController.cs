@@ -28,7 +28,7 @@ namespace API.Controllers
 
         #region Methods
         [Authorize(Roles = nameof(Role.Admin))]
-        [HttpPost("room-spatials")]
+        [HttpGet("room-spatials")]
         public async Task<IActionResult> GetRoomSpatials()
         {
             var (userId, steamId, role) = ClaimReader.GetIdentity(User);
@@ -41,7 +41,7 @@ namespace API.Controllers
         }
 
         [Authorize(Roles = nameof(Role.Admin))]
-        [HttpPost("room-instance/{roomSpatailId}")]
+        [HttpGet("room-instance/{roomSpatailId}")]
         public async Task<IActionResult> GetRoomInstance(
             string roomSpatailId)
         {
