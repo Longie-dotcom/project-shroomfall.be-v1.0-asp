@@ -186,8 +186,8 @@ namespace Application.Services.AttributeService
         }
 
         private void CalculateCoresInternal(
-            CharacteristicInstance characteristic,
-            EffectContainerInstance effectContainer)
+                    CharacteristicInstance characteristic,
+                    EffectContainerInstance effectContainer)
         {
             var activeEffectsByAttribute = new Dictionary<AttributeType, List<EffectDefinition>>();
 
@@ -208,11 +208,11 @@ namespace Application.Services.AttributeService
             // Calculate and assign each Core value
             foreach (var attrDef in AttributeDefinitions.AllList())
             {
-                if (attrDef.DomainType != DomainType.Core) 
+                if (attrDef.DomainType != DomainType.Core)
                     continue;
 
                 var scaledAttr = GetScaledAttribute(characteristic, attrDef.Type);
-                if (scaledAttr == null) 
+                if (scaledAttr == null)
                     continue;
 
                 float flat = 0f;
@@ -235,6 +235,14 @@ namespace Application.Services.AttributeService
                 var (config, scaledBaseValue) = scaledAttr.Value;
                 float result = (scaledBaseValue + flat) * (1f + percent) * multiplier;
                 result = Math.Clamp(result, config.Min, config.Max);
+
+                // LOG: See exactly how the attribute ended up here
+                Console.WriteLine($"[AttributeCalc] {attrDef.Type} | " +
+                                  $"Base: {scaledBaseValue:F2} | " +
+                                  $"Flat: {flat:F2} | " +
+                                  $"Pct: {percent:F2} | " +
+                                  $"Mult: {multiplier:F2} | " +
+                                  $"Final: {result:F2}");
 
                 characteristic.SetCore(attrDef.Type, result);
             }

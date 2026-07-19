@@ -41,19 +41,19 @@ namespace Application.Services.EntityService
         }
 
         private MovementCommand? CreateMovementCommand(
-                    float dt,
-                    EntityInstance entity)
+            float dt,
+            EntityInstance entity)
         {
             var transform = entity.GetComponent<TransformInstance>();
-            if (transform == null)
+            if (transform == null) 
                 return null;
 
             var characteristic = entity.GetComponent<CharacteristicInstance>();
-            if (characteristic == null)
+            if (characteristic == null) 
                 return null;
 
             var collision = entity.GetComponent<CollisionInstance>();
-            if (collision == null)
+            if (collision == null) 
                 return null;
 
             if (!transform.WantsToMove)
@@ -61,13 +61,6 @@ namespace Application.Services.EntityService
 
             float speed = characteristic.GetCore(AttributeType.MoveSpeed);
             var desired = transform.Position + transform.MovementVector * speed * dt;
-
-            // Log the movement request to verify the calculation
-            Console.WriteLine($"[Transform] Entity '{entity.ID}' | " +
-                              $"Speed: {speed:F2} | " +
-                              $"Vec: ({transform.MovementVector.X:F2}, {transform.MovementVector.Y:F2}) | " +
-                              $"Current: ({transform.Position.X:F2}, {transform.Position.Y:F2}) -> " +
-                              $"Desired: ({desired.X:F2}, {desired.Y:F2})");
 
             var body = new CollisionBody(
                 entity.ID,
