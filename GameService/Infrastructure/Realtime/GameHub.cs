@@ -29,7 +29,6 @@ namespace Infrastructure.Realtime
         public override async Task OnConnectedAsync()
         {
             var (userId, connectionId) = HubContextValidator.GetValidatedContext(this);
-            Console.WriteLine("GAME HUB CONNECTED");
 
             await dispatcher.Send<UserConnectCommand>(
                 new UserConnectCommand(userId, connectionId)

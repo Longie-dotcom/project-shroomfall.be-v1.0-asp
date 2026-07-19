@@ -7,16 +7,16 @@
 
         #region Properties
         public string UserID { get; }
-        public int ActiveConnectionCount { get; }
+        public string? ConnectionID { get; }
         public DateTime OccurredAt { get; }
         #endregion
 
         public UserConnectionChangedEvent(
             string userId,
-            int activeConnectionCount)
+            string? connectionId)
         {
             UserID = userId;
-            ActiveConnectionCount = activeConnectionCount;
+            ConnectionID = connectionId;
             OccurredAt = DateTime.Now;
         }
 

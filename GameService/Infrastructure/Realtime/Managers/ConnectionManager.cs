@@ -37,19 +37,24 @@ namespace Infrastructure.Realtime.Managers
             string userId,
             string connectionId)
         {
-            if (userToConnection.ContainsKey(userId))
-                throw new BadRequest(
-                    InfrastructureCode.ConnectionManagerCode.ConnectionAlreadyExists,
-                    $"User {userId} already has an active connection.");
+            if (userToConnection.TryGetValue(userId, out var oldConnectionId))
+            {
+                telemetryQueue.EnqueueAlert(
+                    InfrastructureCode.ConnectionManagerCode.ConnectionReplaced,
+                    $"Connection replaced for user {userId}: {oldConnectionId} to {connectionId}.",
+                    TelemetrySeverity.Warning);
+            }
+            else
+            {
+                telemetryQueue.EnqueueAlert(
+                    InfrastructureCode.ConnectionManagerCode.ConnectionAdded,
+                    $"Connection {connectionId} added for user {userId}.",
+                    TelemetrySeverity.Info);
+            }
 
             userToConnection[userId] = connectionId;
 
-            telemetryQueue.EnqueueAlert(
-                code: InfrastructureCode.ConnectionManagerCode.ConnectionAdded,
-                message: $"Connection {connectionId} added for user {userId}.",
-                severity: TelemetrySeverity.Info);
-
-            eventBus.Publish(new UserConnectionChangedEvent(userId, 1));
+            eventBus.Publish(new UserConnectionChangedEvent(userId, connectionId));
         }
 
         public void Remove(
@@ -73,7 +78,7 @@ namespace Infrastructure.Realtime.Managers
                 message: $"Connection {connectionId} removed for user {userId}.",
                 severity: TelemetrySeverity.Info);
 
-            eventBus.Publish(new UserConnectionChangedEvent(userId, 0));
+            eventBus.Publish(new UserConnectionChangedEvent(userId, null));
         }
 
         public string? Get(

@@ -31,7 +31,7 @@ namespace Infrastructure.Realtime.Events.Admin
                 new UserConnectionChangedDTO()
                 {
                     UserID = e.UserID,
-                    ActiveConnectionCount = e.ActiveConnectionCount
+                    ConnectionID = e.ConnectionID,
                 });
         }
         #endregion
