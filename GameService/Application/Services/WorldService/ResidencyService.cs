@@ -208,7 +208,7 @@ namespace Application.Services.WorldService
                 node.LastAccessUtc = DateTime.UtcNow;
 
                 eventBus.Publish(new RoomSyncChangedEvent(
-                    roomSpatialId,
+                    roomInstance.Room,
                     true));
 
                 eventBus.Publish(new RoomStateChangedEvent(
@@ -269,7 +269,7 @@ namespace Application.Services.WorldService
                     node.LastAccessUtc = DateTime.UtcNow;
 
                     eventBus.Publish(new RoomSyncChangedEvent(
-                        roomInstance.Room.ID,
+                        roomInstance.Room,
                         true));
 
                     eventBus.Publish(new RoomStateChangedEvent(
@@ -358,6 +358,18 @@ namespace Application.Services.WorldService
                     try
                     {
                         await snapshotPersistence.SaveRoomInstanceAsync(roomInstance);
+
+                        node.State = RoomResidencyState.Cold;
+                        node.LastAccessUtc = DateTime.UtcNow;
+
+                        eventBus.Publish(new RoomSyncChangedEvent(
+                            roomInstance.Room,
+                            false));
+
+                        eventBus.Publish(new RoomStateChangedEvent(
+                            node.RoomSpatialID,
+                            oldState.ToString(),
+                            node.State.ToString()));
                     }
                     catch
                     {
@@ -365,18 +377,6 @@ namespace Application.Services.WorldService
                         throw;
                     }
                 }
-
-                node.State = RoomResidencyState.Cold;
-                node.LastAccessUtc = DateTime.UtcNow;
-
-                eventBus.Publish(new RoomSyncChangedEvent(
-                    node.RoomSpatialID,
-                    false));
-
-                eventBus.Publish(new RoomStateChangedEvent(
-                    node.RoomSpatialID,
-                    oldState.ToString(),
-                    node.State.ToString()));
             }
             finally
             {

@@ -1,16 +1,18 @@
-﻿namespace Application.Interfaces.Realtime.Events.Admin
+﻿using Domain.Runtime.WorldDomain.Spatial;
+
+namespace Application.Interfaces.Realtime.Events.Admin
 {
     public class RoomSyncChangedEvent : IEvent
     {
-        public string RoomSpatialID { get; }
+        public RoomSpatial RoomSpatial { get; }
         public bool IsLoaded { get; }
         public DateTime OccurredAt { get; }
 
         public RoomSyncChangedEvent(
-            string roomSpatialId,
+            RoomSpatial roomSpatial,
             bool isLoaded)
         {
-            RoomSpatialID = roomSpatialId;
+            RoomSpatial = roomSpatial;
             IsLoaded = isLoaded;
             OccurredAt = DateTime.UtcNow;
         }
