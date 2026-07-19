@@ -1,5 +1,4 @@
 ﻿using Application.Interfaces.Realtime;
-using Application.Interfaces.Utility;
 using Contract;
 using Contract.DTO.Feature.Admin.Response;
 using Contract.DTO.Feature.Design.Response;
@@ -14,16 +13,19 @@ namespace Infrastructure.Realtime
     public class RealtimePublisher : IRealtimePublisher
     {
         #region Attributes
-        private readonly IHubContext<GameHub> hub;
+        private readonly IHubContext<GameHub> gameHub;
+        private readonly IHubContext<AdminHub> adminHub;
         #endregion
 
         #region Properties
         #endregion
 
         public RealtimePublisher(
-            IHubContext<GameHub> hub)
+            IHubContext<GameHub> gameHub,
+            IHubContext<AdminHub> adminHub)
         {
-            this.hub = hub;
+            this.gameHub = gameHub;
+            this.adminHub = adminHub;
         }
 
         #region Methods
@@ -34,7 +36,7 @@ namespace Infrastructure.Realtime
             string roomId,
             EntityActedDTO payload)
         {
-            return hub.Clients
+            return gameHub.Clients
                 .Group(roomId)
                 .SendAsync(NetworkMethod.OnEntityActed, payload);
         }
@@ -46,7 +48,7 @@ namespace Infrastructure.Realtime
             string roomId,
             EntityVitalChangedDTO payload)
         {
-            return hub.Clients
+            return gameHub.Clients
                 .Group(roomId)
                 .SendAsync(NetworkMethod.OnEntityVitalChanged, payload);
         }
@@ -58,7 +60,7 @@ namespace Infrastructure.Realtime
             string connectionId,
             CharacteristicInstanceDTO payload)
         {
-            return hub.Clients
+            return gameHub.Clients
                 .Client(connectionId)
                 .SendAsync(NetworkMethod.OnPlayerCharacteristicSync, payload);
         }
@@ -67,7 +69,7 @@ namespace Infrastructure.Realtime
             string connectionId,
             InventoryItemChangedDTO payload)
         {
-            return hub.Clients
+            return gameHub.Clients
                 .Client(connectionId)
                 .SendAsync(NetworkMethod.OnInventoryItemChanged, payload);
         }
@@ -75,7 +77,7 @@ namespace Infrastructure.Realtime
         public Task SendInventoryCleared(
             string connectionId)
         {
-            return hub.Clients
+            return gameHub.Clients
                 .Client(connectionId)
                 .SendAsync(NetworkMethod.OnInventoryCleared);
         }
@@ -87,7 +89,7 @@ namespace Infrastructure.Realtime
             string roomId, 
             EntityInstanceDTO entity)
         {
-            return hub.Clients
+            return gameHub.Clients
                 .Group(roomId)
                 .SendAsync(NetworkMethod.OnEntitySpawned, entity);
         }
@@ -96,7 +98,7 @@ namespace Infrastructure.Realtime
             string roomId, 
             string entityId)
         {
-            return hub.Clients
+            return gameHub.Clients
                 .Group(roomId)
                 .SendAsync(NetworkMethod.OnEntityDespawned, entityId);
         }
@@ -108,7 +110,7 @@ namespace Infrastructure.Realtime
             string roomId,
             EntityAppearanceChangedDTO appearanceChanged)
         {
-            return hub.Clients
+            return gameHub.Clients
                 .Group(roomId)
                 .SendAsync(NetworkMethod.OnPlayerAppearanceChanged, appearanceChanged);
         }
@@ -120,7 +122,7 @@ namespace Infrastructure.Realtime
             string roomId,
             RoomSpatialDTO payload)
         {
-            return hub.Clients
+            return gameHub.Clients
                 .Group(roomId)
                 .SendAsync(NetworkMethod.OnRoomSnapshotUpdated, payload);
         }
@@ -131,7 +133,7 @@ namespace Infrastructure.Realtime
         public Task SendDefinitionUpdated(
             UpdateDefinitionNotificationDTO notification)
         {
-            return hub.Clients
+            return gameHub.Clients
                 .All
                 .SendAsync(NetworkMethod.OnDefinitionUpdated, notification);
         }
@@ -139,10 +141,10 @@ namespace Infrastructure.Realtime
         // ─────────────────────────────
         // Telemetry
         // ─────────────────────────────
-        public Task SendTelemetryAlert(TelemetryEventDTO payload)
+        public Task SendTelemetryAlert(
+            TelemetryEventDTO payload)
         {
-            Console.WriteLine($"[SignalR] Broadcasting Telemetry to {Constraint.ADMIN_REALTIME_GROUP}");
-            return hub.Clients
+            return adminHub.Clients
                 .Group(Constraint.ADMIN_REALTIME_GROUP)
                 .SendAsync(NetworkMethod.OnTelemetrySended, payload);
         }
@@ -153,7 +155,7 @@ namespace Infrastructure.Realtime
         public Task SendRoomStateChanged(
             RoomStateChangedDTO payload)
         {
-            return hub.Clients
+            return adminHub.Clients
                 .Group(Constraint.ADMIN_REALTIME_GROUP)
                 .SendAsync(NetworkMethod.OnRoomStateChanged, payload);
         }
@@ -161,7 +163,7 @@ namespace Infrastructure.Realtime
         public Task SendRoomSyncChanged(
             RoomSyncChangedDTO payload)
         {
-            return hub.Clients
+            return adminHub.Clients
                 .Group(Constraint.ADMIN_REALTIME_GROUP)
                 .SendAsync(NetworkMethod.OnRoomSyncChanged, payload);
         }
@@ -169,7 +171,7 @@ namespace Infrastructure.Realtime
         public Task SendUserConnectionChanged(
             UserConnectionChangedDTO payload)
         {
-            return hub.Clients
+            return adminHub.Clients
                 .Group(Constraint.ADMIN_REALTIME_GROUP)
                 .SendAsync(NetworkMethod.OnUserConnectionChanged, payload);
         }
@@ -177,7 +179,7 @@ namespace Infrastructure.Realtime
         public Task SendUserSessionChanged(
             UserSessionChangedDTO payload)
         {
-            return hub.Clients
+            return adminHub.Clients
                 .Group(Constraint.ADMIN_REALTIME_GROUP)
                 .SendAsync(NetworkMethod.OnUserSessionChanged, payload);
         }
