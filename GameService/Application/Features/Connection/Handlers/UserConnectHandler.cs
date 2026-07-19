@@ -23,7 +23,7 @@ namespace Application.Features.Connection.Handlers
         public async Task Handle(
             UserConnectCommand command)
         {
-            // Register the the connection (one connection per user only)
+            // Register the the connection (one connection per user only, replaced with old connection)
             connectionManager.Add(command.UserID, command.ConnectionID);
         }
         #endregion

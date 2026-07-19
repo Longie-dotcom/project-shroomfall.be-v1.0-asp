@@ -61,10 +61,7 @@ namespace Application.Features.Design.Handlers
             await cacheLoader.LoadAllAsync();
 
             // Publish realtime invalidation event
-            eventBus.Publish(new DefinitionUpdatedEvent(
-                key,
-                nextVersion)
-            );
+            eventBus.Publish(new DefinitionUpdatedEvent(key, nextVersion));
         }
         #endregion
     }
