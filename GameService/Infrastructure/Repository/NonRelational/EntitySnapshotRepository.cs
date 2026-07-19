@@ -39,11 +39,16 @@ namespace Infrastructure.Repository.NonRelational
         {
             Console.WriteLine($"[Mongo] Searching ownership for user {userId}");
 
+            var ownershipFilter =
+                Builders<ComponentSnapshot>.Filter.And(
+                    Builders<ComponentSnapshot>.Filter.Eq("_t", nameof(OwnershipSnapshot)),
+                    Builders<ComponentSnapshot>.Filter.Eq("UserID", userId)
+                );
+
             var filter = Builders<EntitySnapshot>.Filter.ElemMatch(
-                "Components",
-                Builders<BsonDocument>.Filter.And(
-                    Builders<BsonDocument>.Filter.Eq("_t", nameof(OwnershipSnapshot)),
-                    Builders<BsonDocument>.Filter.Eq("UserID", userId)));
+                x => x.Components,
+                ownershipFilter
+            );
 
             var result = await collection.Find(filter).ToListAsync();
 
