@@ -5,8 +5,6 @@ using Application.Services.WorldService.Persistence;
 using Contract;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
-using Domain.Runtime.WorldDomain.Spatial;
-using Microsoft.Extensions.Logging;
 using ResponseCode;
 using System.Collections.Concurrent;
 

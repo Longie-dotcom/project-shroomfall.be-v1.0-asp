@@ -1,5 +1,8 @@
 ﻿using Application.Interfaces.Cache;
+using Application.Interfaces.Realtime.Events;
+using Application.Interfaces.Realtime.Events.Game;
 using Contract;
+using Contract.Enum.EntityDomain;
 using Contract.Enum.MetaDomain.Effect;
 using Domain.Definition.EntityDomain.Component;
 using Domain.Definition.MetaDomain;
@@ -10,11 +13,20 @@ namespace Application.Services.AttributeService
 {
     public class VitalService
     {
+        #region Attributes
         private readonly ICacheProvider cacheProvider;
+        private readonly IEventBus eventBus;
+        #endregion
 
-        public VitalService(ICacheProvider cacheProvider)
+        #region Properties
+        #endregion
+
+        public VitalService(
+            ICacheProvider cacheProvider, 
+            IEventBus eventBus)
         {
             this.cacheProvider = cacheProvider;
+            this.eventBus = eventBus;
         }
 
         #region Offensive / Restorative Health
@@ -91,6 +103,22 @@ namespace Application.Services.AttributeService
             float previous = targetCharacteristic.GetVital(AttributeType.Health);
             float current = Math.Clamp(previous - finalDamage, config.Min, maxHealth);
             targetCharacteristic.SetVital(AttributeType.Health, current);
+
+            if (finalDamage > 0f)
+            {
+                var transform = target.GetComponent<TransformInstance>();
+                if (transform != null)
+                {
+                    eventBus.Publish(new EntityActedEvent(
+                        target.ID,
+                        transform.RoomSpatialID,
+                        transform.Position,
+                        transform.FacingDirection,
+                        EntityAction.DAMAGED,
+                        null
+                    ));
+                }
+            }
 
             //--------------------------------------------------------
             // Life Steal

@@ -50,13 +50,6 @@ namespace Infrastructure.Utility
 
             var json = await response.Content.ReadAsStringAsync();
 
-            Console.WriteLine("========== STEAM VALIDATOR ==========");
-            Console.WriteLine($"AppId : {appId}");
-            Console.WriteLine($"Ticket Length : {ticket.Length}");
-            Console.WriteLine($"Ticket Prefix : {ticket[..Math.Min(ticket.Length, 32)]}");
-            Console.WriteLine("Steam Response:");
-            Console.WriteLine(json);
-            Console.WriteLine("=====================================");
             try
             {
                 using var doc = JsonDocument.Parse(json);
