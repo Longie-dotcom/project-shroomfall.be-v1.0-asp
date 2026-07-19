@@ -35,6 +35,10 @@ namespace Application.Features.Connection.Handlers
         {
             // Resolve live gameplay session first to know which room they are occupying
             var playerInstanceId = sessionManager.Get(command.UserID);
+
+            Console.WriteLine(
+                $"[UnloadSession] UserID={command.UserID}, PlayerInstanceID={playerInstanceId ?? "<null>"}");
+
             if (playerInstanceId == null)
                 return; // Session was already entirely cleaned up
 
