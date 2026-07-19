@@ -33,7 +33,7 @@ namespace API.Controllers
         {
             var (userId, steamId, role) = ClaimReader.GetIdentity(User);
 
-            var result = await dispatcher.Send<FetchRoomSpatialsCommand, List<RoomInstanceDTO>>(
+            var result = await dispatcher.Send<FetchRoomSpatialsCommand, List<RoomSpatialDTO>>(
                 new FetchRoomSpatialsCommand(userId)
             );
 
