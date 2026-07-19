@@ -33,10 +33,14 @@ namespace Application.Features.Connection.Handlers
         public async Task<ExistedSessionDTO> Handle(FetchSessionCommand command)
         {
             var userId = command.UserID;
+
+            Console.WriteLine($"[FetchSession] Fetching sessions for user '{userId}'");
+
             var repo = nonRelational.GetRepository<IEntitySnapshotRepository>();
 
-            // Get the baseline ownership from the DB (The Directory)
-            var dbSnapshots = await repo.GetPlayerSnapshotByUserIdAsync(userId);
+            var dbSnapshots = (await repo.GetPlayerSnapshotByUserIdAsync(userId)).ToList();
+
+            Console.WriteLine($"[FetchSession] Repository returned {dbSnapshots.Count} player snapshot(s).");
 
             var result = new ExistedSessionDTO
             {
@@ -45,13 +49,21 @@ namespace Application.Features.Connection.Handlers
 
             foreach (var snapshot in dbSnapshots)
             {
-                // Check if this specific entity is currently Hot/Warm in RAM
+                Console.WriteLine($"[FetchSession] Processing snapshot '{snapshot.ID}'");
+
+                var ownership = snapshot.GetComponent<OwnershipSnapshot>();
+                Console.WriteLine($"    Ownership UserID = {ownership?.UserID ?? "<null>"}");
+
                 var liveEntity = worldContext.GetEntity(snapshot.ID);
 
                 if (liveEntity != null)
                 {
-                    // STATE: HOT/WARM (Entity is in RAM, DB might be stale)
+                    Console.WriteLine($"    Entity is LIVE in RAM.");
+
                     var liveAppearance = liveEntity.GetComponent<AppearanceInstance>();
+
+                    if (liveAppearance == null)
+                        Console.WriteLine($"    WARNING: AppearanceInstance missing.");
 
                     result.Sessions.Add(new ExistedSessionEntryDTO
                     {
@@ -61,8 +73,12 @@ namespace Application.Features.Connection.Handlers
                 }
                 else
                 {
-                    // STATE: COLD (Entity is NOT in RAM, DB is perfectly up to date)
+                    Console.WriteLine($"    Entity is COLD (using Mongo snapshot).");
+
                     var coldAppearance = snapshot.GetComponent<AppearanceSnapshot>();
+
+                    if (coldAppearance == null)
+                        Console.WriteLine($"    WARNING: AppearanceSnapshot missing.");
 
                     result.Sessions.Add(new ExistedSessionEntryDTO
                     {
@@ -71,6 +87,8 @@ namespace Application.Features.Connection.Handlers
                     });
                 }
             }
+
+            Console.WriteLine($"[FetchSession] Returning {result.Sessions.Count} session(s).");
 
             return result;
         }
