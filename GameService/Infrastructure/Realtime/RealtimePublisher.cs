@@ -139,9 +139,9 @@ namespace Infrastructure.Realtime
         // ─────────────────────────────
         // Telemetry
         // ─────────────────────────────
-        public Task SendTelemetryAlert(
-            TelemetryEventDTO payload)
+        public Task SendTelemetryAlert(TelemetryEventDTO payload)
         {
+            Console.WriteLine($"[SignalR] Broadcasting Telemetry to {Constraint.ADMIN_REALTIME_GROUP}");
             return hub.Clients
                 .Group(Constraint.ADMIN_REALTIME_GROUP)
                 .SendAsync(NetworkMethod.OnTelemetrySended, payload);
