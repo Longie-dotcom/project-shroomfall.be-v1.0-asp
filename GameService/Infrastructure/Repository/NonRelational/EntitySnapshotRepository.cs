@@ -40,9 +40,10 @@ namespace Infrastructure.Repository.NonRelational
             Console.WriteLine($"[Mongo] Searching ownership for user {userId}");
 
             var filter = Builders<EntitySnapshot>.Filter.ElemMatch(
-                entity => entity.Components,
-                Builders<ComponentSnapshot>.Filter.OfType<OwnershipSnapshot>(
-                    Builders<OwnershipSnapshot>.Filter.Eq(c => c.UserID, userId)));
+                "Components",
+                Builders<BsonDocument>.Filter.And(
+                    Builders<BsonDocument>.Filter.Eq("_t", nameof(OwnershipSnapshot)),
+                    Builders<BsonDocument>.Filter.Eq("UserID", userId)));
 
             var result = await collection.Find(filter).ToListAsync();
 
