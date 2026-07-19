@@ -195,34 +195,47 @@ namespace Application.Services.AttributeService
         }
 
         private void CalculateCoresInternal(
-                    CharacteristicInstance characteristic,
-                    EffectContainerInstance effectContainer)
+            CharacteristicInstance characteristic,
+            EffectContainerInstance effectContainer)
         {
             var activeEffectsByAttribute = new Dictionary<AttributeType, List<EffectDefinition>>();
 
-            // Grab the unified persistent lists.
             foreach (var activeEffect in effectContainer.TrackingEffects)
             {
                 var effectDef = activeEffect.Context.Effect;
-
                 if (!activeEffectsByAttribute.TryGetValue(effectDef.AttributeType, out var list))
                 {
                     list = new List<EffectDefinition>();
                     activeEffectsByAttribute[effectDef.AttributeType] = list;
                 }
-
                 list.Add(effectDef);
             }
 
-            // Calculate and assign each Core value
-            foreach (var attrDef in AttributeDefinitions.AllList())
-            {
-                if (attrDef.DomainType != DomainType.Core)
-                    continue;
+            var allAttrs = AttributeDefinitions.AllList();
+            Console.WriteLine($"[DEBUG] Starting core calculation. Total definitions: {allAttrs?.Count() ?? 0}");
 
-                var scaledAttr = GetScaledAttribute(characteristic, attrDef.Type);
-                if (scaledAttr == null)
+            if (allAttrs == null) return;
+
+            foreach (var attrDef in allAttrs)
+            {
+                // 1. Check if it's a Core
+                if (attrDef.DomainType != DomainType.Core)
+                {
+                    // Not logging this one to avoid spam, but this is the first potential silent skip
                     continue;
+                }
+
+                Console.WriteLine($"[DEBUG] Attempting to calculate: {attrDef.Type}");
+
+                // 2. Check if the attribute exists on this entity
+                var scaledAttr = GetScaledAttribute(characteristic, attrDef.Type);
+
+                if (scaledAttr == null)
+                {
+                    Console.WriteLine($"[DEBUG] FAILED: GetScaledAttribute returned null for '{attrDef.Type}'. " +
+                                      $"Check if this attribute is initialized on the entity's CharacteristicInstance.");
+                    continue;
+                }
 
                 float flat = 0f;
                 float percent = 0f;
@@ -245,13 +258,7 @@ namespace Application.Services.AttributeService
                 float result = (scaledBaseValue + flat) * (1f + percent) * multiplier;
                 result = Math.Clamp(result, config.Min, config.Max);
 
-                // LOG: See exactly how the attribute ended up here
-                Console.WriteLine($"[AttributeCalc] {attrDef.Type} | " +
-                                  $"Base: {scaledBaseValue:F2} | " +
-                                  $"Flat: {flat:F2} | " +
-                                  $"Pct: {percent:F2} | " +
-                                  $"Mult: {multiplier:F2} | " +
-                                  $"Final: {result:F2}");
+                Console.WriteLine($"[AttributeCalc SUCCESS] {attrDef.Type} | Final: {result:F2}");
 
                 characteristic.SetCore(attrDef.Type, result);
             }
