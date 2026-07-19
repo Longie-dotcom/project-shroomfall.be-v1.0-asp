@@ -1,6 +1,8 @@
 ﻿using Contract.Enum.MetaDomain.Effect;
 using Contract.Enum.MetaDomain.Item;
+using Domain.Abstraction;
 using Domain.DomainException;
+using Domain.Snapshot.EntityDomain.Component;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,6 +39,28 @@ namespace Infrastructure.Configuration
             // MONGODB
             BsonSerializer.RegisterSerializer(new EnumSerializer<EquipmentSlot>(BsonType.String));
             BsonSerializer.RegisterSerializer(new EnumSerializer<AttributeType>(BsonType.String));
+
+            if (!BsonClassMap.IsClassMapRegistered(typeof(ComponentSnapshot)))
+            {
+                BsonClassMap.RegisterClassMap<ComponentSnapshot>(cm =>
+                {
+                    cm.AutoMap();
+                    cm.SetIsRootClass(true);
+                    cm.AddKnownType(typeof(ActionSnapshot));
+                    cm.AddKnownType(typeof(AISnapshot));
+                    cm.AddKnownType(typeof(AppearanceSnapshot));
+                    cm.AddKnownType(typeof(CollisionSnapshot));
+                    cm.AddKnownType(typeof(CharacteristicSnapshot));
+                    cm.AddKnownType(typeof(EffectContainerSnapshot));
+                    cm.AddKnownType(typeof(InventorySnapshot));
+                    cm.AddKnownType(typeof(LifetimeSnapshot));
+                    cm.AddKnownType(typeof(OwnershipSnapshot));
+                    cm.AddKnownType(typeof(ProjectileSnapshot));
+                    cm.AddKnownType(typeof(TransformSnapshot));
+                    cm.AddKnownType(typeof(TriggeredEffectSnapshot));
+                    cm.AddKnownType(typeof(WorldItemPayloadSnapshot));
+                });
+            }
 
             var mongoConnection = Environment.GetEnvironmentVariable("MONGO_CONNECTION_STRING");
             if (string.IsNullOrWhiteSpace(mongoConnection))
