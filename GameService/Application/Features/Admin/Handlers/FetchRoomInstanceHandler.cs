@@ -6,7 +6,7 @@ using Contract.DTO.Runtime.WorldDomain;
 
 namespace Application.Features.Admin.Handlers
 {
-    public class FetchRoomInstanceHandler : IHandler<FetchRoomInstanceCommand, List<RoomInstanceDTO>>
+    public class FetchRoomInstanceHandler : IHandler<FetchRoomInstanceCommand, RoomInstanceDTO>
     {
         #region Attributes
         private readonly IMapper mapper;
@@ -25,13 +25,14 @@ namespace Application.Features.Admin.Handlers
         }
 
         #region Methods
-        public async Task<List<RoomInstanceDTO>> Handle(
+        public async Task<RoomInstanceDTO> Handle(
             FetchRoomInstanceCommand command)
         {
-            var runningRooms = residencyService.GetRunningRoomInstances();
+            var roomInstance = residencyService.TryGetRoomInstance(command.RoomSpatialID);
+            if (roomInstance == null)
+                return new RoomInstanceDTO();
 
-            var result = mapper.Map<List<RoomInstanceDTO>>(runningRooms);
-
+            var result = mapper.Map<RoomInstanceDTO>(roomInstance);
             return await Task.FromResult(result);
         }
         #endregion

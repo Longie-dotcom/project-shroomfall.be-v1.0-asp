@@ -150,12 +150,20 @@ namespace Infrastructure.Realtime
         // ─────────────────────────────
         // Admin Dashboard Updates
         // ─────────────────────────────
-        public Task SendRoomResidencyChanged(
-            RoomResidencyChangedDTO payload)
+        public Task SendRoomStateChanged(
+            RoomStateChangedDTO payload)
         {
             return hub.Clients
                 .Group(Constraint.ADMIN_REALTIME_GROUP)
-                .SendAsync(NetworkMethod.OnRoomResidencyChanged, payload);
+                .SendAsync(NetworkMethod.OnRoomStateChanged, payload);
+        }
+
+        public Task SendRoomSyncChanged(
+            RoomSyncChangedDTO payload)
+        {
+            return hub.Clients
+                .Group(Constraint.ADMIN_REALTIME_GROUP)
+                .SendAsync(NetworkMethod.OnRoomSyncChanged, payload);
         }
 
         public Task SendUserConnectionChanged(

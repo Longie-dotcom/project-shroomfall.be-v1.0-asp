@@ -1,21 +1,18 @@
 ﻿namespace Application.Features.Admin.Commands
 {
-    public class FetchRoomInstanceCommand
+    public class FetchRoomSpatialsCommand
     {
         #region Attributes
         #endregion
 
         #region Properties
         public string UserID { get; set; }
-        public string RoomSpatialID { get; set; }
         #endregion
 
-        public FetchRoomInstanceCommand(
-            string userId, 
-            string roomSpatialId)
+        public FetchRoomSpatialsCommand(
+            string userId)
         {
             UserID = userId;
-            RoomSpatialID = roomSpatialId;
         }
 
         #region Methods

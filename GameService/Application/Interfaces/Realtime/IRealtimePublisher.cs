@@ -4,9 +4,7 @@ using Contract.DTO.Feature.Design.Response;
 using Contract.DTO.Feature.Game.Response;
 using Contract.DTO.Runtime.EntityDomain;
 using Contract.DTO.Runtime.EntityDomain.Component;
-using Contract.DTO.Runtime.MetaDomain;
 using Contract.DTO.Runtime.WorldDomain;
-using Contract.Enum.MetaDomain.Item;
 
 namespace Application.Interfaces.Realtime
 {
@@ -79,8 +77,10 @@ namespace Application.Interfaces.Realtime
         // ─────────────────────────────
         // Admin Dashboard Updates
         // ─────────────────────────────
-        Task SendRoomResidencyChanged(
-            RoomResidencyChangedDTO payload);
+        Task SendRoomStateChanged(
+            RoomStateChangedDTO payload);
+        Task SendRoomSyncChanged(
+            RoomSyncChangedDTO payload);
         Task SendUserConnectionChanged(
             UserConnectionChangedDTO payload);
         Task SendUserSessionChanged(

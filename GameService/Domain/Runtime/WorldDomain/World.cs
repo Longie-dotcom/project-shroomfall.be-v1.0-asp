@@ -46,6 +46,11 @@ namespace Domain.Runtime.WorldDomain
             return spatialIndex.Query(roomSpatialId, x, y, z);
         }
 
+        public IEnumerable<RoomSpatial> GetRooms()
+        {
+            return spatialIndex.GetRooms();
+        }
+
         public RoomSpatial? GetRoom(
             string roomSpatialId)
         {

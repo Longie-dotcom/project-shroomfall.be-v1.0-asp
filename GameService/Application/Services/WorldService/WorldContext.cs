@@ -51,6 +51,11 @@ namespace Application.Services.WorldService
             return worldQuery.GetEntity(entityInstanceId);
         }
 
+        public IEnumerable<RoomSpatial> GetRooms()
+        {
+            return worldQuery.GetRooms();
+        }
+
         public RoomSpatial? GetRoom(
             string roomSpatialId)
         {

@@ -32,7 +32,8 @@ namespace Infrastructure.Configuration
             services.AddSingleton<IConnectionManager, ConnectionManager>();
 
             // Handlers - Admin
-            services.AddSingleton<IEventHandler, RoomResidencyChangedHandler>();
+            services.AddSingleton<IEventHandler, RoomStateChangedHandler>();
+            services.AddSingleton<IEventHandler, RoomSyncChangedHandler>();
             services.AddSingleton<IEventHandler, UserConnectionChangedHandler>();
             services.AddSingleton<IEventHandler, UserSessionChangedHandler>();
 

@@ -5,7 +5,7 @@ using Contract.DTO.Feature.Admin.Response;
 
 namespace Infrastructure.Realtime.Events.Admin
 {
-    public class RoomResidencyChangedHandler : IEventHandler
+    public class RoomSyncChangedHandler : IEventHandler
     {
         #region Attributes
         private readonly IRealtimePublisher publisher;
@@ -14,7 +14,7 @@ namespace Infrastructure.Realtime.Events.Admin
         #region Properties
         #endregion
 
-        public RoomResidencyChangedHandler(
+        public RoomSyncChangedHandler(
             IRealtimePublisher publisher)
         {
             this.publisher = publisher;
@@ -24,15 +24,14 @@ namespace Infrastructure.Realtime.Events.Admin
         public async Task Handle(
             IEvent @event)
         {
-            if (@event is not RoomResidencyChangedEvent e)
+            if (@event is not RoomSyncChangedEvent e)
                 return;
 
-            await publisher.SendRoomResidencyChanged(
-                new RoomResidencyChangedDTO()
+            await publisher.SendRoomSyncChanged(
+                new RoomSyncChangedDTO()
                 {
                     RoomSpatialID = e.RoomSpatialID,
-                    PreviousState = e.PreviousState,
-                    NewState = e.NewState
+                    IsLoaded = e.IsLoaded,
                 });
         }
         #endregion

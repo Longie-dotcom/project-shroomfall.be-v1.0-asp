@@ -1,29 +1,21 @@
 ﻿namespace Application.Interfaces.Realtime.Events.Admin
 {
-    public class RoomResidencyChangedEvent : IEvent
+    public class RoomStateChangedEvent : IEvent
     {
-        #region Attributes
-        #endregion
-
-        #region Properties
         public string RoomSpatialID { get; }
-        public string PreviousState { get; }
+        public string OldState { get; }
         public string NewState { get; }
         public DateTime OccurredAt { get; }
-        #endregion
 
-        public RoomResidencyChangedEvent(
+        public RoomStateChangedEvent(
             string roomSpatialId,
-            string previousState,
+            string oldState,
             string newState)
         {
             RoomSpatialID = roomSpatialId;
-            PreviousState = previousState;
+            OldState = oldState;
             NewState = newState;
             OccurredAt = DateTime.UtcNow;
         }
-
-        #region Methods
-        #endregion
     }
 }

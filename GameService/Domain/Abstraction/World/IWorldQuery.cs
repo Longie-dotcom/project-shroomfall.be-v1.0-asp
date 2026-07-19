@@ -11,6 +11,7 @@ namespace Domain.Abstraction.World
         (RoomSpatial?, IEnumerable<EntityInstance>) QuerySpatial(
             string roomSpatialId, 
             int x, int y, int z);
+        IEnumerable<RoomSpatial> GetRooms();
         RoomSpatial? GetRoom(
             string roomSpatialId);
         RoomSpatial? GetRoomByOwner(

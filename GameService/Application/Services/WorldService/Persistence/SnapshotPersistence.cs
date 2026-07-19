@@ -36,11 +36,11 @@
         }
 
         public async Task SaveRoomInstanceAsync(
-            RoomInstance snapshot)
+            RoomInstance instance)
         {
-            await roomPersistence.SaveAsync(snapshot.Room);
+            await roomPersistence.SaveAsync(instance.Room);
 
-            await entityPersistence.SaveManyAsync(snapshot.Entities);
+            await entityPersistence.SaveManyAsync(instance.Entities);
         }
         #endregion
     }

@@ -79,6 +79,11 @@ namespace Domain.Runtime.WorldDomain.Spatial
                 : (null, new List<EntityInstance>());
         }
 
+        public IReadOnlyCollection<RoomSpatial> GetRooms()
+        {
+            return rooms.Values;
+        }
+
         public RoomSpatial? GetRoom(string roomSpatialId)
         {
             return rooms.TryGetValue(roomSpatialId, out var roomSpatial)

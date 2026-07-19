@@ -54,7 +54,8 @@ namespace Application
             services.AddScoped<IDispatcher, Dispatcher>();
 
             // Admin
-            services.AddScoped<IHandler<FetchRoomInstanceCommand, List<RoomInstanceDTO>>, FetchRoomInstanceHandler>();
+            services.AddScoped<IHandler<FetchRoomInstanceCommand, RoomInstanceDTO>, FetchRoomInstanceHandler>();
+            services.AddScoped<IHandler<FetchRoomSpatialsCommand, List<RoomSpatialDTO>>, FetchRoomSpatialsHandler>();
 
             // Connection
             services.AddScoped<IHandler<CreateSessionCommand>, CreateSessionHandler>();

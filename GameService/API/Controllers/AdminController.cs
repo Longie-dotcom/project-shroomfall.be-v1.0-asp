@@ -27,15 +27,28 @@ namespace API.Controllers
         }
 
         #region Methods
-
         [Authorize(Roles = nameof(Role.Admin))]
-        [HttpPost("room-instances")]
-        public async Task<IActionResult> GetRoomInstances()
+        [HttpPost("room-spatials")]
+        public async Task<IActionResult> GetRoomSpatials()
         {
             var (userId, steamId, role) = ClaimReader.GetIdentity(User);
 
-            var result = await dispatcher.Send<FetchRoomInstanceCommand, List<RoomInstanceDTO>>(
-                new FetchRoomInstanceCommand(userId)
+            var result = await dispatcher.Send<FetchRoomSpatialsCommand, List<RoomInstanceDTO>>(
+                new FetchRoomSpatialsCommand(userId)
+            );
+
+            return Ok(result);
+        }
+
+        [Authorize(Roles = nameof(Role.Admin))]
+        [HttpPost("room-instance/{roomSpatailId}")]
+        public async Task<IActionResult> GetRoomInstance(
+            string roomSpatailId)
+        {
+            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
+
+            var result = await dispatcher.Send<FetchRoomInstanceCommand, RoomInstanceDTO>(
+                new FetchRoomInstanceCommand(userId, roomSpatailId)
             );
 
             return Ok(result);
