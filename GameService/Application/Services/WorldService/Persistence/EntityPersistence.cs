@@ -57,21 +57,9 @@ namespace Application.Services.WorldService.Persistence
         public async Task SaveManyAsync(
             IEnumerable<EntityInstance> entities)
         {
-            var list = entities.ToList();
-
-            Console.WriteLine($"[Mongo] Saving {list.Count} entities.");
-
-            foreach (var entity in list)
-            {
-                Console.WriteLine($"[Mongo] {entity.ID}");
-            }
-
             var entitySnapshotRepo = nonRelationalUoW.GetRepository<IEntitySnapshotRepository>();
-            var snapshots = list.Select(e => mapper.Map<EntitySnapshot>(e));
-
+            var snapshots = entities.Select(e => mapper.Map<EntitySnapshot>(e));
             await entitySnapshotRepo.UpdateManyAsync(snapshots);
-
-            Console.WriteLine("[Mongo] SaveManyAsync completed.");
         }
         #endregion
     }
