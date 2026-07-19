@@ -71,22 +71,16 @@ namespace Application.Systems.System
         }
 
         private void ApplyMovement(
-                    MovementResult result,
-                    CommandBuffer commandBuffer)
+            MovementResult result,
+            CommandBuffer commandBuffer)
         {
             var entity = worldContext.GetEntity(result.EntityInstanceID);
             if (entity == null)
-            {
-                Console.WriteLine($"[Movement Processing] FAILED: Entity ID '{result.EntityInstanceID}' not found in world context.");
                 return;
-            }
 
             var transform = entity.GetComponent<TransformInstance>();
             if (transform == null)
-            {
-                Console.WriteLine($"[Movement Processing] FAILED: Entity ID '{entity.ID}' is missing its TransformInstance component.");
                 return;
-            }
 
             // Cache state before updating position index
             bool wasMoving = transform.WantsToMove || transform.PositionChangedThisFrame;
@@ -97,19 +91,9 @@ namespace Application.Systems.System
                 result.FinalPosition,
                 result.LayerZ);
 
-            // Determine network sync conditions
-            bool hasMoved = transform.PositionChangedThisFrame;
-            bool justStopped = wasMoving && !transform.WantsToMove;
-            Console.WriteLine($"[Movement Processing] Sync Triggered for '{entity.ID}' ({transform.Position.X:F2}, {transform.Position.Y:F2}) ");
-            // ONLY log when an actual sync event or state change occurs to safeguard Railway rate limits
-            if (hasMoved || justStopped)
+            // Send network update if they moved, OR if they just stopped moving
+            if (transform.PositionChangedThisFrame || (wasMoving && !transform.WantsToMove))
             {
-                Console.WriteLine($"[Movement Processing] Sync Triggered for '{entity.ID}' | Reason: " +
-                                  $"{(hasMoved ? "Moving" : "")}{(justStopped ? "Stopped" : "")} | " +
-                                  $"Pos: ({transform.Position.X:F2}, {transform.Position.Y:F2}) -> " +
-                                  $"Target: ({result.FinalPosition.X:F2}, {result.FinalPosition.Y:F2}) | " +
-                                  $"Dir: {transform.FacingDirection} | Act: {transform.CurrentAction}");
-
                 eventBus.Publish(new EntityActedEvent(
                     entity.ID,
                     transform.RoomSpatialID,
@@ -122,19 +106,15 @@ namespace Application.Systems.System
 
             foreach (var touched in result.TriggeredEntities)
             {
-                Console.WriteLine($"[Movement Processing] Entity '{entity.ID}' touched entity '{touched.ID}'");
-
                 triggeredEffectService.OnEntityTouched(touched, entity);
 
                 if (projectileService.TryHandleImpact(entity))
                 {
-                    Console.WriteLine($"[Movement Processing] Projectile impact detected for '{entity.ID}'. Enqueuing Despawn.");
                     commandBuffer.Commands.Enqueue(new EntityDespawnCommand(entity.ID, false));
                 }
 
                 if (inventoryService.TryPickItem(entity, touched))
                 {
-                    Console.WriteLine($"[Movement Processing] Item pick success. '{entity.ID}' picked up '{touched.ID}'. Enqueuing item Despawn.");
                     commandBuffer.Commands.Enqueue(new EntityDespawnCommand(touched.ID, false));
                 }
             }
