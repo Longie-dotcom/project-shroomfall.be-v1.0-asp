@@ -88,15 +88,48 @@ namespace API
                     {
                         OnMessageReceived = context =>
                         {
+                            Console.WriteLine("===== JWT =====");
+                            Console.WriteLine($"Path: {context.Request.Path}");
+                            Console.WriteLine($"Authorization: {context.Request.Headers.Authorization}");
+
                             var accessToken = context.Request.Query["access_token"];
-                            var path = context.HttpContext.Request.Path;
 
                             if (!string.IsNullOrEmpty(accessToken) &&
-                                (path.StartsWithSegments("/hubs/game") ||
-                                 path.StartsWithSegments("/hubs/admin")))
+                                (context.Request.Path.StartsWithSegments("/hubs/game") ||
+                                 context.Request.Path.StartsWithSegments("/hubs/admin")))
                             {
+                                Console.WriteLine("Using SignalR access_token");
                                 context.Token = accessToken;
                             }
+
+                            return Task.CompletedTask;
+                        },
+
+                        OnTokenValidated = context =>
+                        {
+                            Console.WriteLine("JWT VALIDATED");
+
+                            foreach (var claim in context.Principal!.Claims)
+                            {
+                                Console.WriteLine($"{claim.Type} = {claim.Value}");
+                            }
+
+                            return Task.CompletedTask;
+                        },
+
+                        OnAuthenticationFailed = context =>
+                        {
+                            Console.WriteLine("JWT FAILED");
+                            Console.WriteLine(context.Exception);
+
+                            return Task.CompletedTask;
+                        },
+
+                        OnChallenge = context =>
+                        {
+                            Console.WriteLine("JWT CHALLENGE");
+                            Console.WriteLine(context.Error);
+                            Console.WriteLine(context.ErrorDescription);
 
                             return Task.CompletedTask;
                         }
