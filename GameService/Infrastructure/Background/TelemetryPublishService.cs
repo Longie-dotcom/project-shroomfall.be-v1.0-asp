@@ -28,8 +28,7 @@ namespace Infrastructure.Background
         }
 
         #region Methods
-        protected override async Task ExecuteAsync(
-            CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
 
@@ -39,14 +38,24 @@ namespace Infrastructure.Background
                 {
                     while (telemetryQueue.TryDequeue(out var alertEvent) && alertEvent != null)
                     {
+                        logger.LogInformation(
+                            "Publishing telemetry: Code={Code}, Severity={Severity}, Message={Message}",
+                            alertEvent.Code,
+                            alertEvent.Severity,
+                            alertEvent.Message);
+
                         await realtimePublisher.SendTelemetryAlert(
-                            new TelemetryEventDTO()
+                            new TelemetryEventDTO
                             {
                                 Code = alertEvent.Code,
                                 Message = alertEvent.Message,
                                 Timestamp = alertEvent.Timestamp,
                                 Severity = alertEvent.Severity.ToString(),
                             });
+
+                        logger.LogInformation(
+                            "Telemetry published successfully: Code={Code}",
+                            alertEvent.Code);
                     }
                 }
                 catch (Exception ex)
