@@ -140,7 +140,7 @@ namespace Infrastructure.Realtime
         // Telemetry
         // ─────────────────────────────
         public Task SendTelemetryAlert(
-            TelemetryEvent payload)
+            TelemetryEventDTO payload)
         {
             return hub.Clients
                 .Group(Constraint.ADMIN_REALTIME_GROUP)

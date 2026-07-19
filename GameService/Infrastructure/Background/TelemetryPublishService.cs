@@ -1,5 +1,6 @@
-﻿using Application.Interfaces.Utility;
-using Application.Interfaces.Realtime;
+﻿using Application.Interfaces.Realtime;
+using Application.Interfaces.Utility;
+using Contract.DTO.Feature.Admin.Response;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -38,7 +39,14 @@ namespace Infrastructure.Background
                 {
                     while (telemetryQueue.TryDequeue(out var alertEvent) && alertEvent != null)
                     {
-                        await realtimePublisher.SendTelemetryAlert(alertEvent);
+                        await realtimePublisher.SendTelemetryAlert(
+                            new TelemetryEventDTO()
+                            {
+                                Code = alertEvent.Code,
+                                Message = alertEvent.Message,
+                                Timestamp = alertEvent.Timestamp,
+                                Severity = alertEvent.Severity.ToString(),
+                            });
                     }
                 }
                 catch (Exception ex)

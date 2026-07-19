@@ -72,7 +72,7 @@ namespace Application.Interfaces.Realtime
         // Telemetry
         // ─────────────────────────────
         Task SendTelemetryAlert(
-            TelemetryEvent payload);
+            TelemetryEventDTO payload);
 
         // ─────────────────────────────
         // Admin Dashboard Updates
