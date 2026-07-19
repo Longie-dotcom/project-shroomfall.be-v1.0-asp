@@ -8,7 +8,6 @@ using Contract.DTO.Definition.IdentityDomain;
 using Contract.DTO.Definition.LocalizationDomain;
 using Contract.DTO.Definition.MetaDomain;
 using Contract.DTO.Definition.WorldDomain;
-using Contract.DTO.Feature.Admin.Response;
 using Contract.DTO.Runtime.EntityDomain;
 using Contract.DTO.Runtime.EntityDomain.Component;
 using Contract.DTO.Runtime.MetaDomain;
@@ -119,7 +118,8 @@ namespace Application.Mapper
             // RUNTIME to DTO
             // ─────────────────────────────
             // Entity Domain
-            CreateMap<EntityInstance, EntityInstanceDTO>();
+            CreateMap<EntityInstance, EntityInstanceDTO>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.ID));
             CreateMap<ComponentInstance, ComponentInstanceDTO>()
                 .Include<ActionInstance, ActionInstanceDTO>()
                 .Include<AIInstance, AIInstanceDTO>()
@@ -170,8 +170,10 @@ namespace Application.Mapper
             CreateMap<ItemInstance, ItemInstanceDTO>();
 
             // World Domain
-            CreateMap<RoomSpatial, RoomSpatialDTO>();
-            CreateMap<CombatRunInstance, CombatRunInstanceDTO>();
+            CreateMap<RoomSpatial, RoomSpatialDTO>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.ID));
+            CreateMap<CombatRunInstance, CombatRunInstanceDTO>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.ID));
             CreateMap<RoomInstance, RoomInstanceDTO>();
         }
     }

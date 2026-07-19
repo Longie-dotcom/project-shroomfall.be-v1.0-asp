@@ -5,6 +5,7 @@ using Application.Services.WorldService;
 using AutoMapper;
 using Contract.DTO.Feature.Connection.Response;
 using Contract.DTO.Runtime.EntityDomain;
+using Contract.DTO.Runtime.EntityDomain.Component;
 using Contract.DTO.Runtime.WorldDomain;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
@@ -72,12 +73,12 @@ namespace Application.Features.Connection.Handlers
 
         private SaveGameDTO BuildSaveGame(
             EntityInstance player,
-            RoomSpatialDTO snapshot)
+            RoomInstanceDTO room)
         {
             var saveGame = new SaveGameDTO()
             {
                 PlayerData = mapper.Map<EntityInstanceDTO>(player),
-                RoomData = snapshot
+                RoomData = room
             };
 
             return saveGame;

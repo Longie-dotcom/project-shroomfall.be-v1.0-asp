@@ -9,7 +9,7 @@ using ResponseCode;
 
 namespace Application.Features.Game.Handlers
 {
-    public class EnterHubHandler : IHandler<EnterHubCommand, RoomSpatialDTO>
+    public class EnterHubHandler : IHandler<EnterHubCommand, RoomInstanceDTO>
     {
         #region Attributes
         private readonly ISessionManager sessionManager;
@@ -31,7 +31,7 @@ namespace Application.Features.Game.Handlers
         }
 
         #region Methods
-        public async Task<RoomSpatialDTO> Handle(
+        public async Task<RoomInstanceDTO> Handle(
             EnterHubCommand command)
         {
             // Validate hud ids

@@ -41,7 +41,7 @@ namespace Application.Services.WorldService
         }
 
         #region Methods
-        public async Task<RoomSpatialDTO> EnterRoomAsync(
+        public async Task<RoomInstanceDTO> EnterRoomAsync(
             EntityInstance player,
             string destinationRoomId)
         {
@@ -161,12 +161,14 @@ namespace Application.Services.WorldService
             return (initialPosition, initialLayerZ);
         }
 
-        private RoomSpatialDTO BuildDTO(
+        private RoomInstanceDTO BuildDTO(
             RoomInstance roomInstance)
         {
-            var snapshotDto = mapper.Map<RoomSpatialDTO>(roomInstance.Room);
-            snapshotDto.Entities = mapper.Map<List<EntityInstanceDTO>>(roomInstance.Entities);
-            return snapshotDto;
+            return new RoomInstanceDTO()
+            {
+                Room = mapper.Map<RoomSpatialDTO>(roomInstance.Room),
+                Entities = mapper.Map<List<EntityInstanceDTO>>(roomInstance.Entities)
+            };
         }
         #endregion
     }

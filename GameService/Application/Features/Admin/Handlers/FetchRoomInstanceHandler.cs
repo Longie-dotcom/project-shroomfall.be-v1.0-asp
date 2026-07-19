@@ -2,7 +2,7 @@
 using Application.Features.Admin.Commands;
 using Application.Services.WorldService;
 using AutoMapper;
-using Contract.DTO.Feature.Admin.Response;
+using Contract.DTO.Runtime.WorldDomain;
 
 namespace Application.Features.Admin.Handlers
 {

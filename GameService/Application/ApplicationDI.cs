@@ -27,7 +27,6 @@ using Contract.DTO.Definition.EntityDomain.Component;
 using Contract.DTO.Definition.LocalizationDomain;
 using Contract.DTO.Definition.MetaDomain;
 using Contract.DTO.Definition.WorldDomain;
-using Contract.DTO.Feature.Admin.Response;
 using Contract.DTO.Feature.Connection.Response;
 using Contract.DTO.Feature.Design.Response;
 using Contract.DTO.Feature.Identity.Response;
@@ -81,8 +80,8 @@ namespace Application
             services.AddScoped<IHandler<UserRefreshCommand, DefinitionSnapshotDTO?>, UserRefreshHandler>();
 
             // Game
-            services.AddScoped<IHandler<BackHomeCommand, RoomSpatialDTO>, BackHomeHandler>();
-            services.AddScoped<IHandler<EnterHubCommand, RoomSpatialDTO>, EnterHubHandler>();
+            services.AddScoped<IHandler<BackHomeCommand, RoomInstanceDTO>, BackHomeHandler>();
+            services.AddScoped<IHandler<EnterHubCommand, RoomInstanceDTO>, EnterHubHandler>();
             services.AddScoped<IHandler<MoveCommand>, MoveHandler>();
             services.AddScoped<IHandler<UpdateAppearanceCommand>, UpdateAppearanceHandler>();
             services.AddScoped<IHandler<UseItemCommand>, UseItemHandler>();

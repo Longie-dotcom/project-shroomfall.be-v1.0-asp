@@ -9,7 +9,7 @@ using ResponseCode;
 
 namespace Application.Features.Game.Handlers
 {
-    public class BackHomeHandler : IHandler<BackHomeCommand, RoomSpatialDTO>
+    public class BackHomeHandler : IHandler<BackHomeCommand, RoomInstanceDTO>
     {
         #region Attributes
         private readonly ISessionManager sessionManager;
@@ -31,7 +31,7 @@ namespace Application.Features.Game.Handlers
         }
 
         #region Methods
-        public async Task<RoomSpatialDTO> Handle(
+        public async Task<RoomInstanceDTO> Handle(
             BackHomeCommand command)
         {
             // Validate player session
