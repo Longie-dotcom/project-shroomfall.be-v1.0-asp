@@ -153,6 +153,11 @@ namespace API
                     };
                 });
 
+            builder.Services.AddAuthorization(options =>
+            {
+                options.InvokeHandlersAfterFailure = true;
+            });
+
             builder.Services.AddAuthorization();
 
             // ─────────────────────────────
@@ -255,8 +260,7 @@ namespace API
             // ─────────────────────────────
             // SIGNALR HUB
             // ─────────────────────────────
-            app.MapHub<GameHub>("/hubs/game");
-            app.MapHub<AdminHub>("/hubs/admin");
+
 
             // ─────────────────────────────
             // MIDDLEWARE PIPELINE
@@ -269,10 +273,11 @@ namespace API
             app.UseCors("StudioCorsPolicy");
 
             app.UseAuthentication();
-            builder.Services.AddAuthorization(options =>
-            {
-                options.InvokeHandlersAfterFailure = true;
-            });
+            app.UseAuthorization();
+
+            app.MapHub<GameHub>("/hubs/game");
+            app.MapHub<AdminHub>("/hubs/admin");
+
             app.MapControllers();
 
             app.Run();
