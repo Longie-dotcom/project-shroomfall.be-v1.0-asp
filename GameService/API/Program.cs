@@ -258,11 +258,6 @@ namespace API
             }
 
             // ─────────────────────────────
-            // SIGNALR HUB
-            // ─────────────────────────────
-
-
-            // ─────────────────────────────
             // MIDDLEWARE PIPELINE
             // ─────────────────────────────
             app.UseMiddleware<GlobalExceptionHandler>();
@@ -275,9 +270,15 @@ namespace API
             app.UseAuthentication();
             app.UseAuthorization();
 
+            // ─────────────────────────────
+            // SIGNALR HUB
+            // ─────────────────────────────
             app.MapHub<GameHub>("/hubs/game");
             app.MapHub<AdminHub>("/hubs/admin");
 
+            // ─────────────────────────────
+            // HTTP API
+            // ─────────────────────────────
             app.MapControllers();
 
             app.Run();
