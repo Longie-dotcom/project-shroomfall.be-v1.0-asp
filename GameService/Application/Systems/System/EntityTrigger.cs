@@ -100,7 +100,7 @@ namespace Application.Systems.System
             // Determine network sync conditions
             bool hasMoved = transform.PositionChangedThisFrame;
             bool justStopped = wasMoving && !transform.WantsToMove;
-
+            Console.WriteLine($"[Movement Processing] Sync Triggered for '{entity.ID}' ({transform.Position.X:F2}, {transform.Position.Y:F2}) ");
             // ONLY log when an actual sync event or state change occurs to safeguard Railway rate limits
             if (hasMoved || justStopped)
             {
