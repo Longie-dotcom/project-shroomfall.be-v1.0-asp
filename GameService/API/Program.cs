@@ -248,6 +248,20 @@ namespace API
             app.UseAuthentication();
             app.UseAuthorization();
 
+            app.Use(async (context, next) =>
+            {
+                Console.WriteLine($"Authenticated: {context.User.Identity?.IsAuthenticated}");
+
+                Console.WriteLine("Claims:");
+                foreach (var c in context.User.Claims)
+                {
+                    Console.WriteLine($"{c.Type} = {c.Value}");
+                }
+
+                await next();
+
+                Console.WriteLine($"Response Status: {context.Response.StatusCode}");
+            });
             // ─────────────────────────────
             // SIGNALR HUB
             // ─────────────────────────────
