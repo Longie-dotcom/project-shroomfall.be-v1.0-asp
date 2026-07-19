@@ -53,17 +53,33 @@ namespace Application.Services.WorldService
             RoomLifecyclePolicy lifecyclePolicy,
             string? userId = null)
         {
+            Console.WriteLine(
+                $"[RoomInit] Initializing room '{roomSpatialId}' from definition '{roomDefinitionId}'. User={userId ?? "None"}");
+
             // Spawn Entities
             var pendingEntities = new List<EntityInstance>();
             var ownerId = SpawnEntities(roomDefinitionId, roomSpatialId, pendingEntities, userId);
 
+            Console.WriteLine(
+                $"[RoomInit] Spawned {pendingEntities.Count} entities. Owner={ownerId ?? "None"}");
+
             // Create Room
             var room = roomSpatialFactory.Create(roomDefinitionId, roomSpatialId, ownerId);
 
+            Console.WriteLine(
+                $"[RoomInit] Room created. SpatialId={roomSpatialId}, Owner={ownerId ?? "None"}");
+
             // Register creation on RAM
             residencyService.RegisterRuntimeRoom(
-                new RoomInstance { Room = room, Entities = pendingEntities },
+                new RoomInstance
+                {
+                    Room = room,
+                    Entities = pendingEntities
+                },
                 lifecyclePolicy);
+
+            Console.WriteLine(
+                $"[RoomInit] Room '{roomSpatialId}' registered into runtime.");
         }
 
         private string? SpawnEntities(
@@ -99,13 +115,17 @@ namespace Application.Services.WorldService
                     if (rule.Type == SpawnRuleType.Player && !string.IsNullOrEmpty(userId))
                     {
                         ownerId = $"{userId}_{Guid.NewGuid()}_{rule.EntityDefinitionID}";
+
+                        Console.WriteLine(
+                            $"[RoomInit] Creating player entity. User={userId}, Instance={ownerId}");
+
                         context = new PlayerEntityCreateContext(
-                            ownerId, 
+                            ownerId,
                             rule.EntityDefinitionID,
                             roomSpatialId,
                             layerZ,
-                            pos, 
-                            userId, 
+                            pos,
+                            userId,
                             roomSpatialId);
                     }
                     else
@@ -152,6 +172,9 @@ namespace Application.Services.WorldService
                         5);
 
                     buffer.Add(entity);
+
+                    Console.WriteLine(
+                        $"[RoomInit] Spawned entity '{entity.ID}' ({rule.EntityDefinitionID})");
                 }
             }
 
