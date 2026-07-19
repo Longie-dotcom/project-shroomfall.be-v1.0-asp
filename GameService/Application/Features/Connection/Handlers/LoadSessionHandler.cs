@@ -5,7 +5,6 @@ using Application.Services.WorldService;
 using AutoMapper;
 using Contract.DTO.Feature.Connection.Response;
 using Contract.DTO.Runtime.EntityDomain;
-using Contract.DTO.Runtime.EntityDomain.Component;
 using Contract.DTO.Runtime.WorldDomain;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
@@ -43,12 +42,6 @@ namespace Application.Features.Connection.Handlers
             LoadSessionCommand command)
         {
             var dto = command.DTO;
-
-            // Validate session duplication
-            if (sessionManager.Get(command.UserID) != null)
-                throw new BadRequest(
-                    ApplicationCode.ConnectionHandlerCode.LoadSessionAlreadyExisted,
-                    $"Session of user with user ID: {command.UserID} already existed.");
 
             // Ensure Player is in RAM
             var player = await residencyService.EnsurePlayerLoaded(dto.PlayerInstanceID);

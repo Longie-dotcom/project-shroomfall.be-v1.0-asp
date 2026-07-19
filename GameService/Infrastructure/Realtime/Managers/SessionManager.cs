@@ -32,23 +32,25 @@ namespace Infrastructure.Realtime.Managers
             string userId,
             string playerInstanceId)
         {
-            if (userToPlayer.TryRemove(userId, out var oldPlayerId))
+            if (userToPlayer.TryGetValue(userId, out var oldPlayerInstanceId))
             {
-                playerToUser.TryRemove(oldPlayerId, out _);
+                playerToUser.TryRemove(oldPlayerInstanceId, out _);
 
                 telemetryQueue.EnqueueAlert(
-                    code: InfrastructureCode.SessionManagerCode.SessionOverwritten,
-                    message: $"User {userId} overwrote previous player instance {oldPlayerId} with {playerInstanceId}.",
-                    severity: TelemetrySeverity.Debug);
+                    InfrastructureCode.SessionManagerCode.SessionOverwritten,
+                    $"Session replaced for user {userId}: {oldPlayerInstanceId} -> {playerInstanceId}.",
+                    TelemetrySeverity.Warning);
+            }
+            else
+            {
+                telemetryQueue.EnqueueAlert(
+                    InfrastructureCode.SessionManagerCode.SessionCreated,
+                    $"Session created for user {userId} with player instance {playerInstanceId}.",
+                    TelemetrySeverity.Info);
             }
 
             userToPlayer[userId] = playerInstanceId;
             playerToUser[playerInstanceId] = userId;
-
-            telemetryQueue.EnqueueAlert(
-                code: InfrastructureCode.SessionManagerCode.SessionCreated,
-                message: $"User {userId} mapped to player instance {playerInstanceId}.",
-                severity: TelemetrySeverity.Info);
 
             eventBus.Publish(new UserSessionChangedEvent(userId, playerInstanceId));
         }
