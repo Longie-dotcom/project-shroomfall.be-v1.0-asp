@@ -293,8 +293,6 @@ namespace Application.Services.WorldService
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(ex);
-
                         telemetryQueue.EnqueueAlert(
                             ApplicationCode.ResidencyServiceCode.RoomSnapshotPersistenceFailed,
                             $"Failed to persist initial state for persistent room '{roomInstance.Room.ID}'. Exception: {ex.Message}",

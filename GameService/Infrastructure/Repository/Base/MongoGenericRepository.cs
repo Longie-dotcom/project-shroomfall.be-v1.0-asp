@@ -56,28 +56,21 @@ namespace Infrastructure.Repository.Base
                 });
         }
 
-        public async Task UpdateManyAsync(IEnumerable<T> entities)
+        public async Task UpdateManyAsync(
+            IEnumerable<T> entities)
         {
-            Console.WriteLine($"Entered UpdateManyAsync<{typeof(T).Name}>");
-
-            var modelList = entities.Select(entity =>
+            var models = entities.Select(entity =>
             {
-                Console.WriteLine($"Preparing {entity.ID}");
-
-                var filter = Builders<T>.Filter.Eq(x => x.ID, entity.ID);
+                var filter =
+                    Builders<T>.Filter.Eq(x => x.ID, entity.ID);
 
                 return new ReplaceOneModel<T>(filter, entity)
                 {
                     IsUpsert = true
                 };
-            }).ToList();
+            });
 
-            Console.WriteLine($"Bulk models = {modelList.Count}");
-
-            var result = await collection.BulkWriteAsync(modelList);
-
-            Console.WriteLine(
-                $"Matched={result.MatchedCount}, Modified={result.ModifiedCount}, Upserts={result.Upserts.Count}");
+            await collection.BulkWriteAsync(models);
         }
 
         public async Task DeleteAsync(

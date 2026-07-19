@@ -34,6 +34,7 @@ namespace Application.Mapper
                 .ForMember(dest => dest.Components, opt => opt.MapFrom(src => src.Components));
 
             CreateMap<ComponentInstance, ComponentSnapshot>()
+                .ForMember(dest => dest.DefinitionID, opt => opt.MapFrom(src => src.DefinitionID.ToString()))
                 .Include<ActionInstance, ActionSnapshot>()
                 .Include<AIInstance, AISnapshot>()
                 .Include<AppearanceInstance, AppearanceSnapshot>()

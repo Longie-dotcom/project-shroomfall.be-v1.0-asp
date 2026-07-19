@@ -69,7 +69,7 @@ namespace Application.Services.WorldService.Factory.Component
         private AIInstance CreateAI(
             AISnapshot snapshot)
         {
-            var def = cacheProvider.AI.Get(snapshot.DefinitionID);
+            var def = cacheProvider.AI.Get(Guid.Parse(snapshot.DefinitionID));
             if (def == null)
                 throw new InternalException(
                     ApplicationCode.SnapshotComponentFactoryCode.AIDefinitionNotFound,
@@ -89,7 +89,7 @@ namespace Application.Services.WorldService.Factory.Component
             AppearanceSnapshot snapshot)
         {
             return new AppearanceInstance(
-                snapshot.DefinitionID,
+                Guid.Parse(snapshot.DefinitionID),
                 snapshot.SkinID,
                 snapshot.SkinColor
             );
@@ -98,14 +98,14 @@ namespace Application.Services.WorldService.Factory.Component
         private CollisionInstance CreateCollision(
             CollisionSnapshot snapshot)
         {
-            var def = cacheProvider.Collision.Get(snapshot.DefinitionID);
+            var def = cacheProvider.Collision.Get(Guid.Parse(snapshot.DefinitionID));
             if (def == null)
                 throw new InternalException(
                     ApplicationCode.SnapshotComponentFactoryCode.CollisionDefinitionNotFound,
                     $"Collision definition not found: {snapshot.DefinitionID}");
             
             return new CollisionInstance(
-                snapshot.DefinitionID,
+                def.ID,
                 CollisionShapeMapper.FromDefinition(def),
                 new Vector2(def.OffsetX, def.OffsetY),
                 def.Layer,
@@ -116,7 +116,15 @@ namespace Application.Services.WorldService.Factory.Component
         private CharacteristicInstance CreateCharacteristic(
             CharacteristicSnapshot snapshot)
         {
-            var instance = new CharacteristicInstance(snapshot.DefinitionID, snapshot.CurrentLevel);
+            var def = cacheProvider.Characteristic.Get(Guid.Parse(snapshot.DefinitionID));
+            if (def == null)
+                throw new InternalException(
+                    ApplicationCode.SnapshotComponentFactoryCode.CharacteristicDefinitionNotFound,
+                    $"Characteristic definition not found: {snapshot.DefinitionID}");
+
+            var instance = new CharacteristicInstance(
+                def.ID, 
+                snapshot.CurrentLevel);
 
             // Restore current vitals
             foreach (var vital in snapshot.Vitals)
@@ -130,16 +138,19 @@ namespace Application.Services.WorldService.Factory.Component
         private EffectContainerInstance CreateEffectContainer(
             EffectContainerSnapshot snapshot)
         {
-            var container = new EffectContainerInstance();
-
-            return container;
+            return new EffectContainerInstance();
         }
         
         private InventoryInstance CreateInventory(
             InventorySnapshot snapshot)
         {
-            var validItemInstances = new List<ItemInstance>();
+            var def = cacheProvider.Inventory.Get(Guid.Parse(snapshot.DefinitionID));
+            if (def == null)
+                throw new InternalException(
+                    ApplicationCode.SnapshotComponentFactoryCode.InventoryDefinitionNotFound,
+                    $"Inventory definition not found: {snapshot.DefinitionID}");
 
+            var validItemInstances = new List<ItemInstance>();
             foreach (var i in snapshot.Items)
             {
                 var itemDef = cacheProvider.Item.Get(i.DefinitionID);
@@ -156,21 +167,21 @@ namespace Application.Services.WorldService.Factory.Component
             }
 
             return new InventoryInstance(
-                snapshot.DefinitionID,
+                def.ID,
                 validItemInstances);
         }
 
         private LifetimeInstance CreateLifetime(
             LifetimeSnapshot snapshot)
         {
-            var def = cacheProvider.Lifetime.Get(snapshot.DefinitionID);
+            var def = cacheProvider.Lifetime.Get(Guid.Parse(snapshot.DefinitionID));
             if (def == null)
                 throw new InternalException(
                     ApplicationCode.SnapshotComponentFactoryCode.LifetimeDefinitionNotFound,
                     $"Lifetime definition not found: {snapshot.DefinitionID}");
 
             return new LifetimeInstance(
-                snapshot.DefinitionID,
+                def.ID,
                 def.Duration,
                 snapshot.ElapsedLifetime);
         }
@@ -178,13 +189,15 @@ namespace Application.Services.WorldService.Factory.Component
         private OwnershipInstance CreateOwnership(
             OwnershipSnapshot snapshot)
         {
-            return new OwnershipInstance(snapshot.UserID, snapshot.PersonalRoomID);
+            return new OwnershipInstance(
+                snapshot.UserID,
+                snapshot.PersonalRoomID);
         }
 
         private ProjectileInstance CreateProjectile(
             ProjectileSnapshot snapshot)
         {
-            var def = cacheProvider.Projectile.Get(snapshot.DefinitionID);
+            var def = cacheProvider.Projectile.Get(Guid.Parse(snapshot.DefinitionID));
             if (def == null)
                 throw new InternalException(
                     ApplicationCode.SnapshotComponentFactoryCode.ProjectileDefinitionNotFound,
@@ -208,14 +221,13 @@ namespace Application.Services.WorldService.Factory.Component
         private TriggeredEffectInstance CreateTriggeredEffect(
             TriggeredEffectSnapshot snapshot)
         {
-            var def = cacheProvider.TriggeredEffect.Get(snapshot.DefinitionID);
+            var def = cacheProvider.TriggeredEffect.Get(Guid.Parse(snapshot.DefinitionID));
             if (def == null)
                 throw new InternalException(
                     ApplicationCode.SnapshotComponentFactoryCode.TriggeredEffectDefinitionNotFound,
                     $"Triggered Effect definition not found: {snapshot.DefinitionID}");
 
             var validEffects = new List<string>();
-
             foreach (var effectId in def.EffectDefinitionIDs)
             {
                 if (cacheProvider.Effect.Get(effectId) != null)
@@ -225,7 +237,7 @@ namespace Application.Services.WorldService.Factory.Component
             }
 
             return new TriggeredEffectInstance(
-                snapshot.DefinitionID,
+                def.ID,
                 validEffects,
                 snapshot.SourceEntityID);
         }
@@ -244,8 +256,7 @@ namespace Application.Services.WorldService.Factory.Component
                 snapshot.Payload.DefinitionID,
                 snapshot.Payload.Amount,
                 snapshot.Payload.Quality,
-                snapshot.Payload.Durability
-            );
+                snapshot.Payload.Durability);
 
             return new WorldItemPayloadInstance(itemPayload);
         }

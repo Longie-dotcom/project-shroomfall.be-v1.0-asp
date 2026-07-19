@@ -3,6 +3,6 @@
     public abstract class ComponentSnapshot
     {
         public string Type => GetType().Name;
-        public Guid DefinitionID { get; set; }
+        public string DefinitionID { get; set; } = string.Empty;
     }
 }
