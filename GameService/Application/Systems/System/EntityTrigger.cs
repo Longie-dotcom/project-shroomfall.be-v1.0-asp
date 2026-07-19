@@ -74,7 +74,6 @@ namespace Application.Systems.System
                     MovementResult result,
                     CommandBuffer commandBuffer)
         {
-            // 1. Log entry check
             var entity = worldContext.GetEntity(result.EntityInstanceID);
             if (entity == null)
             {
@@ -92,12 +91,6 @@ namespace Application.Systems.System
             // Cache state before updating position index
             bool wasMoving = transform.WantsToMove || transform.PositionChangedThisFrame;
 
-            Console.WriteLine($"[Movement Processing] Processing entity '{entity.ID}'. " +
-                              $"Current Pos: {transform.Position}, " +
-                              $"Target Pos: {result.FinalPosition}, " +
-                              $"Layer: {result.LayerZ}, " +
-                              $"WasMoving: {wasMoving}");
-
             // Update context and spatial indexing
             worldContext.EntityMove(
                 entity.ID,
@@ -108,12 +101,14 @@ namespace Application.Systems.System
             bool hasMoved = transform.PositionChangedThisFrame;
             bool justStopped = wasMoving && !transform.WantsToMove;
 
-            // Send network update if they moved, OR if they just stopped moving
+            // ONLY log when an actual sync event or state change occurs to safeguard Railway rate limits
             if (hasMoved || justStopped)
             {
-                Console.WriteLine($"[Movement Processing] Network sync triggered for '{entity.ID}'. Reason: " +
-                                  $"{(hasMoved ? "PositionChangedThisFrame" : "")} {(justStopped ? "JustStoppedMoving" : "")} | " +
-                                  $"Sending Pos: {transform.Position}, Dir: {transform.FacingDirection}, Action: {transform.CurrentAction}");
+                Console.WriteLine($"[Movement Processing] Sync Triggered for '{entity.ID}' | Reason: " +
+                                  $"{(hasMoved ? "Moving" : "")}{(justStopped ? "Stopped" : "")} | " +
+                                  $"Pos: ({transform.Position.X:F2}, {transform.Position.Y:F2}) -> " +
+                                  $"Target: ({result.FinalPosition.X:F2}, {result.FinalPosition.Y:F2}) | " +
+                                  $"Dir: {transform.FacingDirection} | Act: {transform.CurrentAction}");
 
                 eventBus.Publish(new EntityActedEvent(
                     entity.ID,
@@ -123,10 +118,6 @@ namespace Application.Systems.System
                     transform.CurrentAction,
                     null
                 ));
-            }
-            else
-            {
-                Console.WriteLine($"[Movement Processing] Movement evaluated for '{entity.ID}', but no network sync sent (Positions matching/idle).");
             }
 
             foreach (var touched in result.TriggeredEntities)
