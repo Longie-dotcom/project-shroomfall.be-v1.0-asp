@@ -25,7 +25,8 @@ namespace Infrastructure.Repository.NonRelational
         }
 
         #region Methods
-        public async Task<IEnumerable<EntitySnapshot>> GetByRoomIdAsync(string roomSpatialId)
+        public async Task<IEnumerable<EntitySnapshot>> GetByRoomIdAsync(
+            string roomSpatialId)
         {
             var filter = Builders<EntitySnapshot>.Filter.ElemMatch(
                 entity => entity.Components,
@@ -35,29 +36,15 @@ namespace Infrastructure.Repository.NonRelational
             return await collection.Find(filter).ToListAsync();
         }
 
-        public async Task<IEnumerable<EntitySnapshot>> GetPlayerSnapshotByUserIdAsync(string userId)
+        public async Task<IEnumerable<EntitySnapshot>> GetPlayerSnapshotByUserIdAsync(
+            string userId)
         {
-            Console.WriteLine($"[Mongo] Searching ownership for user {userId}");
-
-            var ownershipFilter =
-                Builders<ComponentSnapshot>.Filter.And(
-                    Builders<ComponentSnapshot>.Filter.Eq("_t", nameof(OwnershipSnapshot)),
-                    Builders<ComponentSnapshot>.Filter.Eq("UserID", userId)
-                );
-
             var filter = Builders<EntitySnapshot>.Filter.ElemMatch(
-                x => x.Components,
-                ownershipFilter
-            );
+                entity => entity.Components,
+                Builders<ComponentSnapshot>.Filter.OfType<OwnershipSnapshot>(
+                    Builders<OwnershipSnapshot>.Filter.Eq(c => c.UserID, userId)));
 
-            var result = await collection.Find(filter).ToListAsync();
-
-            Console.WriteLine($"[Mongo] Found {result.Count} snapshots");
-
-            foreach (var entity in result)
-                Console.WriteLine($"[Mongo] {entity.ID}");
-
-            return result;
+            return await collection.Find(filter).ToListAsync();
         }
         #endregion
     }

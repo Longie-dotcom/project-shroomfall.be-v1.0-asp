@@ -197,8 +197,10 @@ namespace Application.Services.WorldService
         }
 
         public async Task<RoomInstance> EnsureRoomLoaded(
-            string roomSpatialId)
+    string roomSpatialId)
         {
+            Console.WriteLine($"[Residency] EnsureRoomLoaded requested. Room={roomSpatialId}");
+
             var roomLock = GetRoomLock(roomSpatialId);
             await roomLock.WaitAsync();
 
@@ -211,20 +213,53 @@ namespace Application.Services.WorldService
                 node = GetOrCreate(roomSpatialId);
                 oldState = node.State;
 
+                Console.WriteLine(
+                    $"[Residency] Room node found. Room={roomSpatialId}, CurrentState={node.State}");
+
                 roomInstance = TryGetRoomInstance(roomSpatialId);
+
                 if (roomInstance != null)
+                {
+                    Console.WriteLine(
+                        $"[Residency] Room already loaded in WorldContext. Room={roomSpatialId}");
+
                     return roomInstance;
+                }
+
+                Console.WriteLine(
+                    $"[Residency] Room not found in RAM. Loading from persistence. Room={roomSpatialId}");
 
                 roomInstance = await snapshotPersistence.LoadRoomInstanceAsync(roomSpatialId);
+
                 if (roomInstance == null)
+                {
+                    Console.WriteLine(
+                        $"[Residency] FAILED: No snapshot found. Room={roomSpatialId}");
+
                     throw new InternalException(
                         ApplicationCode.ResidencyServiceCode.RoomInstanceNotFoundInPersistence,
                         $"Residency synchronization failed. Cold state Room '{roomSpatialId}' contains no archived record state inside instance persistence layer.");
+                }
+
+                Console.WriteLine(
+                    $"[Residency] Snapshot loaded. Room={roomInstance.Room.ID}, Entities={roomInstance.Entities.Count}");
+
+                foreach (var entity in roomInstance.Entities)
+                {
+                    Console.WriteLine(
+                        $"[Residency] Loaded Entity={entity.ID}, Definition={entity.DefinitionID}");
+                }
 
                 worldContext.Load(roomInstance);
 
+                Console.WriteLine(
+                    $"[Residency] Room loaded into WorldContext. Room={roomSpatialId}");
+
                 node.State = RoomResidencyState.Warm;
                 node.LastAccessUtc = DateTime.UtcNow;
+
+                Console.WriteLine(
+                    $"[Residency] State changed. Room={roomSpatialId}, NewState={node.State}");
             }
             finally
             {
@@ -235,6 +270,9 @@ namespace Application.Services.WorldService
                 roomSpatialId,
                 oldState.ToString(),
                 RoomResidencyState.Warm.ToString()));
+
+            Console.WriteLine(
+                $"[Residency] EnsureRoomLoaded completed. Room={roomSpatialId}");
 
             return roomInstance;
         }
