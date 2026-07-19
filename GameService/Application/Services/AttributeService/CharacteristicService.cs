@@ -89,7 +89,16 @@ namespace Application.Services.AttributeService
             var characteristic = entity.GetComponent<CharacteristicInstance>();
             var effectContainer = entity.GetComponent<EffectContainerInstance>();
 
-            if (characteristic == null || effectContainer == null) return;
+            // Log the state of components so we know why it might be skipping
+            if (characteristic == null || effectContainer == null)
+            {
+                Console.WriteLine($"[InitCores SKIPPED] Entity '{entity.ID}' | " +
+                                  $"Characteristic: {(characteristic != null ? "OK" : "MISSING")} | " +
+                                  $"EffectContainer: {(effectContainer != null ? "OK" : "MISSING")}");
+                return;
+            }
+
+            Console.WriteLine($"[InitCores] Executing initialization for '{entity.ID}'...");
 
             // Execute raw logic with no side effects
             CalculateCoresInternal(characteristic, effectContainer);

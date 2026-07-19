@@ -5,7 +5,6 @@ using Contract.Enum.EntityDomain;
 using Contract.Enum.MetaDomain.Effect;
 using Contract.Enum.MetaDomain.Item;
 using Domain.Common;
-using Domain.Definition.EntityDomain.Component;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
 
