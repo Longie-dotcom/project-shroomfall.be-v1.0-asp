@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Contract.Enum.MetaDomain.Effect;
 using Domain.Abstraction;
 using Domain.Common;
 using Domain.Runtime.EntityDomain;
@@ -58,7 +59,7 @@ namespace Application.Mapper
             CreateMap<CollisionInstance, CollisionSnapshot>();
 
             CreateMap<CharacteristicInstance, CharacteristicSnapshot>()
-                .ForMember(dest => dest.Vitals, opt => opt.MapFrom(src => src.GetVitals()));
+                .ForMember(dest => dest.Vitals, opt => opt.MapFrom(src => new Dictionary<AttributeType, float>(src.GetVitals())));
 
             CreateMap<EffectContainerInstance, EffectContainerSnapshot>();
             CreateMap<EffectInstance, EffectSnapshot>();
