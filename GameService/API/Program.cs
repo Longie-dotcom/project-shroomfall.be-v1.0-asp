@@ -140,14 +140,12 @@ namespace API
 
                         OnForbidden = context =>
                         {
-                            Console.WriteLine("[JWT] Forbidden (authenticated but authorization failed).");
+                            Console.WriteLine("========== FORBIDDEN ==========");
+                            Console.WriteLine($"Authenticated: {context.HttpContext.User.Identity?.IsAuthenticated}");
 
-                            if (context.HttpContext.User.Identity?.IsAuthenticated == true)
+                            foreach (var claim in context.HttpContext.User.Claims)
                             {
-                                foreach (var claim in context.HttpContext.User.Claims)
-                                {
-                                    Console.WriteLine($"[JWT] User Claim: {claim.Type} = {claim.Value}");
-                                }
+                                Console.WriteLine($"{claim.Type} = {claim.Value}");
                             }
 
                             return Task.CompletedTask;
@@ -271,8 +269,10 @@ namespace API
             app.UseCors("StudioCorsPolicy");
 
             app.UseAuthentication();
-            app.UseAuthorization();
-
+            builder.Services.AddAuthorization(options =>
+            {
+                options.InvokeHandlersAfterFailure = true;
+            });
             app.MapControllers();
 
             app.Run();
