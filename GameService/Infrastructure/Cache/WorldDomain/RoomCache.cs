@@ -82,9 +82,6 @@ namespace Infrastructure.Cache.WorldDomain
                     return cell;
             }
 
-            Console.WriteLine(
-                $"Lookup World({worldX},{worldY}) -> Chunk({cx},{cy}) Local({x},{y})");
-
             return null;
         }
 

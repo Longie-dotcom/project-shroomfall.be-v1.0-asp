@@ -91,8 +91,6 @@ namespace Application.Services.WorldService
             Vector2 desiredPosition)
         {
             var result = new CollisionContext();
-            Console.WriteLine(
-$"Checking collision at {desiredPosition.X},{desiredPosition.Y}, {self.Mask.ToString()}");
 
             var roomSpatial = worldContext.GetRoom(self.RoomSpatialID);
             if (roomSpatial == null) return result;
