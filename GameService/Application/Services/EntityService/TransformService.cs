@@ -72,13 +72,6 @@ namespace Application.Services.EntityService
                 collision.Layer,
                 collision.Mask);
 
-            Console.WriteLine(
-    $"{entity.DefinitionID} " +
-    $"Layer={collision.Layer.ToString()} " +
-    $"Mask={collision.Mask.ToString()} " +
-    $"Offset=X = {collision.CollisionOffset.X},Y = {collision.CollisionOffset.Y} " +
-    $"Shape={collision.CollisionShape.GetType().Name}");
-
             return new MovementCommand(entity.ID, body, desired);
         }
         #endregion
