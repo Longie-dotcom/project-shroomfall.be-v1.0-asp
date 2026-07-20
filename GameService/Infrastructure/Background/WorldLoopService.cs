@@ -111,6 +111,8 @@ namespace Infrastructure.Background
                                 "world.loop.unhandled",
                                 ex.Message,
                                 TelemetrySeverity.Fatal);
+
+                            Console.WriteLine(ex.ToString());
                             break;
                         }
                     }
