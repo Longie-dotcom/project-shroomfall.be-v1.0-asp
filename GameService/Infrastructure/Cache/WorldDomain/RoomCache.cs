@@ -114,9 +114,6 @@ namespace Infrastructure.Cache.WorldDomain
                     {
                         int lx = cell.X - cx * Constraint.CHUNK_SIZE;
                         int ly = cell.Y - cy * Constraint.CHUNK_SIZE;
-                        Console.WriteLine(
-                            $"Store World: {room.ID}-cell count: {room.Cells.Count}: ({cell.X},{cell.Y}) -> Chunk({cx},{cy}) Local({lx},{ly})");
-
                         grid[lx, ly] = cell;
                     }
 
