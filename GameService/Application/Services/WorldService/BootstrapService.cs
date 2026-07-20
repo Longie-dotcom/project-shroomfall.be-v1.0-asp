@@ -25,11 +25,11 @@ namespace Application.Services.WorldService
         {
             foreach (var hub in Constraint.STATIC_HUB_ROOM_MAPS)
             {
-                //initializationService.InitializeRoom(
-                //    hub.DefinitionKey,
-                //    hub.SpatialId,
-                //    RoomLifecyclePolicy.Permanent,
-                //    null);
+                initializationService.InitializeRoom(
+                    hub.DefinitionKey,
+                    hub.SpatialId,
+                    RoomLifecyclePolicy.Permanent,
+                    null);
             }
         }
         #endregion
