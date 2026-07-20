@@ -2,16 +2,21 @@
 using Application.Features.Game.Commands;
 using Application.Interfaces.Realtime.Managers;
 using Application.Services.WorldService;
+using AutoMapper;
+using Contract.DTO.Feature.Connection.Response;
+using Contract.DTO.Runtime.EntityDomain;
 using Contract.DTO.Runtime.WorldDomain;
 using Domain.DomainException;
+using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
 using ResponseCode;
 
 namespace Application.Features.Game.Handlers
 {
-    public class BackHomeHandler : IHandler<BackHomeCommand, RoomInstanceDTO>
+    public class BackHomeHandler : IHandler<BackHomeCommand, SaveGameDTO>
     {
         #region Attributes
+        private readonly IMapper mapper;
         private readonly ISessionManager sessionManager;
         private readonly WorldContext worldContext;
         private readonly RoomMigrationService roomMigrationService;
@@ -21,17 +26,19 @@ namespace Application.Features.Game.Handlers
         #endregion
 
         public BackHomeHandler(
+            IMapper mapper,
             ISessionManager sessionManager,
             WorldContext worldContext,
             RoomMigrationService roomMigrationService)
         {
+            this.mapper = mapper;
             this.sessionManager = sessionManager;
             this.worldContext = worldContext;
             this.roomMigrationService = roomMigrationService;
         }
 
         #region Methods
-        public async Task<RoomInstanceDTO> Handle(
+        public async Task<SaveGameDTO> Handle(
             BackHomeCommand command)
         {
             // Validate player session
@@ -56,9 +63,24 @@ namespace Application.Features.Game.Handlers
                     $"Player runtime instance '{playerInstanceId}' has no Ownership Instance.");
 
             // Migrate player safely using calculated blueprint rules
-            return await roomMigrationService.EnterRoomAsync(
+            var roomInstance = await roomMigrationService.EnterRoomAsync(
                 player: player,
                 destinationRoomId: ownership.PersonalRoomID);
+
+            return BuildSaveGame(player, roomInstance);
+        }
+
+        private SaveGameDTO BuildSaveGame(
+            EntityInstance player,
+            RoomInstanceDTO room)
+        {
+            var saveGame = new SaveGameDTO()
+            {
+                PlayerData = mapper.Map<EntityInstanceDTO>(player),
+                RoomData = room
+            };
+
+            return saveGame;
         }
         #endregion
     }

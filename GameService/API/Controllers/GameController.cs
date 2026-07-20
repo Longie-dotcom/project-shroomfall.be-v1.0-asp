@@ -1,6 +1,7 @@
 ﻿using API.Helper;
 using Application.Features.Abstraction;
 using Application.Features.Game.Commands;
+using Contract.DTO.Feature.Connection.Response;
 using Contract.DTO.Feature.Game.Command;
 using Contract.DTO.Runtime.WorldDomain;
 using Microsoft.AspNetCore.Authorization;
@@ -60,7 +61,7 @@ namespace API.Controllers
         {
             var (userId, _, _) = ClaimReader.GetIdentity(User);
 
-            var snapshot = await dispatcher.Send<BackHomeCommand, RoomInstanceDTO>(
+            var snapshot = await dispatcher.Send<BackHomeCommand, SaveGameDTO>(
                 new BackHomeCommand(userId)
             );
 
@@ -74,7 +75,7 @@ namespace API.Controllers
         {
             var (userId, _, _) = ClaimReader.GetIdentity(User);
 
-            var snapshot = await dispatcher.Send<EnterHubCommand, RoomInstanceDTO>(
+            var snapshot = await dispatcher.Send<EnterHubCommand, SaveGameDTO>(
                 new EnterHubCommand(userId, hubRoomSpatialId)
             );
 
