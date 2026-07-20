@@ -3,7 +3,6 @@ using Application.Features.Abstraction;
 using Application.Features.Game.Commands;
 using Contract.DTO.Feature.Connection.Response;
 using Contract.DTO.Feature.Game.Command;
-using Contract.DTO.Runtime.WorldDomain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

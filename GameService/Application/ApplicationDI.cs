@@ -81,8 +81,8 @@ namespace Application
             services.AddScoped<IHandler<UserRefreshCommand, DefinitionSnapshotDTO?>, UserRefreshHandler>();
 
             // Game
-            services.AddScoped<IHandler<BackHomeCommand, RoomInstanceDTO>, BackHomeHandler>();
-            services.AddScoped<IHandler<EnterHubCommand, RoomInstanceDTO>, EnterHubHandler>();
+            services.AddScoped<IHandler<BackHomeCommand, SaveGameDTO>, BackHomeHandler>();
+            services.AddScoped<IHandler<EnterHubCommand, SaveGameDTO>, EnterHubHandler>();
             services.AddScoped<IHandler<MoveCommand>, MoveHandler>();
             services.AddScoped<IHandler<UpdateAppearanceCommand>, UpdateAppearanceHandler>();
             services.AddScoped<IHandler<UseItemCommand>, UseItemHandler>();
