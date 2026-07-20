@@ -38,6 +38,9 @@ namespace Infrastructure.Cache.WorldDomain
 
             foreach (var room in data)
             {
+                Console.WriteLine(
+                    $"Room {room.ID}, Cells={room.Cells.Count}");
+
                 IndexRoom(room);
             }
         }
