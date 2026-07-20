@@ -87,7 +87,7 @@ namespace Application.Systems.System
 
             // Clear AI movement intent
             Console.WriteLine(
-                $"Current={transform.Position} Final={result.FinalPosition}");
+                $"Current={transform.Position.X},{transform.Position.Y} Final={result.FinalPosition.X},{result.FinalPosition.Y}");
 
             // Update context and spatial indexing
             worldContext.EntityMove(
