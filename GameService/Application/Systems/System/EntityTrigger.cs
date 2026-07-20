@@ -91,6 +91,10 @@ namespace Application.Systems.System
                 result.FinalPosition,
                 result.LayerZ);
 
+            // Clear AI movement intent
+            if (entity.GetComponent<AIInstance>() != null)
+                transform.ClearMovementIntent();
+
             // Send network update if they moved, OR if they just stopped moving
             if (transform.PositionChangedThisFrame || (wasMoving && !transform.WantsToMove))
             {

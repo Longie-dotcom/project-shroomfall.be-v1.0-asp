@@ -72,10 +72,6 @@ namespace Application.Systems.System
             if (collision.BlockX) finalPos.X = cmd.Body.Position.X;
             if (collision.BlockY) finalPos.Y = cmd.Body.Position.Y;
 
-            Console.WriteLine(
-    $"Desired={cmd.DesiredPosition.X}, {cmd.DesiredPosition.Y}  " +
-    $"BlockX={collision.BlockX} BlockY={collision.BlockY}");
-
             // Enqueue the validated movement
             commandBuffer.Results.Enqueue(new MovementResult(
                 cmd.EntityInstanceID,
