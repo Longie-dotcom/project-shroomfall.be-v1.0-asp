@@ -82,6 +82,9 @@ namespace Infrastructure.Cache.WorldDomain
                     return cell;
             }
 
+            Console.WriteLine(
+                $"Lookup World({worldX},{worldY}) -> Chunk({cx},{cy}) Local({x},{y})");
+
             return null;
         }
 
@@ -111,6 +114,9 @@ namespace Infrastructure.Cache.WorldDomain
                     {
                         int lx = cell.X - cx * Constraint.CHUNK_SIZE;
                         int ly = cell.Y - cy * Constraint.CHUNK_SIZE;
+
+                        Console.WriteLine(
+                            $"Store World({cell.X},{cell.Y}) -> Chunk({cx},{cy}) Local({lx},{ly})");
 
                         grid[lx, ly] = cell;
                     }

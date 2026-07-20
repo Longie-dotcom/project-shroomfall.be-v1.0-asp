@@ -89,16 +89,8 @@ namespace Application.Services.AttributeService
             var characteristic = entity.GetComponent<CharacteristicInstance>();
             var effectContainer = entity.GetComponent<EffectContainerInstance>();
 
-            // Log the state of components so we know why it might be skipping
             if (characteristic == null || effectContainer == null)
-            {
-                Console.WriteLine($"[InitCores SKIPPED] Entity '{entity.ID}' | " +
-                                  $"Characteristic: {(characteristic != null ? "OK" : "MISSING")} | " +
-                                  $"EffectContainer: {(effectContainer != null ? "OK" : "MISSING")}");
                 return;
-            }
-
-            Console.WriteLine($"[InitCores] Executing initialization for '{entity.ID}'...");
 
             // Execute raw logic with no side effects
             CalculateCoresInternal(characteristic, effectContainer);
@@ -199,7 +191,6 @@ namespace Application.Services.AttributeService
             EffectContainerInstance effectContainer)
         {
             var activeEffectsByAttribute = new Dictionary<AttributeType, List<EffectDefinition>>();
-
             foreach (var activeEffect in effectContainer.TrackingEffects)
             {
                 var effectDef = activeEffect.Context.Effect;
@@ -212,30 +203,19 @@ namespace Application.Services.AttributeService
             }
 
             var allAttrs = AttributeDefinitions.AllList();
-            Console.WriteLine($"[DEBUG] Starting core calculation. Total definitions: {allAttrs?.Count() ?? 0}");
-
-            if (allAttrs == null) return;
+            if (allAttrs == null) 
+                return;
 
             foreach (var attrDef in allAttrs)
             {
                 // 1. Check if it's a Core
                 if (attrDef.DomainType != DomainType.Core)
-                {
-                    // Not logging this one to avoid spam, but this is the first potential silent skip
                     continue;
-                }
-
-                Console.WriteLine($"[DEBUG] Attempting to calculate: {attrDef.Type}");
 
                 // 2. Check if the attribute exists on this entity
                 var scaledAttr = GetScaledAttribute(characteristic, attrDef.Type);
-
                 if (scaledAttr == null)
-                {
-                    Console.WriteLine($"[DEBUG] FAILED: GetScaledAttribute returned null for '{attrDef.Type}'. " +
-                                      $"Check if this attribute is initialized on the entity's CharacteristicInstance.");
                     continue;
-                }
 
                 float flat = 0f;
                 float percent = 0f;
@@ -257,9 +237,6 @@ namespace Application.Services.AttributeService
                 var (config, scaledBaseValue) = scaledAttr.Value;
                 float result = (scaledBaseValue + flat) * (1f + percent) * multiplier;
                 result = Math.Clamp(result, config.Min, config.Max);
-
-                Console.WriteLine($"[AttributeCalc SUCCESS] {attrDef.Type} | Final: {result:F2}");
-
                 characteristic.SetCore(attrDef.Type, result);
             }
         }
