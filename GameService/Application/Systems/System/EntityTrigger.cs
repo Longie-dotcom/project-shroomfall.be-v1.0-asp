@@ -82,17 +82,20 @@ namespace Application.Systems.System
             if (transform == null)
                 return;
 
-            // Cache state before updating position index
-            bool wasMoving = transform.WantsToMove || transform.PositionChangedThisFrame;
+            // Remember previous movement state
+            bool wasMoving = transform.WantsToMove;
 
-            // Update context and spatial indexing
+            // Apply the authoritative movement
             worldContext.EntityMove(
                 entity.ID,
                 result.FinalPosition,
                 result.LayerZ);
 
-            // Send network update if they moved, OR if they just stopped moving
-            if (transform.PositionChangedThisFrame || (wasMoving && !transform.WantsToMove))
+            // Detect transition from moving -> idle
+            bool becameIdle = wasMoving && !transform.WantsToMove;
+
+            // Publish whenever position changed OR movement state changed
+            if (transform.PositionChangedThisFrame || becameIdle)
             {
                 eventBus.Publish(new EntityActedEvent(
                     entity.ID,
@@ -110,12 +113,14 @@ namespace Application.Systems.System
 
                 if (projectileService.TryHandleImpact(entity))
                 {
-                    commandBuffer.Commands.Enqueue(new EntityDespawnCommand(entity.ID, false));
+                    commandBuffer.Commands.Enqueue(
+                        new EntityDespawnCommand(entity.ID, false));
                 }
 
                 if (inventoryService.TryPickItem(entity, touched))
                 {
-                    commandBuffer.Commands.Enqueue(new EntityDespawnCommand(touched.ID, false));
+                    commandBuffer.Commands.Enqueue(
+                        new EntityDespawnCommand(touched.ID, false));
                 }
             }
         }
