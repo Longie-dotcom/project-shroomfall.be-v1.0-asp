@@ -60,7 +60,7 @@ namespace API.Controllers
         {
             var (userId, _, _) = ClaimReader.GetIdentity(User);
 
-            var snapshot = await dispatcher.Send<BackHomeCommand, RoomSpatialDTO>(
+            var snapshot = await dispatcher.Send<BackHomeCommand, RoomInstanceDTO>(
                 new BackHomeCommand(userId)
             );
 
@@ -74,7 +74,7 @@ namespace API.Controllers
         {
             var (userId, _, _) = ClaimReader.GetIdentity(User);
 
-            var snapshot = await dispatcher.Send<EnterHubCommand, RoomSpatialDTO>(
+            var snapshot = await dispatcher.Send<EnterHubCommand, RoomInstanceDTO>(
                 new EnterHubCommand(userId, hubRoomSpatialId)
             );
 

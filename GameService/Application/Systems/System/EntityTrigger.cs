@@ -85,10 +85,6 @@ namespace Application.Systems.System
             // Cache state before updating position index
             bool wasMoving = transform.WantsToMove || transform.PositionChangedThisFrame;
 
-            // Clear AI movement intent
-            Console.WriteLine(
-                $"Current={transform.Position.X},{transform.Position.Y} Final={result.FinalPosition.X},{result.FinalPosition.Y}");
-
             // Update context and spatial indexing
             worldContext.EntityMove(
                 entity.ID,
