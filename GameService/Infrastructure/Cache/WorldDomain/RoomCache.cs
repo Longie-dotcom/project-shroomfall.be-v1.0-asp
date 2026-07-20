@@ -60,6 +60,9 @@ namespace Infrastructure.Cache.WorldDomain
             int worldX,
             int worldY)
         {
+            Console.WriteLine(
+    $"Checking collision at {worldX},{worldY}");
+
             if (!cellIndex.TryGetValue(roomId, out var layers))
                 return null;
 
