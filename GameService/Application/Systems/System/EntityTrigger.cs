@@ -94,18 +94,14 @@ namespace Application.Systems.System
             // Detect transition from moving -> idle
             bool becameIdle = wasMoving && !transform.WantsToMove;
 
-            // Publish whenever position changed OR movement state changed
-            if (transform.PositionChangedThisFrame || becameIdle)
-            {
-                eventBus.Publish(new EntityActedEvent(
-                    entity.ID,
-                    transform.RoomSpatialID,
-                    transform.Position,
-                    transform.FacingDirection,
-                    transform.CurrentAction,
-                    null
-                ));
-            }
+            eventBus.Publish(new EntityActedEvent(
+                entity.ID,
+                transform.RoomSpatialID,
+                transform.Position,
+                transform.FacingDirection,
+                transform.CurrentAction,
+                null
+            ));
 
             foreach (var touched in result.TriggeredEntities)
             {
@@ -129,7 +125,7 @@ namespace Application.Systems.System
             ItemActionResult result)
         {
             var entity = worldContext.GetEntity(result.EntityInstanceID);
-            if (entity == null) 
+            if (entity == null)
                 return;
 
             // Execute the item usage logic
@@ -155,7 +151,7 @@ namespace Application.Systems.System
             CommandBuffer commandBuffer)
         {
             var entity = worldContext.GetEntity(result.EntityInstanceID);
-            if (entity == null) 
+            if (entity == null)
                 return;
 
             // Apply projectile logic
@@ -176,7 +172,7 @@ namespace Application.Systems.System
 
                 case DeathOutcome.Player:
                     // publish the Run mode of that participant
-                    break; 
+                    break;
 
                 case DeathOutcome.None:
                 default:
