@@ -5,6 +5,7 @@ using Domain.Abstraction;
 using Domain.Common;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
+using Domain.Runtime.WorldDomain;
 using Domain.Runtime.WorldDomain.Spatial;
 
 namespace Application.Services.WorldService
@@ -90,6 +91,8 @@ namespace Application.Services.WorldService
             Vector2 desiredPosition)
         {
             var result = new CollisionContext();
+            Console.WriteLine(
+$"Checking collision at {desiredPosition.X},{desiredPosition.Y}, {self.Mask.ToString()}");
 
             var roomSpatial = worldContext.GetRoom(self.RoomSpatialID);
             if (roomSpatial == null) return result;
@@ -202,6 +205,7 @@ namespace Application.Services.WorldService
                 var tileCell = cacheProvider.Room.GetTopCell(roomSpatial.DefinitionID, cell.x, cell.y);
                 if (tileCell != null && tileCell.Type != CellType.Walkable) isBlocked = true;
             }
+
             return isBlocked;
         }
 
