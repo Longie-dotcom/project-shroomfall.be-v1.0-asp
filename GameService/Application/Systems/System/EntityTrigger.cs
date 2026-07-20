@@ -5,6 +5,7 @@ using Application.Services.EntityService;
 using Application.Services.UsageService;
 using Application.Services.WorldService;
 using Application.Systems.Queue;
+using Contract.Enum.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
 
 namespace Application.Systems.System
@@ -82,26 +83,46 @@ namespace Application.Systems.System
             if (transform == null)
                 return;
 
-            // Remember previous movement state
+            // Remember whether the entity was moving before this frame
             bool wasMoving = transform.WantsToMove;
 
-            // Apply the authoritative movement
+            // Apply authoritative movement
             worldContext.EntityMove(
                 entity.ID,
                 result.FinalPosition,
                 result.LayerZ);
 
-            // Detect transition from moving -> idle
-            bool becameIdle = wasMoving && !transform.WantsToMove;
+            // Publish movement update if position changed
+            if (transform.PositionChangedThisFrame)
+            {
+                eventBus.Publish(new EntityActedEvent(
+                    entity.ID,
+                    transform.RoomSpatialID,
+                    transform.Position,
+                    transform.FacingDirection,
+                    transform.CurrentAction,
+                    null
+                ));
+            }
 
-            eventBus.Publish(new EntityActedEvent(
-                entity.ID,
-                transform.RoomSpatialID,
-                transform.Position,
-                transform.FacingDirection,
-                transform.CurrentAction,
-                null
-            ));
+            // AI movement lasts only one tick, so clear it
+            if (entity.GetComponent<AIInstance>() != null)
+            {
+                transform.ClearMovementIntent();
+
+                // Send one final IDLE packet so clients stop interpolating
+                if (wasMoving)
+                {
+                    eventBus.Publish(new EntityActedEvent(
+                        entity.ID,
+                        transform.RoomSpatialID,
+                        transform.Position,
+                        transform.FacingDirection,
+                        transform.CurrentAction,
+                        null
+                    ));
+                }
+            }
 
             foreach (var touched in result.TriggeredEntities)
             {
@@ -125,7 +146,7 @@ namespace Application.Systems.System
             ItemActionResult result)
         {
             var entity = worldContext.GetEntity(result.EntityInstanceID);
-            if (entity == null)
+            if (entity == null) 
                 return;
 
             // Execute the item usage logic
@@ -151,7 +172,7 @@ namespace Application.Systems.System
             CommandBuffer commandBuffer)
         {
             var entity = worldContext.GetEntity(result.EntityInstanceID);
-            if (entity == null)
+            if (entity == null) 
                 return;
 
             // Apply projectile logic
@@ -172,7 +193,7 @@ namespace Application.Systems.System
 
                 case DeathOutcome.Player:
                     // publish the Run mode of that participant
-                    break;
+                    break; 
 
                 case DeathOutcome.None:
                 default:

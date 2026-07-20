@@ -86,6 +86,13 @@ namespace Domain.Runtime.EntityDomain.Component
             FacingDirection = Vector2ToDirection(MovementVector, FacingDirection);
         }
 
+        public void ClearMovementIntent()
+        {
+            MovementVector = Vector2.Zero;
+            WantsToMove = false;
+            CurrentAction = EntityAction.IDLE;
+        }
+
         public void SetPosition(
             Vector2 position,
             int layerZ)
