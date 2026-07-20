@@ -75,6 +75,13 @@ namespace Infrastructure.Persistence
                     password: sharedPasswordHash,
                     email: "admin@shroomfall.com"),
 
+                new User(
+                    id: "usr_admin_02",
+                    name: "Admin Workspace",
+                    role: Role.Admin,
+                    password: sharedPasswordHash,
+                    email: "shroomfall@gmail.com"),
+
                 // Designer Account
                 new User(
                     id: "usr_designer_01",
