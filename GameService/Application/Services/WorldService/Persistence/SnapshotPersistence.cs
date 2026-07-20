@@ -40,7 +40,10 @@
         {
             await roomPersistence.SaveAsync(instance.Room);
 
-            await entityPersistence.SaveManyAsync(instance.Entities);
+            if (instance.Entities != null && instance.Entities.Any())
+            {
+                await entityPersistence.SaveManyAsync(instance.Entities);
+            }
         }
         #endregion
     }

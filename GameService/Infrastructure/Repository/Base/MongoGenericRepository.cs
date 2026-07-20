@@ -56,11 +56,13 @@ namespace Infrastructure.Repository.Base
                 });
         }
 
-        public async Task UpdateManyAsync(IEnumerable<T> entities)
+        public async Task UpdateManyAsync(
+            IEnumerable<T> entities)
         {
             var models = entities.Select(entity =>
             {
-                var filter = Builders<T>.Filter.Eq(x => x.ID, entity.ID);
+                var filter =
+                    Builders<T>.Filter.Eq(x => x.ID, entity.ID);
 
                 return new ReplaceOneModel<T>(filter, entity)
                 {
@@ -68,15 +70,7 @@ namespace Infrastructure.Repository.Base
                 };
             });
 
-            try
-            {
-                await collection.BulkWriteAsync(models);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                throw;
-            }
+            await collection.BulkWriteAsync(models);
         }
 
         public async Task DeleteAsync(
