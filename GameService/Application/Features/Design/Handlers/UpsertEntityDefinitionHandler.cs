@@ -4,12 +4,10 @@ using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
 using Application.Services.DesignService;
 using Contract.DTO.Abstraction;
-using Contract.DTO.Definition.EntityDomain.Component;
 using Contract.Enum.EntityDomain;
 using Domain.Definition.EntityDomain;
-using Domain.Definition.EntityDomain.Component;
+using Domain.Definition.LocalizationDomain;
 using Domain.DomainException;
-using Domain.Shared;
 using ResponseCode;
 
 namespace Application.Features.Design.Handlers
@@ -20,18 +18,7 @@ namespace Application.Features.Design.Handlers
         private readonly IRelationalUoW relationalUoW;
         private readonly LocalizationEntryFactory localizationEntryFactory;
         private readonly DefinitionComponentFactory definitionComponentFactory;
-
-        private static readonly Dictionary<string, Type> ComponentStringToDomainMapping = new(StringComparer.OrdinalIgnoreCase)
-        {
-            { nameof(AIDefinitionDTO), typeof(AIDefinition) },
-            { nameof(AppearanceDefinitionDTO), typeof(AppearanceDefinition) },
-            { nameof(CollisionDefinitionDTO), typeof(CollisionDefinition) },
-            { nameof(CharacteristicDefinitionDTO), typeof(CharacteristicDefinition) },
-            { nameof(InventoryDefinitionDTO), typeof(InventoryDefinition) },
-            { nameof(LifetimeDefinitionDTO), typeof(LifetimeDefinition) },
-            { nameof(ProjectileDefinitionDTO), typeof(ProjectileDefinition) },
-            { nameof(TriggeredEffectDefinitionDTO), typeof(TriggeredEffectDefinition) }
-        };
+        private readonly ComponentDiscoveryRegistry discoveryRegistry;
         #endregion
 
         #region Properties
@@ -39,11 +26,13 @@ namespace Application.Features.Design.Handlers
         public UpsertEntityDefinitionHandler(
             IRelationalUoW relationalUoW,
             LocalizationEntryFactory localizationEntryFactory,
-            DefinitionComponentFactory definitionComponentFactory)
+            DefinitionComponentFactory definitionComponentFactory,
+            ComponentDiscoveryRegistry discoveryRegistry)
         {
             this.relationalUoW = relationalUoW;
             this.localizationEntryFactory = localizationEntryFactory;
             this.definitionComponentFactory = definitionComponentFactory;
+            this.discoveryRegistry = discoveryRegistry;
         }
 
         #region Methods
@@ -52,18 +41,15 @@ namespace Application.Features.Design.Handlers
         {
             var dto = command.DTO;
 
-            if (dto.Components == null)
-                return;
-
             // Validate batch payload against target EntityType schemas baseline
             ValidateRequiredComponents(dto.Type, dto.Components);
 
+            // Upsert flow (Create flow)
             var entityRepo = relationalUoW.GetRepository<IEntityDefinitionRepository>();
             var existingEntity = await entityRepo.GetByIdAsync(dto.Id);
-
             if (existingEntity == null)
             {
-                var localizedText = LocalizationFactory.ForEntity(dto.Id);
+                var localizedText = ForEntity(dto.Id);
                 var presentation = new EntityPresentationDefinition(localizedText, dto.Id);
                 var entity = new EntityDefinition(dto.Id, dto.Type, presentation);
 
@@ -71,12 +57,13 @@ namespace Application.Features.Design.Handlers
                 await localizationEntryFactory.PreSavePlaceholderKeysAsync(localizedText);
             }
 
-            // Pipeline component definitions generation
+            // Upsert flow (Update flow: Pipeline component definitions generation)
             foreach (var componentDto in dto.Components)
             {
                 await definitionComponentFactory.UpsertAndSaveAsync(componentDto, dto.Type, dto.Id);
             }
 
+            // Apply persistence
             int rowsAffected = await relationalUoW.SaveChangesAsync();
         }
 
@@ -84,38 +71,32 @@ namespace Application.Features.Design.Handlers
             EntityType type,
             List<ComponentDefinitionDTO> providedComponents)
         {
-            var requiredDomainTypes = EntityDefinitionSchemas.GetRequiredComponentTypes(type).ToList();
-            var providedDomainTypes = providedComponents.Select(MapDtoToDomainType).ToList();
+            var requiredComponents = discoveryRegistry
+                .GetComponents()
+                .Where(x => x.SupportedEntityTypes.Contains(type))
+                .ToList();
 
-            // Intersect layout configurations discrepancies
-            var missingComponents = requiredDomainTypes.Except(providedDomainTypes).ToList();
+            var missing = requiredComponents
+                .Where(required => !providedComponents
+                    .Any(dto => string.Equals(dto.ComponentType, required.Id, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
 
-            if (missingComponents.Any())
-            {
-                var missingNames = string.Join(", ", missingComponents.Select(t => t.Name));
+            if (missing.Any())
                 throw new InternalException(
                     ApplicationCode.DesignHandlerCode.MandatorySchemaElementsMissing,
-                    $"Failed to build entity setup variant '{type}'. Missing mandatory schema elements: {missingNames}");
-            }
+                    $"Failed to build entity setup variant '{type}'. Missing mandatory schema elements: {string.Join(", ", missing.Select(x => x.Id))}");
         }
 
-        private Type MapDtoToDomainType(ComponentDefinitionDTO dto)
+        private static LocalizedText ForEntity(
+            string entityId)
         {
-            if (string.IsNullOrWhiteSpace(dto.ComponentType))
-            {
-                throw new InternalException(
-                    ApplicationCode.DesignHandlerCode.ComponentSignatureNotFound,
-                    "Component Definition DTO is missing its string identifier ComponentType.");
-            }
+            entityId = string.IsNullOrWhiteSpace(entityId) ? "unknown" : entityId.Trim().ToLowerInvariant();
 
-            if (ComponentStringToDomainMapping.TryGetValue(dto.ComponentType, out var domainType))
+            return new LocalizedText
             {
-                return domainType;
-            }
-
-            throw new InternalException(
-                ApplicationCode.DesignHandlerCode.ComponentSignatureMappingFailed,
-                $"Component metadata contract '{dto.ComponentType}' cannot be translated to a target domain signature.");
+                NameKey = $"entity.{entityId}.name",
+                DescriptionKey = $"entity.{entityId}.description"
+            };
         }
         #endregion
     }

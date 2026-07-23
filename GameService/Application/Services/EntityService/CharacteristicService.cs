@@ -1,6 +1,7 @@
 ﻿using Application.Interfaces.Cache;
 using Application.Interfaces.Realtime.Events;
 using Application.Interfaces.Realtime.Events.Game;
+using Application.Services.MetaService;
 using Application.Systems.Abstraction;
 using Application.Systems.Queue;
 using Contract;
@@ -12,7 +13,7 @@ using Domain.Runtime.EntityDomain.Component;
 using Domain.Runtime.MetaDomain;
 using System.Collections.Concurrent;
 
-namespace Application.Services.AttributeService
+namespace Application.Services.EntityService
 {
     public sealed class VitalChangedRecord
     {

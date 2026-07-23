@@ -9,7 +9,7 @@ using Domain.Runtime.EntityDomain.Component;
 using Domain.Runtime.MetaDomain;
 using ResponseCode;
 
-namespace Application.Services.WorldService
+namespace Application.Services.WorldService.Creation
 {
     public class WorldEntityCreateContext
     {

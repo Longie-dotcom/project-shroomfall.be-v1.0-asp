@@ -36,17 +36,16 @@ namespace Application.Features.Design.Handlers
             int pageNumber = queries.PageNumber < 1 ? 1 : queries.PageNumber;
             int pageSize = queries.PageSize < 1 ? 10 : queries.PageSize;
 
+            // Retrieve localization entries and paging
             var localizationRepo = relationalUoW.GetRepository<ILocaleRepository>();
-
             var (entities, totalCount) = await localizationRepo.GetPagedDefinitionsAsync(
                 queries.SearchTerm,
                 queries.LocaleCode,
                 pageNumber,
-                pageSize
-            );
+                pageSize);
 
+            // Map to result
             var dtos = mapper.Map<List<LocalizationEntryDTO>>(entities);
-
             return new PagedResponseDTO<LocalizationEntryDTO>(
                 dtos,
                 totalCount,

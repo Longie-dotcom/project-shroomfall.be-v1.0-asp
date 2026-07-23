@@ -9,7 +9,7 @@ using Domain.Runtime.EntityDomain.Component;
 using Domain.Runtime.MetaDomain;
 using ResponseCode;
 
-namespace Application.Services.UsageService
+namespace Application.Services.EntityService
 {
     public class InventoryService
     {

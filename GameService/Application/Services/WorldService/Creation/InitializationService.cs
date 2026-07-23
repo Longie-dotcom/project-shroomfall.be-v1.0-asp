@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces.Cache;
+using Application.Services.EntityService;
 using Application.Services.WorldService.Factory;
 using Contract.Enum.WorldDomain;
 using Domain.Common;
@@ -9,7 +10,7 @@ using Domain.Runtime.EntityDomain.Component;
 using Domain.Runtime.WorldDomain.Spatial;
 using ResponseCode;
 
-namespace Application.Services.WorldService
+namespace Application.Services.WorldService.Creation
 {
     public class RoomInstance
     {
@@ -141,8 +142,7 @@ namespace Application.Services.WorldService
                         layerZ,
                         collision.CollisionShape,
                         collision.Layer,
-                        collision.Mask
-                    );
+                        collision.Mask);
 
                     collisionService.SpawnAtNearestValidPosition(
                         spawnBody,

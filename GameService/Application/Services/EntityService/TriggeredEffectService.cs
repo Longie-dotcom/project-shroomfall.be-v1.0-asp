@@ -1,5 +1,5 @@
 ﻿using Application.Interfaces.Cache;
-using Application.Services.AttributeService;
+using Application.Services.MetaService;
 using Application.Services.WorldService;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;

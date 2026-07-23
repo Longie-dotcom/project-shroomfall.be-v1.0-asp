@@ -53,7 +53,8 @@ namespace Domain.Runtime.WorldDomain.Spatial
             AddEntity(entity, newPos.cx, newPos.cy, newPos.x, newPos.y, newPos.z);
         }
 
-        private LayerSpatial GetOrCreateLayer(int z)
+        private LayerSpatial GetOrCreateLayer(
+            int z)
         {
             if (!layers.TryGetValue(z, out var layer))
             {
@@ -65,7 +66,8 @@ namespace Domain.Runtime.WorldDomain.Spatial
         #endregion
 
         #region Query
-        public IEnumerable<EntityInstance> Query(int x, int y, int z)
+        public IEnumerable<EntityInstance> Query(
+            int x, int y, int z)
         {
             if (!layers.TryGetValue(z, out var layer))
                 return Enumerable.Empty<EntityInstance>();

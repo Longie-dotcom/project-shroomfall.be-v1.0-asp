@@ -48,7 +48,8 @@ namespace Domain.Runtime.WorldDomain.Spatial
             return chunk.Query(localX, localY);
         }
 
-        private ChunkSpatial GetOrCreateChunk(int x, int y)
+        private ChunkSpatial GetOrCreateChunk(
+            int x, int y)
         {
             if (!chunks.TryGetValue((x, y), out var chunk))
             {

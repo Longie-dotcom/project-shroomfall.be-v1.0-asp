@@ -1,9 +1,14 @@
 ﻿using Application.Features.Abstraction;
 using Application.Features.Design.Commands;
+using Application.Interfaces.Cache;
 using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
-using Application.Services.DesignService;
+using AutoMapper;
 using Contract;
+using Contract.DTO.Definition.EntityDomain.Component;
+using Contract.DTO.Definition.LocalizationDomain;
+using Contract.DTO.Definition.MetaDomain;
+using Contract.DTO.Definition.WorldDomain;
 using Contract.DTO.Feature.Design.Response;
 
 namespace Application.Features.Design.Handlers
@@ -12,7 +17,8 @@ namespace Application.Features.Design.Handlers
     {
         #region Attributes
         private readonly IRelationalUoW relationalUoW;
-        private readonly DefinitionService builderService;
+        private readonly IMapper mapper;
+        private readonly ICacheProvider cacheProvider;
         #endregion
 
         #region Properties
@@ -20,10 +26,12 @@ namespace Application.Features.Design.Handlers
 
         public UserRefreshHandler(
             IRelationalUoW relationalUoW,
-            DefinitionService builderService)
+            IMapper mapper,
+            ICacheProvider cacheProvider)
         {
             this.relationalUoW = relationalUoW;
-            this.builderService = builderService;
+            this.mapper = mapper;
+            this.cacheProvider = cacheProvider;
         }
 
         #region Methods
@@ -47,7 +55,34 @@ namespace Application.Features.Design.Handlers
                 return null;
 
             // Return full snapshot
-            return builderService.BuildDefinitionSnapshot(latest.Version);
+            return BuildDefinitionSnapshot(latest.Version);
+        }
+
+        public DefinitionSnapshotDTO BuildDefinitionSnapshot(
+            long version)
+        {
+            var allRooms = cacheProvider.Room.GetAll();
+            var effects = mapper.Map<List<EffectDefinitionDTO>>(cacheProvider.Effect.GetAll());
+            var items = mapper.Map<List<ItemDefinitionDTO>>(cacheProvider.Item.GetAll());
+            var entities = mapper.Map<List<EntityDefinitionDTO>>(cacheProvider.Entity.GetAll());
+            var cells = mapper.Map<List<CellDTO>>(allRooms.SelectMany(r => r.Cells).ToList());
+            var entitySpawnRules = mapper.Map<List<EntitySpawnRuleDTO>>(allRooms.SelectMany(r => r.EntitySpawnRules).ToList());
+            var rooms = mapper.Map<List<RoomDefinitionDTO>>(allRooms);
+            var combatRuns = mapper.Map<List<CombatRunDefinitionDTO>>(cacheProvider.CombatRun.GetAll());
+            var locales = mapper.Map<List<LocaleDTO>>(cacheProvider.Locale.GetAll());
+
+            return new DefinitionSnapshotDTO
+            {
+                Version = version,
+                Effects = effects,
+                Items = items,
+                Entities = entities,
+                CombatRuns = combatRuns,
+                Rooms = rooms,
+                EntitySpawnRules = entitySpawnRules,
+                Cells = cells,
+                Locales = locales
+            };
         }
         #endregion
     }

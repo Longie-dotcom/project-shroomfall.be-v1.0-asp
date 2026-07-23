@@ -1,4 +1,5 @@
-﻿using Contract;
+﻿using Application.Services.WorldService.Creation;
+using Contract;
 
 namespace Application.Services.WorldService
 {
@@ -6,18 +7,15 @@ namespace Application.Services.WorldService
     {
         #region Attributes
         private readonly InitializationService initializationService;
-        private readonly ResidencyService residencyService;
         #endregion
 
         #region Properties
         #endregion
 
         public BootstrapService(
-            InitializationService initializationService,
-            ResidencyService residencyService)
+            InitializationService initializationService)
         {
             this.initializationService = initializationService;
-            this.residencyService = residencyService;
         }
 
         #region Methods

@@ -5,9 +5,9 @@ using Application.Interfaces.Repository.Relational;
 using Application.Services.DesignService;
 using Contract.DTO.Definition.MetaDomain;
 using Contract.Enum.MetaDomain.Item;
+using Domain.Definition.LocalizationDomain;
 using Domain.Definition.MetaDomain;
 using Domain.DomainException;
-using Domain.Shared;
 using ResponseCode;
 
 namespace Application.Features.Design.Handlers
@@ -97,7 +97,7 @@ namespace Application.Features.Design.Handlers
             if (existingItem == null)
             {
                 // CREATE FLOW (Set identity, presentation, and icons ONCE)
-                var localizedText = LocalizationFactory.ForItem(dto.Id);
+                var localizedText = ForItem(dto.Id);
                 var presentation = new ItemPresentationDefinition(localizedText, dto.Id);
 
                 var item = new ItemDefinition(
@@ -174,6 +174,18 @@ namespace Application.Features.Design.Handlers
 
                 throw new BadRequest(code, message);
             }
+        }
+
+        private static LocalizedText ForItem(
+            string itemId)
+        {
+            itemId = string.IsNullOrWhiteSpace(itemId) ? "unknown" : itemId.Trim().ToLowerInvariant();
+
+            return new LocalizedText
+            {
+                NameKey = $"item.{itemId}.name",
+                DescriptionKey = $"item.{itemId}.description"
+            };
         }
         #endregion
     }

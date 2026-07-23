@@ -36,18 +36,17 @@ namespace Application.Features.Design.Handlers
             int pageNumber = queries.PageNumber < 1 ? 1 : queries.PageNumber;
             int pageSize = queries.PageSize < 1 ? 10 : queries.PageSize;
 
+            // Retrieve item definition and paging
             var itemRepo = relationalUoW.GetRepository<IItemDefinitionRepository>();
-
             var (entities, totalCount) = await itemRepo.GetPagedDefinitionsAsync(
                 queries?.SearchTerm,
                 queries?.Type,
                 queries?.Category,
                 pageNumber,
-                pageSize
-            );
+                pageSize);
 
+            // Map to result
             var dtos = mapper.Map<List<ItemDefinitionDTO>>(entities);
-
             return new PagedResponseDTO<ItemDefinitionDTO>(
                 dtos, 
                 totalCount, 

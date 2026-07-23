@@ -3,8 +3,8 @@ using Application.Features.Design.Commands;
 using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
 using Application.Services.DesignService;
+using Domain.Definition.LocalizationDomain;
 using Domain.Definition.MetaDomain;
-using Domain.Shared;
 
 namespace Application.Features.Design.Handlers
 {
@@ -31,16 +31,15 @@ namespace Application.Features.Design.Handlers
             UpsertEffectDefinitionCommand command)
         {
             var dto = command.DTO;
-
+            
+            // Upsert flow
             var effectRepo = relationalUoW.GetRepository<IEffectDefinitionRepository>();
             var existingEffect = await effectRepo.GetByIdAsync(dto.Id);
-
             if (existingEffect == null)
             {
-                // CREATE FLOW 
-                var localizedText = LocalizationFactory.ForEffect(dto.Id);
+                // CREATE FLOW (Prepare the localization entries and presentation)
+                var localizedText = ForEffect(dto.Id);
                 var presentation = new EffectPresentationDefinition(localizedText, dto.Id);
-
                 var effect = new EffectDefinition(
                     dto.Id,
                     dto.Type,
@@ -51,12 +50,11 @@ namespace Application.Features.Design.Handlers
                     presentation);
 
                 await effectRepo.AddAsync(effect);
-
                 await localizationEntryFactory.PreSavePlaceholderKeysAsync(localizedText);
             }
             else
             {
-                // UPDATE FLOW
+                // UPDATE FLOW (Exclude localization and presentation)
                 existingEffect.UpdateFields(
                     dto.Type,
                     dto.AttributeType,
@@ -67,7 +65,20 @@ namespace Application.Features.Design.Handlers
                 await effectRepo.UpdateAsync(existingEffect);
             }
 
+            // Apply persistence
             await relationalUoW.SaveChangesAsync();
+        }
+
+        public static LocalizedText ForEffect(
+            string effectId)
+        {
+            effectId = string.IsNullOrWhiteSpace(effectId) ? "unknown" : effectId.Trim().ToLowerInvariant();
+
+            return new LocalizedText
+            {
+                NameKey = $"effect.{effectId}.name",
+                DescriptionKey = $"effect.{effectId}.description"
+            };
         }
         #endregion
     }

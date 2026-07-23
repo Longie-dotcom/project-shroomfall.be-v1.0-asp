@@ -36,23 +36,21 @@ namespace Application.Features.Design.Handlers
             int pageNumber = queries.PageNumber < 1 ? 1 : queries.PageNumber;
             int pageSize = queries.PageSize < 1 ? 10 : queries.PageSize;
 
+            // Retrieve entity definition and paging
             var entityRepo = relationalUoW.GetRepository<IEntityDefinitionRepository>();
-
             var (entities, totalCount) = await entityRepo.GetPagedDefinitionsAsync(
                 queries.SearchTerm,
                 queries.EntityType,
                 pageNumber,
-                pageSize
-            );
+                pageSize);
 
+            // Map to result
             var mappedItems = mapper.Map<List<EntityDefinitionDTO>>(entities);
-
             return new PagedResponseDTO<EntityDefinitionDTO>(
                 mappedItems,
                 totalCount,
                 pageNumber,
-                pageSize
-            );
+                pageSize);
         }
         #endregion
     }

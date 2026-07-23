@@ -1,6 +1,7 @@
 ﻿using Application.Interfaces.Cache;
 using Application.Interfaces.Realtime.Events;
 using Application.Interfaces.Realtime.Events.Game;
+using Application.Services.EntityService;
 using Contract;
 using Contract.Enum.EntityDomain;
 using Contract.Enum.MetaDomain.Effect;
@@ -9,7 +10,7 @@ using Domain.Definition.MetaDomain;
 using Domain.Runtime.EntityDomain.Component;
 using Domain.Runtime.MetaDomain;
 
-namespace Application.Services.AttributeService
+namespace Application.Services.MetaService
 {
     public class VitalService
     {

@@ -36,30 +36,32 @@ namespace Application.Features.Design.Handlers
         public async Task<EntityDefinitionDTO> Handle(
             FetchEntityDefinitionDetailCommand command)
         {
+            // Retrieve entity definition
             var entityRepo = relationalUoW.GetRepository<IEntityDefinitionRepository>();
             var rootEntity = await entityRepo.GetByIdAsync(command.ID);
-
             if (rootEntity == null)
                 throw new NotFound(
                     ApplicationCode.DesignHandlerCode.EntityDefinitionNotFound,
                     $"Entity variant definition configuration targets containing the ID '{command.ID}' could not be resolved.");
 
-            var detailDto = mapper.Map<EntityDefinitionDTO>(rootEntity);
+            // Retrieve components of the entity
             var componentList = new List<ComponentDefinitionDTO>();
-
-            foreach (var pipeline in discoveryRegistry.GetPipelines())
+            foreach (var component in discoveryRegistry.GetComponents())
             {
-                var repositoryInstance = pipeline.GetRepoMethod.Invoke(relationalUoW, null);
-                if (repositoryInstance == null) continue;
+                // Resolve component repository
+                var repositoryInstance = component.GetRepositoryMethod.Invoke(relationalUoW, null);
+                if (repositoryInstance == null) 
+                    continue;
 
-                var taskResult = (Task)pipeline.GetByEntityIdMethod.Invoke(repositoryInstance, new object[] { command.ID })!;
-                await taskResult;
+                // Retrieve component data
+                var task = (Task)component.GetByEntityIdMethod.Invoke(repositoryInstance, new object[] { command.ID })!;
+                await task;
 
-                var domainComponent = taskResult.GetType().GetProperty("Result")?.GetValue(taskResult);
-
+                // Map result to DTO
+                var domainComponent = task.GetType().GetProperty("Result")?.GetValue(task);
                 if (domainComponent != null)
                 {
-                    var mappedDto = mapper.Map(domainComponent, domainComponent.GetType(), pipeline.DtoType);
+                    var mappedDto = mapper.Map(domainComponent, domainComponent.GetType(), component.DtoType);
                     if (mappedDto is ComponentDefinitionDTO componentDto)
                     {
                         componentList.Add(componentDto);
@@ -67,6 +69,8 @@ namespace Application.Features.Design.Handlers
                 }
             }
 
+            // Map to result
+            var detailDto = mapper.Map<EntityDefinitionDTO>(rootEntity);
             detailDto.Components = componentList;
             return detailDto;
         }

@@ -11,12 +11,12 @@ using Application.Features.Game.Handlers;
 using Application.Features.Identity.Commands;
 using Application.Features.Identity.Handlers;
 using Application.Mapper;
-using Application.Services.AttributeService;
 using Application.Services.DesignService;
 using Application.Services.EntityService;
 using Application.Services.IdentityService;
-using Application.Services.UsageService;
+using Application.Services.MetaService;
 using Application.Services.WorldService;
+using Application.Services.WorldService.Creation;
 using Application.Services.WorldService.Factory;
 using Application.Services.WorldService.Factory.Component;
 using Application.Services.WorldService.Persistence;
@@ -103,20 +103,17 @@ namespace Application
             // ─────────────────────────────
             // SERVICES
             // ─────────────────────────────
-            // Attribute service
-            services.AddSingleton<CharacteristicService>();
-            services.AddSingleton<DeathService>();
-            services.AddSingleton<EffectService>();
-            services.AddSingleton<VitalService>();
-
             // Design service
             services.AddSingleton<ComponentDiscoveryRegistry>();
-            services.AddScoped<DefinitionService>();
             services.AddScoped<DefinitionComponentFactory>();
             services.AddScoped<LocalizationEntryFactory>();
 
             // Entity service
             services.AddSingleton<AIService>();
+            services.AddSingleton<AppearanceService>();
+            services.AddSingleton<CollisionService>();
+            services.AddSingleton<CharacteristicService>();
+            services.AddSingleton<InventoryService>();
             services.AddSingleton<LifetimeService>();
             services.AddSingleton<ProjectileService>();
             services.AddSingleton<TransformService>();
@@ -125,11 +122,16 @@ namespace Application
             // Identity service
             services.AddSingleton<TokenService>();
 
-            // Usage service
-            services.AddSingleton<InventoryService>();
+            // Meta service
+            services.AddSingleton<DeathService>();
+            services.AddSingleton<EffectService>();
             services.AddSingleton<ItemService>();
+            services.AddSingleton<VitalService>();
 
             // World service
+            services.AddSingleton<EntitySpawnService>();
+            services.AddSingleton<InitializationService>();
+
             services.AddSingleton<DefinitionRuntimeFactory>();
             services.AddSingleton<SnapshotRuntimeFactory>();
             services.AddSingleton<EntityInstanceFactory>();
@@ -140,9 +142,6 @@ namespace Application
             services.AddScoped<SnapshotPersistence>();
 
             services.AddSingleton<BootstrapService>();
-            services.AddSingleton<CollisionService>();
-            services.AddSingleton<EntitySpawnService>();
-            services.AddSingleton<InitializationService>();
             services.AddSingleton<PartyService<CombatRunInstance, CombatRunParticipant>>();
             services.AddSingleton<ResidencyService>();
             services.AddSingleton<RoomMigrationService>();

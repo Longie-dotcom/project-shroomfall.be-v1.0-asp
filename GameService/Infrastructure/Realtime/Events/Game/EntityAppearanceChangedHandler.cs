@@ -5,7 +5,7 @@ using Contract.DTO.Feature.Game.Response;
 
 namespace Infrastructure.Realtime.Events.Game
 {
-    public class PlayerAppearanceChangedHandler : IEventHandler
+    public class EntityAppearanceChangedHandler : IEventHandler
     {
         #region Attributes
         private readonly IRealtimePublisher publisher;
@@ -14,7 +14,7 @@ namespace Infrastructure.Realtime.Events.Game
         #region Properties
         #endregion
 
-        public PlayerAppearanceChangedHandler(
+        public EntityAppearanceChangedHandler(
             IRealtimePublisher publisher)
         {
             this.publisher = publisher;

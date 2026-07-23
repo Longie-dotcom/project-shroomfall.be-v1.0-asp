@@ -1,10 +1,11 @@
-﻿using Application.Services.WorldService;
+﻿using Application.Services.EntityService;
+using Application.Services.WorldService;
 using Application.Systems.Abstraction;
 using Application.Systems.Queue;
 using Domain.Runtime.EntityDomain.Component;
 using Domain.Runtime.MetaDomain;
 
-namespace Application.Services.AttributeService
+namespace Application.Services.MetaService
 {
     public class EffectService : ITickService
     {

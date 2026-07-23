@@ -50,8 +50,7 @@ namespace Application.Features.Design.Handlers
                 Guid.NewGuid().ToString(),
                 key,
                 nextVersion,
-                dto.Description
-            );
+                dto.Description);
 
             // Apply peristence - Save changes
             await definitionVersionLogRepo.AddAsync(log);

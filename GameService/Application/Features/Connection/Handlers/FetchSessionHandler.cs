@@ -32,17 +32,12 @@ namespace Application.Features.Connection.Handlers
         #region Methods
         public async Task<ExistedSessionDTO> Handle(FetchSessionCommand command)
         {
-            var userId = command.UserID;
-            var repo = nonRelational.GetRepository<IEntitySnapshotRepository>();
-
             // Get the baseline ownership from the DB (The Directory)
-            var dbSnapshots = await repo.GetPlayerSnapshotByUserIdAsync(userId);
+            var repo = nonRelational.GetRepository<IEntitySnapshotRepository>();
+            var dbSnapshots = await repo.GetPlayerSnapshotByUserIdAsync(command.UserID);
 
-            var result = new ExistedSessionDTO
-            {
-                Sessions = new List<ExistedSessionEntryDTO>()
-            };
-
+            // Mapping to result and ensure session existence
+            var result = new ExistedSessionDTO { Sessions = new List<ExistedSessionEntryDTO>() };
             foreach (var snapshot in dbSnapshots)
             {
                 // Check if this specific entity is currently Hot/Warm in RAM
@@ -75,7 +70,8 @@ namespace Application.Features.Connection.Handlers
             return result;
         }
 
-        private AppearanceInstanceDTO MapAppearanceDTO(AppearanceSnapshot? appearance)
+        private AppearanceInstanceDTO MapAppearanceDTO(
+            AppearanceSnapshot? appearance)
         {
             if (appearance == null) return new AppearanceInstanceDTO();
 
@@ -91,7 +87,8 @@ namespace Application.Features.Connection.Handlers
             };
         }
 
-        private AppearanceInstanceDTO MapAppearanceDTO(AppearanceInstance? appearance)
+        private AppearanceInstanceDTO MapAppearanceDTO(
+            AppearanceInstance? appearance)
         {
             if (appearance == null) return new AppearanceInstanceDTO();
 

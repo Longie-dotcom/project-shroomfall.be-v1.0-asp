@@ -6,7 +6,6 @@ using Contract.Enum.EntityDomain;
 using Domain.Common;
 using Domain.Definition.EntityDomain.Component;
 using Domain.DomainException;
-using Domain.Shared;
 using ResponseCode;
 
 namespace Application.Services.DesignService
@@ -32,7 +31,6 @@ namespace Application.Services.DesignService
             EntityType entityType,
             string entityDefinitionId)
         {
-            // Route processing steps explicitly via the string contract, matching ComponentStringToDomainMapping philosophy
             switch (dto.ComponentType)
             {
                 case nameof(AIDefinitionDTO):
@@ -61,7 +59,7 @@ namespace Application.Services.DesignService
                     break;
                 default:
                     throw new InternalException(
-                        ApplicationCode.DesignHandlerCode.ComponentDTOMappingFailed,
+                        ApplicationCode.DefinitionComponentFactoryCode.ComponentDTOMappingFailed,
                         $"Component payload identifier contract '{dto.ComponentType}' is unrecognized by the execution pipeline factory.");
             }
         }
@@ -78,8 +76,7 @@ namespace Application.Services.DesignService
                 dto.ThinkInterval,
                 dto.IsAIControlled,
                 dto.EquippedItemDefinitionID,
-                dto.AttackRange
-            );
+                dto.AttackRange);
 
             await relationalUoW.GetRepository<IAIDefinitionRepository>().UpsertAsync(component);
         }
@@ -92,8 +89,7 @@ namespace Application.Services.DesignService
                 Guid.NewGuid(),
                 entityDefinitionId,
                 dto.EntityDefinitionID,
-                new HSV(dto.SkinColor.H, dto.SkinColor.S, dto.SkinColor.V)
-            );
+                new HSV(dto.SkinColor.H, dto.SkinColor.S, dto.SkinColor.V));
 
             await relationalUoW.GetRepository<IAppearanceDefinitionRepository>().UpsertAsync(component);
         }
@@ -112,12 +108,9 @@ namespace Application.Services.DesignService
                 dto.Radius,
                 dto.IsBlocking,
                 dto.OffsetX,
-                dto.OffsetY
-            );
+                dto.OffsetY);
 
-            await relationalUoW
-                .GetRepository<ICollisionDefinitionRepository>()
-                .UpsertAsync(component);
+            await relationalUoW.GetRepository<ICollisionDefinitionRepository>().UpsertAsync(component);
         }
 
         private async Task UpsertCharacteristicAsync(
@@ -125,34 +118,39 @@ namespace Application.Services.DesignService
             string entityDefinitionId)
         {
             var repo = relationalUoW.GetRepository<ICharacteristicDefinitionRepository>();
-            var existing = await repo.GetByEntityIdAsync(entityDefinitionId);
 
+            // Checking existence
+            var existing = await repo.GetByEntityIdAsync(entityDefinitionId);
             if (existing != null)
             {
                 // Core Rule: Deep nested components must strip child nodes explicitly before the main record swaps
                 await repo.ReplaceAttributeValuesAsync(existing.ID, new List<AttributeValue>());
             }
 
+            // Share characteristic ID (Characteristic with its Attribute Values)
             var characteristicId = Guid.NewGuid();
-            var characteristic = new CharacteristicDefinition(characteristicId, entityDefinitionId);
 
+            // Prepare characteristic
+            var characteristic = new CharacteristicDefinition(characteristicId, entityDefinitionId);
             var allAttributeValues = new List<AttributeValue>();
             var allGrowthValues = new List<AttributeGrowthValue>();
 
+            // Prepare attribute values
             foreach (var valDto in dto.AttributeValues)
             {
+                // Share attribute value ID (Attribute Value with its Growths)
                 var attrId = Guid.NewGuid();
-                var attrType = valDto.Type;
 
                 var attributeValue = new AttributeValue(
                     attrId,
-                    attrType,
+                    valDto.Type,
                     valDto.BaseValue,
                     valDto.Min,
                     valDto.Max,
                     characteristicId
                 );
 
+                // Prepare growths
                 foreach (var growthDto in valDto.AttributeGrowthValues)
                 {
                     var growthId = Guid.NewGuid();
@@ -162,13 +160,14 @@ namespace Application.Services.DesignService
                         growthDto.GrowthValue,
                         attrId
                     );
+
                     allGrowthValues.Add(growthValue);
                 }
 
                 allAttributeValues.Add(attributeValue);
             }
 
-            // Using generic upsert method for root, then appending the custom mapped sub-collections
+            // Upsert
             await repo.UpsertAsync(characteristic);
             await repo.SaveAttributeValuesAsync(allAttributeValues);
             await repo.SaveAttributeGrowthValuesAsync(allGrowthValues);
@@ -179,18 +178,23 @@ namespace Application.Services.DesignService
             string entityDefinitionId)
         {
             var repo = relationalUoW.GetRepository<IInventoryDefinitionRepository>();
-            var existing = await repo.GetByEntityIdAsync(entityDefinitionId);
 
+            // Checking existence
+            var existing = await repo.GetByEntityIdAsync(entityDefinitionId);
             if (existing != null)
             {
                 // Purge sub-collection properties ahead of root swap execution
                 await repo.ReplaceDefaultItemsAsync(existing.ID, new List<InventoryEntry>());
             }
 
+            // Share inventory ID
             var inventoryId = Guid.NewGuid();
-            var inventory = new InventoryDefinition(inventoryId, entityDefinitionId, dto.SlotCount);
-            var defaultItems = new List<InventoryEntry>();
 
+            // Prepare inventory 
+            var inventory = new InventoryDefinition(inventoryId, entityDefinitionId, dto.SlotCount);
+
+            // Prepare default items
+            var defaultItems = new List<InventoryEntry>();
             foreach (var entryDto in dto.DefaultItems)
             {
                 var entry = new InventoryEntry(
@@ -198,12 +202,12 @@ namespace Application.Services.DesignService
                     entryDto.DefinitionID,
                     entryDto.Amount,
                     entryDto.Quality,
-                    inventoryId
-                );
+                    inventoryId);
 
                 defaultItems.Add(entry);
             }
 
+            // Upsert
             await repo.UpsertAsync(inventory);
             await repo.SaveDefaultItemsAsync(defaultItems);
         }
@@ -215,8 +219,7 @@ namespace Application.Services.DesignService
             var component = new LifetimeDefinition(
                 Guid.NewGuid(),
                 entityDefinitionId,
-                dto.Duration
-            );
+                dto.Duration);
 
             await relationalUoW.GetRepository<ILifetimeDefinitionRepository>().UpsertAsync(component);
         }
@@ -229,8 +232,7 @@ namespace Application.Services.DesignService
                 Guid.NewGuid(),
                 entityDefinitionId,
                 dto.OnImpactSpawnEntityDefinitionID,
-                dto.Velocity
-            );
+                dto.Velocity);
 
             await relationalUoW.GetRepository<IProjectileDefinitionRepository>().UpsertAsync(component);
         }
@@ -242,8 +244,7 @@ namespace Application.Services.DesignService
             var component = new TriggeredEffectDefinition(
                 Guid.NewGuid(),
                 entityDefinitionId,
-                dto.EffectDefinitionIDs
-            );
+                dto.EffectDefinitionIDs);
 
             await relationalUoW.GetRepository<ITriggeredEffectDefinitionRepository>().UpsertAsync(component);
         }

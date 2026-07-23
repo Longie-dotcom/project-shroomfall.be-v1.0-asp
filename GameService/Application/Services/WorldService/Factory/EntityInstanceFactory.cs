@@ -1,5 +1,7 @@
 ﻿using Application.Interfaces.Cache;
-using Application.Services.AttributeService;
+using Application.Services.EntityService;
+using Application.Services.MetaService;
+using Application.Services.WorldService.Creation;
 using Application.Services.WorldService.Factory.Component;
 using Contract.Enum.EntityDomain;
 using Domain.DomainException;
@@ -42,8 +44,8 @@ namespace Application.Services.WorldService.Factory
         public EntityInstance Rehydrate(
             EntitySnapshot snapshot)
         {
+            // Rehydrate entity instance and component instances
             var entity = new EntityInstance(snapshot.ID, snapshot.DefinitionID);
-
             foreach (var componentSnapshot in snapshot.Components)
             {
                 var runtimeComponent = snapshotRuntimeFactory.Create(componentSnapshot);
@@ -96,7 +98,6 @@ namespace Application.Services.WorldService.Factory
                     $"Failed to create entity. Definition ID '{context.DefinitionID}' not found in cache.");
 
             var entity = new EntityInstance(context.InstanceID, entityDef.ID);
-
             ConstructEntity(entity, context);
 
             switch (entityDef.Type)
@@ -129,13 +130,7 @@ namespace Application.Services.WorldService.Factory
             EntityInstance entity,
             WorldEntityCreateContext context)
         {
-            var collision = cacheProvider.Collision.GetByEntity(entity.DefinitionID);
-            if (collision == null)
-                throw new InternalException(
-                    ApplicationCode.EntityInstanceFactoryCode.CollisionDefinitionNotFound,
-                    $"WorldEntity '{entity.DefinitionID}' missing Collision definition.");
-
-            entity.AddComponent(definitionRuntimeFactory.CreateCollision(collision));
+            entity.AddComponent(definitionRuntimeFactory.CreateCollision(entity.DefinitionID));
             entity.AddComponent(definitionRuntimeFactory.CreateTransform(context.RoomSpatialID, context.LayerZ, context.Position));
         }
 
@@ -145,30 +140,12 @@ namespace Application.Services.WorldService.Factory
         {
             if (context is not ProjectileEntityCreateContext projectileContext)
                 throw new InternalException(
-                    ApplicationCode.EntityInstanceFactoryCode.InvalidContextType,
+                    ApplicationCode.EntityInstanceFactoryCode.InvalidProjectileContextType,
                     $"Expected ProjectileEntityCreateContext for Projectile entity, but got {context.GetType().Name}.");
 
-            var lifetime = cacheProvider.Lifetime.GetByEntity(entity.DefinitionID);
-            if (lifetime == null)
-                throw new InternalException(
-                    ApplicationCode.EntityInstanceFactoryCode.LifetimeDefinitionNotFound,
-                    $"Projectile '{entity.DefinitionID}' missing Lifetime definition.");
-
-            var triggeredEffect = cacheProvider.TriggeredEffect.GetByEntity(entity.DefinitionID);
-            if (triggeredEffect == null)
-                throw new InternalException(
-                    ApplicationCode.EntityInstanceFactoryCode.TriggeredEffectDefinitionNotFound,
-                    $"Projectile '{entity.DefinitionID}' missing Triggered Effect configuration.");
-
-            var projectile = cacheProvider.Projectile.GetByEntity(entity.DefinitionID);
-            if (projectile == null)
-                throw new InternalException(
-                    ApplicationCode.EntityInstanceFactoryCode.ProjectileDefinitionNotFound,
-                    $"Projectile '{entity.DefinitionID}' missing Projectile configuration.");
-
-            entity.AddComponent(definitionRuntimeFactory.CreateLifeTime(lifetime));
-            entity.AddComponent(definitionRuntimeFactory.CreateTriggeredEffect(triggeredEffect, projectileContext.SourceEntityID));
-            entity.AddComponent(definitionRuntimeFactory.CreateProjectile(projectile));
+            entity.AddComponent(definitionRuntimeFactory.CreateLifeTime(entity.DefinitionID));
+            entity.AddComponent(definitionRuntimeFactory.CreateTriggeredEffect(entity.DefinitionID, projectileContext.SourceEntityID));
+            entity.AddComponent(definitionRuntimeFactory.CreateProjectile(entity.DefinitionID));
 
             // Set direction
             entity.GetComponent<ProjectileInstance>()!.Direction = projectileContext.Direction;
@@ -185,36 +162,12 @@ namespace Application.Services.WorldService.Factory
             EntityInstance entity,
             WorldEntityCreateContext context)
         {
-            var characteristic = cacheProvider.Characteristic.GetByEntity(entity.DefinitionID);
-            if (characteristic == null)
-                throw new InternalException(
-                    ApplicationCode.EntityInstanceFactoryCode.CharacteristicDefinitionNotFound,
-                    $"Creature '{entity.DefinitionID}' missing Characteristic definition.");
-
-            var inventory = cacheProvider.Inventory.GetByEntity(entity.DefinitionID);
-            if (inventory == null)
-                throw new InternalException(
-                    ApplicationCode.EntityInstanceFactoryCode.InventoryDefinitionNotFound,
-                    $"Creature '{entity.DefinitionID}' missing Inventory definition.");
-
-            var appearance = cacheProvider.Appearance.GetByEntity(entity.DefinitionID);
-            if (appearance == null)
-                throw new InternalException(
-                    ApplicationCode.EntityInstanceFactoryCode.AppearanceDefinitionNotFound,
-                    $"Creature '{entity.DefinitionID}' missing Appearance definition.");
-
-            var ai = cacheProvider.AI.GetByEntity(entity.DefinitionID);
-            if (ai == null)
-                throw new InternalException(
-                    ApplicationCode.EntityInstanceFactoryCode.AIDefinitionNotFound,
-                    $"Creature '{entity.DefinitionID}' missing AI definition.");
-
-            entity.AddComponent(definitionRuntimeFactory.CreateCharacteristic(characteristic));
-            entity.AddComponent(definitionRuntimeFactory.CreateInventory(inventory));
-            entity.AddComponent(definitionRuntimeFactory.CreateAppearance(appearance));
+            entity.AddComponent(definitionRuntimeFactory.CreateCharacteristic(entity.DefinitionID));
+            entity.AddComponent(definitionRuntimeFactory.CreateInventory(entity.DefinitionID));
+            entity.AddComponent(definitionRuntimeFactory.CreateAppearance(entity.DefinitionID));
             entity.AddComponent(definitionRuntimeFactory.CreateAction());
             entity.AddComponent(definitionRuntimeFactory.CreateEffectContainer());
-            entity.AddComponent(definitionRuntimeFactory.CreateAI(ai));
+            entity.AddComponent(definitionRuntimeFactory.CreateAI(entity.DefinitionID));
 
             // Initialize
             characteristicService.InitializeVitals(entity);
@@ -227,30 +180,12 @@ namespace Application.Services.WorldService.Factory
         {
             if (context is not PlayerEntityCreateContext playerContext)
                 throw new InternalException(
-                    ApplicationCode.EntityInstanceFactoryCode.InvalidContextType,
+                    ApplicationCode.EntityInstanceFactoryCode.InvalidPlayerContextType,
                     $"Expected PlayerEntityCreateContext for Player entity, but got {context.GetType().Name}.");
 
-            var characteristic = cacheProvider.Characteristic.GetByEntity(entity.DefinitionID);
-            if (characteristic == null)
-                throw new InternalException(
-                    ApplicationCode.EntityInstanceFactoryCode.CharacteristicDefinitionNotFound,
-                    $"Player '{entity.DefinitionID}' missing Characteristic definition.");
-
-            var inventory = cacheProvider.Inventory.GetByEntity(entity.DefinitionID);
-            if (inventory == null)
-                throw new InternalException(
-                    ApplicationCode.EntityInstanceFactoryCode.InventoryDefinitionNotFound,
-                    $"Player '{entity.DefinitionID}' missing Inventory definition.");
-
-            var appearance = cacheProvider.Appearance.GetByEntity(entity.DefinitionID);
-            if (appearance == null)
-                throw new InternalException(
-                    ApplicationCode.EntityInstanceFactoryCode.AppearanceDefinitionNotFound,
-                    $"Player '{entity.DefinitionID}' missing Appearance definition.");
-
-            entity.AddComponent(definitionRuntimeFactory.CreateCharacteristic(characteristic));
-            entity.AddComponent(definitionRuntimeFactory.CreateInventory(inventory));
-            entity.AddComponent(definitionRuntimeFactory.CreateAppearance(appearance));
+            entity.AddComponent(definitionRuntimeFactory.CreateCharacteristic(entity.DefinitionID));
+            entity.AddComponent(definitionRuntimeFactory.CreateInventory(entity.DefinitionID));
+            entity.AddComponent(definitionRuntimeFactory.CreateAppearance(entity.DefinitionID));
             entity.AddComponent(definitionRuntimeFactory.CreateAction());
             entity.AddComponent(definitionRuntimeFactory.CreateEffectContainer());
             entity.AddComponent(definitionRuntimeFactory.CreateOwnership(playerContext.UserID, playerContext.PersonalRoomID));
@@ -266,7 +201,7 @@ namespace Application.Services.WorldService.Factory
         {
             if (context is not WorldItemCreateContext itemContext)
                 throw new InternalException(
-                    ApplicationCode.EntityInstanceFactoryCode.InvalidContextType,
+                    ApplicationCode.EntityInstanceFactoryCode.InvalidItemContextType,
                     $"Expected InventoryEntityCreateContext for Item entity, but got {context.GetType().Name}.");
 
             entity.AddComponent(definitionRuntimeFactory.CreateWorldItemPayload(itemContext.Payload));

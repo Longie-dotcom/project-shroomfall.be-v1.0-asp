@@ -63,7 +63,8 @@ namespace Domain.Runtime.WorldDomain.Spatial
             rooms[roomSpatial.ID] = roomSpatial;
         }
 
-        public void RemoveRoom(string roomSpatialId)
+        public void RemoveRoom(
+            string roomSpatialId)
         {
             rooms.Remove(roomSpatialId);
         }
@@ -84,7 +85,8 @@ namespace Domain.Runtime.WorldDomain.Spatial
             return rooms.Values;
         }
 
-        public RoomSpatial? GetRoom(string roomSpatialId)
+        public RoomSpatial? GetRoom(
+            string roomSpatialId)
         {
             return rooms.TryGetValue(roomSpatialId, out var roomSpatial)
                 ? roomSpatial

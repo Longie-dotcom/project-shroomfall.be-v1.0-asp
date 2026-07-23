@@ -1,4 +1,6 @@
-﻿namespace Application.Services.WorldService.Persistence
+﻿using Application.Services.WorldService.Creation;
+
+namespace Application.Services.WorldService.Persistence
 {
     public class SnapshotPersistence
     {

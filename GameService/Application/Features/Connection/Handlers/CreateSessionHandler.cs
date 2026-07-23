@@ -1,6 +1,7 @@
 ﻿using Application.Features.Abstraction;
 using Application.Features.Connection.Commands;
 using Application.Services.WorldService;
+using Application.Services.WorldService.Creation;
 
 namespace Application.Features.Connection.Handlers
 {
@@ -25,7 +26,6 @@ namespace Application.Features.Connection.Handlers
         {
             var dto = command.DTO;
 
-            // Create room snapshot
             initializationService.InitializeRoom(
                 roomDefinitionId: dto.RoomDefinitionID,
                 roomSpatialId: $"PLAYER_ROOM_{command.UserID}_{Guid.NewGuid():N}",

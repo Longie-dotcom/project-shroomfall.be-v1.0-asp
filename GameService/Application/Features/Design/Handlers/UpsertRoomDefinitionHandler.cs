@@ -2,10 +2,11 @@
 using Application.Features.Design.Commands;
 using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
+using Application.Services.DesignService;
 using Contract.DTO.Definition.WorldDomain;
+using Domain.Definition.LocalizationDomain;
 using Domain.Definition.WorldDomain;
 using Domain.DomainException;
-using Domain.Shared;
 using ResponseCode;
 using System.Text.Json;
 
@@ -22,15 +23,18 @@ namespace Application.Features.Design.Handlers
     {
         #region Attributes
         private readonly IRelationalUoW relationalUoW;
+        private readonly LocalizationEntryFactory localizationEntryFactory;
         #endregion
 
         #region Properties
         #endregion
 
         public UpsertRoomDefinitionHandler(
-            IRelationalUoW relationalUoW)
+            IRelationalUoW relationalUoW,
+            LocalizationEntryFactory localizationEntryFactory)
         {
             this.relationalUoW = relationalUoW;
+            this.localizationEntryFactory = localizationEntryFactory;
         }
 
         #region Methods
@@ -73,7 +77,7 @@ namespace Application.Features.Design.Handlers
             await relationalUoW.BeginTransactionAsync();
 
             // Generate core localization & presentation setup safely via Definition ID
-            var localizedText = LocalizationFactory.ForRoom(dto.Id);
+            var localizedText = ForRoom(dto.Id);
 
             // Process Parent Entity (Create or Track Update)
             var existingRoom = await repo.GetByIdAsync(dto.Id);
@@ -110,7 +114,20 @@ namespace Application.Features.Design.Handlers
 
             // Wipe old children and save current configuration state atomically
             await repo.UpsertChildrenAsync(dto.Id, domainCells, domainRules);
+            await localizationEntryFactory.PreSavePlaceholderKeysAsync(localizedText);
             await relationalUoW.CommitAsync();
+        }
+
+        public LocalizedText ForRoom(
+            string roomId)
+        {
+            roomId = string.IsNullOrWhiteSpace(roomId) ? "unknown" : roomId.Trim().ToLowerInvariant();
+
+            return new LocalizedText
+            {
+                NameKey = $"room.{roomId}.name",
+                DescriptionKey = $"room.{roomId}.description"
+            };
         }
         #endregion
     }

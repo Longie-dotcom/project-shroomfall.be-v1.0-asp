@@ -42,11 +42,11 @@ namespace Infrastructure.Configuration
             
             // Handlers - Game
             services.AddSingleton<IEventHandler, EntityActedHandler>();
+            services.AddSingleton<IEventHandler, EntityAppearanceChangedHandler>();
             services.AddSingleton<IEventHandler, EntityLifecycleHandler>();
             services.AddSingleton<IEventHandler, EntityVitalChangedHandler>();
             services.AddSingleton<IEventHandler, InventoryClearedHandler>();
             services.AddSingleton<IEventHandler, InventoryItemChangedHandler>();
-            services.AddSingleton<IEventHandler, PlayerAppearanceChangedHandler>();
             services.AddSingleton<IEventHandler, PlayerCharacteristicSyncHandler>();
             services.AddSingleton<IEventHandler, RoomSnapshotUpdatedHandler>();
 

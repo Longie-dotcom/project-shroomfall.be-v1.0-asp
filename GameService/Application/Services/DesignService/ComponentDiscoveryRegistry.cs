@@ -1,25 +1,34 @@
 ﻿using Application.Interfaces.Repository.Base;
 using Application.Interfaces.Repository.Relational;
+using Contract.Attributes;
 using Contract.DTO.Abstraction;
+using Contract.Enum.EntityDomain;
 using Domain.Abstraction;
+using Domain.DomainException;
+using ResponseCode;
 using System.Reflection;
 
 namespace Application.Services.DesignService
 {
-    public record ComponentPipelineDescriptor(
-        MethodInfo GetRepoMethod,
-        MethodInfo GetByEntityIdMethod,
-        Type DtoType
-    );
+    public sealed class ComponentDescriptor
+    {
+        public required string Id { get; init; }
+        public required Type DtoType { get; init; }
+        public required Type DomainType { get; init; }
+        public required Type RepositoryInterface { get; init; }
+        public required MethodInfo GetRepositoryMethod { get; init; }
+        public required MethodInfo GetByEntityIdMethod { get; init; }
+        public required EntityType[] SupportedEntityTypes { get; init; }
+    }
 
     public class ComponentDiscoveryRegistry
     {
         #region Attributes
-        private readonly List<ComponentPipelineDescriptor> pipelines = new();
+        private readonly List<ComponentDescriptor> components = new();
         #endregion
 
         #region Properties
-        public IReadOnlyList<ComponentPipelineDescriptor> GetPipelines() => pipelines;
+        public IReadOnlyList<ComponentDescriptor> GetComponents() => components;
         #endregion
 
         public ComponentDiscoveryRegistry()
@@ -32,12 +41,15 @@ namespace Application.Services.DesignService
         {
             var assembly = typeof(IEntityDefinitionRepository).Assembly;
             var uowType = typeof(IRelationalUoW);
-            var getRepoGenericDefinition = uowType.GetMethod(nameof(IRelationalUoW.GetRepository));
+            var dtoAssembly = typeof(ComponentDefinitionDTO).Assembly;
 
-            if (getRepoGenericDefinition == null) return;
+            var getRepoGenericDefinition = uowType.GetMethod(nameof(IRelationalUoW.GetRepository));
+            if (getRepoGenericDefinition == null)
+                return;
 
             // Scan for all interfaces that implement ISQLDefinitionRepository<T>
-            var componentRepositoryMatches = assembly.GetTypes()
+            var componentRepositoryMatches = assembly
+                .GetTypes()
                 .Where(t => t.IsInterface)
                 .Select(t => new
                 {
@@ -57,28 +69,40 @@ namespace Application.Services.DesignService
 
                 // Strict Guard: Ensure T actually inherits from ComponentDefinition 
                 // This safely ignores other system definitions like ItemDefinition or QuestDefinition
-                if (!typeof(ComponentDefinition).IsAssignableFrom(domainComponentType)) continue;
+                // Resolve the DTO name using the Domain Model name safely (e.g., "AppearanceDefinition" -> "AppearanceDefinitionDTO")
+                var componentName = domainComponentType.Name;
+                if (!typeof(ComponentDefinition).IsAssignableFrom(domainComponentType)) 
+                    continue;
 
                 // Grab the method directly from the closed generic definition interface instance 
                 var getByEntityIdMethod = match.DefinitionInterface.GetMethod("GetByEntityIdAsync", new[] { typeof(string) });
-                if (getByEntityIdMethod == null) continue;
+                if (getByEntityIdMethod == null) 
+                    continue;
 
-                // Resolve the DTO name using the Domain Model name safely (e.g., "AppearanceDefinition" -> "AppearanceDefinitionDTO")
-                var componentName = domainComponentType.Name;
-                var dtoType = Assembly.GetAssembly(typeof(ComponentDefinitionDTO))?
-                    .GetTypes()
-                    .FirstOrDefault(t => t.Name == $"{componentName}DTO");
+                // Resolve DTO
+                var dtoType = dtoAssembly.GetTypes().FirstOrDefault(t => t.Name == $"{componentName}DTO");
+                if (dtoType == null) 
+                    continue;
 
-                if (dtoType == null) continue;
+                // Resolve attributes of DTO
+                var attribute = dtoType.GetCustomAttribute<EntityComponentAttribute>();
+                if (attribute == null)
+                    throw new InternalException(
+                        ApplicationCode.ComponentDiscoveryRegistryCode.DTOMissingAttribute,
+                        $"{dtoType.Name} must be decorated with {nameof(EntityComponentAttribute)}.");
 
                 // Create the concrete UoW lookup method call: relationalUoW.GetRepository<IAppearanceDefinitionRepository>()
                 var concreteGetRepoMethod = getRepoGenericDefinition.MakeGenericMethod(match.RepoInterface);
-
-                pipelines.Add(new ComponentPipelineDescriptor(
-                    concreteGetRepoMethod,
-                    getByEntityIdMethod,
-                    dtoType
-                ));
+                components.Add(new ComponentDescriptor
+                {
+                    Id = dtoType.Name,
+                    DtoType = dtoType,
+                    DomainType = domainComponentType,
+                    RepositoryInterface = match.RepoInterface,
+                    GetRepositoryMethod = concreteGetRepoMethod,
+                    GetByEntityIdMethod = getByEntityIdMethod,
+                    SupportedEntityTypes = attribute.SupportedEntityTypes
+                });
             }
         }
         #endregion

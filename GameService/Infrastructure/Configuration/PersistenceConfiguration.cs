@@ -40,25 +40,22 @@ namespace Infrastructure.Configuration
             BsonSerializer.RegisterSerializer(new EnumSerializer<EquipmentSlot>(BsonType.String));
             BsonSerializer.RegisterSerializer(new EnumSerializer<AttributeType>(BsonType.String));
 
+            var snapshotTypes = typeof(ComponentSnapshot).Assembly
+                .GetTypes()
+                .Where(t => t != typeof(ComponentSnapshot) && !t.IsAbstract && typeof(ComponentSnapshot).IsAssignableFrom(t))
+                .ToList();
+
             if (!BsonClassMap.IsClassMapRegistered(typeof(ComponentSnapshot)))
             {
                 BsonClassMap.RegisterClassMap<ComponentSnapshot>(cm =>
                 {
                     cm.AutoMap();
                     cm.SetIsRootClass(true);
-                    cm.AddKnownType(typeof(ActionSnapshot));
-                    cm.AddKnownType(typeof(AISnapshot));
-                    cm.AddKnownType(typeof(AppearanceSnapshot));
-                    cm.AddKnownType(typeof(CollisionSnapshot));
-                    cm.AddKnownType(typeof(CharacteristicSnapshot));
-                    cm.AddKnownType(typeof(EffectContainerSnapshot));
-                    cm.AddKnownType(typeof(InventorySnapshot));
-                    cm.AddKnownType(typeof(LifetimeSnapshot));
-                    cm.AddKnownType(typeof(OwnershipSnapshot));
-                    cm.AddKnownType(typeof(ProjectileSnapshot));
-                    cm.AddKnownType(typeof(TransformSnapshot));
-                    cm.AddKnownType(typeof(TriggeredEffectSnapshot));
-                    cm.AddKnownType(typeof(WorldItemPayloadSnapshot));
+
+                    foreach (var snapshotType in snapshotTypes)
+                    {
+                        cm.AddKnownType(snapshotType);
+                    }
                 });
             }
 

@@ -55,7 +55,7 @@ namespace Application.Services.WorldService.Factory.Component
                 WorldItemPayloadSnapshot payload => 
                     CreateWorldItemPayload(payload),
                 _ => throw new InternalException(
-                    ApplicationCode.SnapshotComponentFactoryCode.SnapshotTypeNotSupported,
+                    ApplicationCode.SnapshotRuntimeFactoryCode.SnapshotTypeNotSupported,
                     $"Snapshot type {snapshot.GetType().Name} is not supported by factory.")
             };
         }
@@ -69,11 +69,11 @@ namespace Application.Services.WorldService.Factory.Component
         private AIInstance CreateAI(
             AISnapshot snapshot)
         {
-            var def = cacheProvider.AI.Get(Guid.Parse(snapshot.DefinitionID));
+            var def = cacheProvider.AI.GetByEntity(snapshot.EntityDefinitionID);
             if (def == null)
                 throw new InternalException(
-                    ApplicationCode.SnapshotComponentFactoryCode.AIDefinitionNotFound,
-                    $"AI definition not found: {snapshot.DefinitionID}");
+                    ApplicationCode.SnapshotRuntimeFactoryCode.AIDefinitionNotFound,
+                    $"AI definition not found for entity: {snapshot.EntityDefinitionID}");
 
             return new AIInstance(
                 def.ID,
@@ -91,36 +91,34 @@ namespace Application.Services.WorldService.Factory.Component
             return new AppearanceInstance(
                 Guid.Parse(snapshot.DefinitionID),
                 snapshot.SkinID,
-                snapshot.SkinColor
-            );
+                snapshot.SkinColor);
         }
 
         private CollisionInstance CreateCollision(
             CollisionSnapshot snapshot)
         {
-            var def = cacheProvider.Collision.Get(Guid.Parse(snapshot.DefinitionID));
+            var def = cacheProvider.Collision.GetByEntity(snapshot.EntityDefinitionID);
             if (def == null)
                 throw new InternalException(
-                    ApplicationCode.SnapshotComponentFactoryCode.CollisionDefinitionNotFound,
-                    $"Collision definition not found: {snapshot.DefinitionID}");
-            
+                    ApplicationCode.SnapshotRuntimeFactoryCode.CollisionDefinitionNotFound,
+                    $"Collision definition not found for entity: {snapshot.EntityDefinitionID}");
+
             return new CollisionInstance(
                 def.ID,
                 CollisionShapeMapper.FromDefinition(def),
                 new Vector2(def.OffsetX, def.OffsetY),
                 def.Layer,
-                def.Mask
-            );
+                def.Mask);
         }
 
         private CharacteristicInstance CreateCharacteristic(
             CharacteristicSnapshot snapshot)
         {
-            var def = cacheProvider.Characteristic.Get(Guid.Parse(snapshot.DefinitionID));
+            var def = cacheProvider.Characteristic.GetByEntity(snapshot.EntityDefinitionID);
             if (def == null)
                 throw new InternalException(
-                    ApplicationCode.SnapshotComponentFactoryCode.CharacteristicDefinitionNotFound,
-                    $"Characteristic definition not found: {snapshot.DefinitionID}");
+                    ApplicationCode.SnapshotRuntimeFactoryCode.CharacteristicDefinitionNotFound,
+                    $"Characteristic definition not found for entity: {snapshot.EntityDefinitionID}");
 
             var instance = new CharacteristicInstance(
                 def.ID, 
@@ -144,12 +142,13 @@ namespace Application.Services.WorldService.Factory.Component
         private InventoryInstance CreateInventory(
             InventorySnapshot snapshot)
         {
-            var def = cacheProvider.Inventory.Get(Guid.Parse(snapshot.DefinitionID));
+            var def = cacheProvider.Inventory.GetByEntity(snapshot.EntityDefinitionID);
             if (def == null)
                 throw new InternalException(
-                    ApplicationCode.SnapshotComponentFactoryCode.InventoryDefinitionNotFound,
-                    $"Inventory definition not found: {snapshot.DefinitionID}");
+                    ApplicationCode.SnapshotRuntimeFactoryCode.InventoryDefinitionNotFound,
+                    $"Inventory definition not found for entity: {snapshot.EntityDefinitionID}");
 
+            // Restore item assets
             var validItemInstances = new List<ItemInstance>();
             foreach (var i in snapshot.Items)
             {
@@ -174,11 +173,11 @@ namespace Application.Services.WorldService.Factory.Component
         private LifetimeInstance CreateLifetime(
             LifetimeSnapshot snapshot)
         {
-            var def = cacheProvider.Lifetime.Get(Guid.Parse(snapshot.DefinitionID));
+            var def = cacheProvider.Lifetime.GetByEntity(snapshot.EntityDefinitionID);
             if (def == null)
                 throw new InternalException(
-                    ApplicationCode.SnapshotComponentFactoryCode.LifetimeDefinitionNotFound,
-                    $"Lifetime definition not found: {snapshot.DefinitionID}");
+                    ApplicationCode.SnapshotRuntimeFactoryCode.LifetimeDefinitionNotFound,
+                    $"Lifetime definition not found for entity: {snapshot.EntityDefinitionID}");
 
             return new LifetimeInstance(
                 def.ID,
@@ -197,11 +196,11 @@ namespace Application.Services.WorldService.Factory.Component
         private ProjectileInstance CreateProjectile(
             ProjectileSnapshot snapshot)
         {
-            var def = cacheProvider.Projectile.Get(Guid.Parse(snapshot.DefinitionID));
+            var def = cacheProvider.Projectile.GetByEntity(snapshot.EntityDefinitionID);
             if (def == null)
                 throw new InternalException(
-                    ApplicationCode.SnapshotComponentFactoryCode.ProjectileDefinitionNotFound,
-                    $"Projectile definition not found: {snapshot.DefinitionID}");
+                    ApplicationCode.SnapshotRuntimeFactoryCode.ProjectileDefinitionNotFound,
+                    $"Projectile definition not found for entity: {snapshot.EntityDefinitionID}");
 
             return new ProjectileInstance(
                 def.ID,
@@ -221,11 +220,11 @@ namespace Application.Services.WorldService.Factory.Component
         private TriggeredEffectInstance CreateTriggeredEffect(
             TriggeredEffectSnapshot snapshot)
         {
-            var def = cacheProvider.TriggeredEffect.Get(Guid.Parse(snapshot.DefinitionID));
+            var def = cacheProvider.TriggeredEffect.GetByEntity(snapshot.EntityDefinitionID);
             if (def == null)
                 throw new InternalException(
-                    ApplicationCode.SnapshotComponentFactoryCode.TriggeredEffectDefinitionNotFound,
-                    $"Triggered Effect definition not found: {snapshot.DefinitionID}");
+                    ApplicationCode.SnapshotRuntimeFactoryCode.TriggeredEffectDefinitionNotFound,
+                    $"Triggered Effect definition not found for entity: {snapshot.EntityDefinitionID}");
 
             var validEffects = new List<string>();
             foreach (var effectId in def.EffectDefinitionIDs)
@@ -248,7 +247,7 @@ namespace Application.Services.WorldService.Factory.Component
             var itemDef = cacheProvider.Item.Get(snapshot.Payload.DefinitionID);
             if (itemDef == null)
                 throw new InternalException(
-                    ApplicationCode.SnapshotComponentFactoryCode.ItemDefinitionNotFound,
+                    ApplicationCode.SnapshotRuntimeFactoryCode.ItemDefinitionNotFound,
                     $"Item definition not found for world item payload: {snapshot.Payload.DefinitionID}");
 
             var itemPayload = new ItemInstance(

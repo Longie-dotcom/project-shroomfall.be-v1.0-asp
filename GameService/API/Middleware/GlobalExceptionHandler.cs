@@ -1,6 +1,7 @@
 ﻿using Application.Interfaces.Utility;
 using Contract.DTO.Common;
 using Domain.DomainException;
+using ResponseCode;
 using System.Text.Json;
 
 namespace API.Middleware
@@ -11,8 +12,8 @@ namespace API.Middleware
         private readonly RequestDelegate requestDelegate;
         private readonly ILogger<GlobalExceptionHandler> logger;
         private readonly ITelemetryQueue telemetryQueue;
-
-        private static string defaultErrorCode = "api.unpredicted.error";
+       
+        private static readonly string defaultErrorCode = APICode.GlobalExceptionHandlerCode.UnexpectedError;
         #endregion
 
         #region Properties
@@ -75,8 +76,8 @@ namespace API.Middleware
             context.Response.ContentType = "application/json";
 
             var statusCode = StatusCodes.Status500InternalServerError;
-            var type = "Unpredicted Internal Error";
-            var message = "An internal error occurred. Please try again later.";
+            var type = "Unexpected Internal Error";
+            var message = "An unexpected error occurred. Please try again later.";
             string errorCode = defaultErrorCode;
             string? details = null;
 

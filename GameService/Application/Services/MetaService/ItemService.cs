@@ -1,6 +1,7 @@
 ﻿using Application.Interfaces.Cache;
-using Application.Services.AttributeService;
+using Application.Services.EntityService;
 using Application.Services.WorldService;
+using Application.Services.WorldService.Creation;
 using Application.Systems.Abstraction;
 using Application.Systems.Queue;
 using Contract;
@@ -14,7 +15,7 @@ using Domain.Runtime.EntityDomain.Component;
 using Domain.Runtime.MetaDomain;
 using ResponseCode;
 
-namespace Application.Services.UsageService
+namespace Application.Services.MetaService
 {
     public readonly struct ItemUsageActionContext
     {

@@ -1,14 +1,14 @@
 ﻿using Application.Interfaces.Cache;
+using Application.Services.WorldService;
 using Contract.Enum.EntityDomain;
 using Contract.Enum.WorldDomain;
 using Domain.Abstraction;
 using Domain.Common;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
-using Domain.Runtime.WorldDomain;
 using Domain.Runtime.WorldDomain.Spatial;
 
-namespace Application.Services.WorldService
+namespace Application.Services.EntityService
 {
     public readonly struct CollisionBody
     {

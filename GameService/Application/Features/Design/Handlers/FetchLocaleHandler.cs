@@ -29,8 +29,11 @@ namespace Application.Features.Design.Handlers
         public async Task<List<LocaleDTO>> Handle(
             FetchLocaleCommand command)
         {
+            // Retrieve locale
             var localeRepo = relationalUoW.GetRepository<ILocaleRepository>();
             var entities = await localeRepo.GetAllAsyncWithoutJoined();
+
+            // Map to result
             return mapper.Map<List<LocaleDTO>>(entities);
         }
         #endregion

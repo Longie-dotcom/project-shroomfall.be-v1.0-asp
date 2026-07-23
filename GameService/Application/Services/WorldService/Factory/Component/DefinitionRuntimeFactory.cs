@@ -1,10 +1,11 @@
 ﻿using Application.Interfaces.Cache;
 using Contract;
 using Domain.Common;
-using Domain.Definition.EntityDomain.Component;
+using Domain.DomainException;
 using Domain.Runtime.EntityDomain.Component;
 using Domain.Runtime.MetaDomain;
 using Domain.Shared;
+using ResponseCode;
 
 namespace Application.Services.WorldService.Factory.Component
 {
@@ -25,52 +26,81 @@ namespace Application.Services.WorldService.Factory.Component
 
         #region Methods
         public AIInstance CreateAI(
-            AIDefinition def)
+            string entityDefinitionId)
         {
+            var aiDef = cacheProvider.AI.GetByEntity(entityDefinitionId);
+            if (aiDef == null)
+                throw new InternalException(
+                    ApplicationCode.DefinitionRuntimeFactoryCode.AIDefinitionNotFound,
+                    $"Entity '{entityDefinitionId}' missing AI definition.");
+
             return new AIInstance(
-                def.ID,
-                def.LeashDistance,
-                def.AggroRadius,
-                def.IsAIControlled,
-                def.ThinkInterval,
-                def.EquippedItemDefinitionID,
-                def.AttackRange);
+                aiDef.ID,
+                aiDef.LeashDistance,
+                aiDef.AggroRadius,
+                aiDef.IsAIControlled,
+                aiDef.ThinkInterval,
+                aiDef.EquippedItemDefinitionID,
+                aiDef.AttackRange);
         }
 
         public AppearanceInstance CreateAppearance(
-            AppearanceDefinition def)
+            string entityDefinitionId)
         {
+            var appearanceDef = cacheProvider.Appearance.GetByEntity(entityDefinitionId);
+            if (appearanceDef == null)
+                throw new InternalException(
+                    ApplicationCode.DefinitionRuntimeFactoryCode.AppearanceDefinitionNotFound,
+                    $"Entity '{entityDefinitionId}' missing Appearance definition.");
+
             return new AppearanceInstance(
-                def.ID,
-                def.SkinID,
-                def.SkinColor);
+                appearanceDef.ID,
+                appearanceDef.SkinID,
+                appearanceDef.SkinColor);
         }
 
         public CollisionInstance CreateCollision(
-            CollisionDefinition def)
+            string entityDefinitionId)
         {
+            var collisionDef = cacheProvider.Collision.GetByEntity(entityDefinitionId);
+            if (collisionDef == null)
+                throw new InternalException(
+                    ApplicationCode.DefinitionRuntimeFactoryCode.CollisionDefinitionNotFound,
+                    $"Entity '{entityDefinitionId}' missing Collision definition.");
+
             return new CollisionInstance(
-                def.ID,
-                CollisionShapeMapper.FromDefinition(def),
-                new Vector2(def.OffsetX, def.OffsetY),
-                def.Layer,
-                def.Mask);
+                collisionDef.ID,
+                CollisionShapeMapper.FromDefinition(collisionDef),
+                new Vector2(collisionDef.OffsetX, collisionDef.OffsetY),
+                collisionDef.Layer,
+                collisionDef.Mask);
         }
 
         public CharacteristicInstance CreateCharacteristic(
-            CharacteristicDefinition def)
+            string entityDefinitionId)
         {
+            var characteristicDef = cacheProvider.Characteristic.GetByEntity(entityDefinitionId);
+            if (characteristicDef == null)
+                throw new InternalException(
+                    ApplicationCode.DefinitionRuntimeFactoryCode.CharacteristicDefinitionNotFound,
+                    $"Entity '{entityDefinitionId}' missing Characteristic definition.");
+
             return new CharacteristicInstance(
-                def.ID,
+                characteristicDef.ID,
                 Constraint.DEFAULT_CHARACTERISTIC_LEVEL);
         }
 
         public InventoryInstance CreateInventory(
-            InventoryDefinition def)
+            string entityDefinitionId)
         {
-            var validDefaultItems = new List<ItemInstance>();
+            var inventoryDef = cacheProvider.Inventory.GetByEntity(entityDefinitionId);
+            if (inventoryDef == null)
+                throw new InternalException(
+                    ApplicationCode.DefinitionRuntimeFactoryCode.InventoryDefinitionNotFound,
+                    $"Entity '{entityDefinitionId}' missing Inventory definition.");
 
-            foreach (var entry in def.DefaultItems)
+            var validDefaultItems = new List<ItemInstance>();
+            foreach (var entry in inventoryDef.DefaultItems)
             {
                 var itemDef = cacheProvider.Item.Get(entry.DefinitionID);
                 if (itemDef == null)
@@ -94,37 +124,53 @@ namespace Application.Services.WorldService.Factory.Component
                 }
             }
 
-            var inventory = new InventoryInstance(
-                def.ID,
+            return new InventoryInstance(
+                inventoryDef.ID,
                 validDefaultItems);
-
-            return inventory;
         }
 
         public LifetimeInstance CreateLifeTime(
-            LifetimeDefinition def)
+            string entityDefinitionId)
         {
+            var lifetimeDef = cacheProvider.Lifetime.GetByEntity(entityDefinitionId);
+            if (lifetimeDef == null)
+                throw new InternalException(
+                    ApplicationCode.DefinitionRuntimeFactoryCode.LifetimeDefinitionNotFound,
+                    $"Entity '{entityDefinitionId}' missing Lifetime definition.");
+
             return new LifetimeInstance(
-                def.ID, 
-                def.Duration);
+                lifetimeDef.ID,
+                lifetimeDef.Duration);
         }
 
         public ProjectileInstance CreateProjectile(
-            ProjectileDefinition def)
+            string entityDefinitionId)
         {
+            var projectileDef = cacheProvider.Projectile.GetByEntity(entityDefinitionId);
+            if (projectileDef == null)
+                throw new InternalException(
+                    ApplicationCode.DefinitionRuntimeFactoryCode.ProjectileDefinitionNotFound,
+                    $"Entity '{entityDefinitionId}' missing Projectile configuration.");
+
             return new ProjectileInstance(
-                def.ID, 
-                def.Velocity,
-                def.OnImpactSpawnEntityDefinitionID);
+                projectileDef.ID,
+                projectileDef.Velocity,
+                projectileDef.OnImpactSpawnEntityDefinitionID);
         }
 
         public TriggeredEffectInstance CreateTriggeredEffect(
-            TriggeredEffectDefinition def,
+            string entityDefinitionId,
             string sourceEntityId)
         {
+            var triggeredEffectDef = cacheProvider.TriggeredEffect.GetByEntity(entityDefinitionId);
+            if (triggeredEffectDef == null)
+                throw new InternalException(
+                    ApplicationCode.DefinitionRuntimeFactoryCode.TriggeredEffectDefinitionNotFound,
+                    $"Entity '{entityDefinitionId}' missing Triggered Effect configuration.");
+
             var validEffects = new List<string>();
 
-            foreach (var entry in def.EffectDefinitionIDs)
+            foreach (var entry in triggeredEffectDef.EffectDefinitionIDs)
             {
                 var effectDef = cacheProvider.Effect.Get(entry);
                 if (effectDef != null)
@@ -132,7 +178,7 @@ namespace Application.Services.WorldService.Factory.Component
             }
 
             return new TriggeredEffectInstance(
-                def.ID,
+                triggeredEffectDef.ID,
                 validEffects,
                 sourceEntityId);
         }

@@ -36,17 +36,16 @@ namespace Application.Features.Design.Handlers
             int pageNumber = queries.PageNumber < 1 ? 1 : queries.PageNumber;
             int pageSize = queries.PageSize < 1 ? 10 : queries.PageSize;
 
+            // Retrieve room definition and paging
             var roomRepo = relationalUoW.GetRepository<IRoomDefinitionRepository>();
-
             var (entities, totalCount) = await roomRepo.GetPagedDefinitionsAsync(
                 queries?.SearchTerm,
                 queries?.Type,
                 pageNumber,
-                pageSize
-            );
+                pageSize);
 
+            // Map to result
             var dtos = mapper.Map<List<RoomDefinitionDTO>>(entities);
-
             return new PagedResponseDTO<RoomDefinitionDTO>(
                 dtos,
                 totalCount,

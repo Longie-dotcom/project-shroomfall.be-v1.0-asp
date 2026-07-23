@@ -36,18 +36,17 @@ namespace Application.Features.Design.Handlers
             int pageNumber = queries.PageNumber < 1 ? 1 : queries.PageNumber;
             int pageSize = queries.PageSize < 1 ? 10 : queries.PageSize;
 
+            // Retrieve effect definition and paging
             var effectRepo = relationalUoW.GetRepository<IEffectDefinitionRepository>();
-
             var (entities, totalCount) = await effectRepo.GetPagedDefinitionsAsync(
                 queries?.SearchTerm,
                 queries?.Type,
                 queries?.AttributeType,
                 pageNumber,
-                pageSize
-            );
+                pageSize);
 
+            // Map to result
             var dtos = mapper.Map<List<EffectDefinitionDTO>>(entities);
-
             return new PagedResponseDTO<EffectDefinitionDTO>(
                 dtos,
                 totalCount,

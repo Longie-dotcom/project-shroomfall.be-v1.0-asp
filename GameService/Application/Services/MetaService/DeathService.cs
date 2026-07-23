@@ -4,7 +4,7 @@ using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
 using Domain.Runtime.WorldDomain.Run;
 
-namespace Application.Services.AttributeService
+namespace Application.Services.MetaService
 {
     public enum DeathOutcome
     {
