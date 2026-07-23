@@ -19,7 +19,7 @@ namespace Application.Features.Design.Handlers
         public List<EntitySpawnRuleDTO> EntitySpawnRules { get; set; } = new List<EntitySpawnRuleDTO>();
     }
 
-    public class UpsertRoomDefinitionHandler : IHandler<UpsertRoomDefinitionCommand>
+    public class ImportRoomDefinitionHandler : IHandler<ImportRoomDefinitionCommand>
     {
         #region Attributes
         private readonly IRelationalUoW relationalUoW;
@@ -29,7 +29,7 @@ namespace Application.Features.Design.Handlers
         #region Properties
         #endregion
 
-        public UpsertRoomDefinitionHandler(
+        public ImportRoomDefinitionHandler(
             IRelationalUoW relationalUoW,
             LocalizationEntryFactory localizationEntryFactory)
         {
@@ -39,7 +39,7 @@ namespace Application.Features.Design.Handlers
 
         #region Methods
         public async Task Handle(
-            UpsertRoomDefinitionCommand command)
+            ImportRoomDefinitionCommand command)
         {
             if (command.File == null || command.File.Length == 0)
                 throw new BadRequest(
@@ -52,9 +52,10 @@ namespace Application.Features.Design.Handlers
             try
             {
                 using var stream = command.File.OpenReadStream();
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
-                payload = await JsonSerializer.DeserializeAsync<RoomDefinitionPayload>(stream, options);
+                payload = await JsonSerializer.DeserializeAsync<RoomDefinitionPayload>(
+                    stream, 
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             }
             catch (JsonException ex)
             {

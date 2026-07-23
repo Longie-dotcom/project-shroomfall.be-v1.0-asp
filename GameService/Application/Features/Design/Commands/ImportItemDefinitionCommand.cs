@@ -2,7 +2,7 @@
 
 namespace Application.Features.Design.Commands
 {
-    public class UpsertRoomDefinitionCommand
+    public class ImportItemDefinitionCommand
     {
         #region Attributes
         #endregion
@@ -11,7 +11,7 @@ namespace Application.Features.Design.Commands
         public IFormFile File { get; }
         #endregion
 
-        public UpsertRoomDefinitionCommand(
+        public ImportItemDefinitionCommand(
             IFormFile file)
         {
             File = file;

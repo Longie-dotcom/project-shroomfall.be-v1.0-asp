@@ -72,12 +72,15 @@ namespace Application
             services.AddScoped<IHandler<FetchLocaleCommand, List<LocaleDTO>>, FetchLocaleHandler>();
             services.AddScoped<IHandler<FetchLocalizationEntryCommand, PagedResponseDTO<LocalizationEntryDTO>>, FetchLocalizationEntryHandler>();
             services.AddScoped<IHandler<FetchRoomDefinitionCommand, PagedResponseDTO<RoomDefinitionDTO>>, FetchRoomDefinitionHandler>();
+            services.AddScoped<IHandler<ImportEffectDefinitionCommand>, ImportEffectDefinitionHandler>();
+            services.AddScoped<IHandler<ImportEntityDefinitionCommand>, ImportEntityDefinitionHandler>();
+            services.AddScoped<IHandler<ImportItemDefinitionCommand>, ImportItemDefinitionHandler>();
+            services.AddScoped<IHandler<ImportRoomDefinitionCommand>, ImportRoomDefinitionHandler>();
             services.AddScoped<IHandler<UpdateDefinitionCommand>, UpdateDefinitionHandler>();
             services.AddScoped<IHandler<UpdateLocalizationEntryCommand>, UpdateLocalizationEntryHandler>();
             services.AddScoped<IHandler<UpsertEffectDefinitionCommand>, UpsertEffectDefinitionHandler>();
             services.AddScoped<IHandler<UpsertEntityDefinitionCommand>, UpsertEntityDefinitionHandler>();
             services.AddScoped<IHandler<UpsertItemDefinitionCommand>, UpsertItemDefinitionHandler>();
-            services.AddScoped<IHandler<UpsertRoomDefinitionCommand>, UpsertRoomDefinitionHandler>();
             services.AddScoped<IHandler<UserRefreshCommand, DefinitionSnapshotDTO?>, UserRefreshHandler>();
 
             // Game
@@ -106,6 +109,9 @@ namespace Application
             // Design service
             services.AddSingleton<ComponentDiscoveryRegistry>();
             services.AddScoped<DefinitionComponentFactory>();
+            services.AddScoped<EffectDefinitionService>();
+            services.AddScoped<EntityDefinitionService>();
+            services.AddScoped<ItemDefinitionService>();
             services.AddScoped<LocalizationEntryFactory>();
 
             // Entity service
