@@ -145,6 +145,7 @@ namespace Application.Services.WorldService.Factory
 
             entity.AddComponent(definitionRuntimeFactory.CreateLifeTime(entity.DefinitionID));
             entity.AddComponent(definitionRuntimeFactory.CreateTriggeredEffect(entity.DefinitionID, projectileContext.SourceEntityID));
+            entity.AddComponent(definitionRuntimeFactory.CreateAppearance(entity.DefinitionID));
             entity.AddComponent(definitionRuntimeFactory.CreateProjectile(entity.DefinitionID));
 
             // Set direction
@@ -155,7 +156,7 @@ namespace Application.Services.WorldService.Factory
             EntityInstance entity,
             WorldEntityCreateContext context)
         {
-
+            entity.AddComponent(definitionRuntimeFactory.CreateAppearance(entity.DefinitionID));
         }
 
         private void ConstructCreature(
