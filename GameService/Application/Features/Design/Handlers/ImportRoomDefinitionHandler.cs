@@ -88,7 +88,9 @@ namespace Application.Features.Design.Handlers
                     dto.Id,
                     dto.Type,
                     new RoomPresentationDefinition(localizedText, dto.Id));
+
                 await repo.AddAsync(newRoom);
+                await localizationEntryFactory.PreSavePlaceholderKeysAsync(localizedText);
             }
 
             // Map Child Collections directly using your shared project DTOs
@@ -115,7 +117,6 @@ namespace Application.Features.Design.Handlers
 
             // Wipe old children and save current configuration state atomically
             await repo.UpsertChildrenAsync(dto.Id, domainCells, domainRules);
-            await localizationEntryFactory.PreSavePlaceholderKeysAsync(localizedText);
             await relationalUoW.CommitAsync();
         }
 
