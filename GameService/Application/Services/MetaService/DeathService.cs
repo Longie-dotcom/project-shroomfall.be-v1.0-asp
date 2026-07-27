@@ -38,15 +38,28 @@ namespace Application.Services.MetaService
             if (vital != AttributeType.Health)
                 return DeathOutcome.None;
 
-            if (previousValue <= 0f || currentValue > 0f)
+            if (currentValue > 0f)
                 return DeathOutcome.None;
 
-            if (entity.GetComponent<OwnershipInstance>() == null)
-                return DeathOutcome.Entity;
+            var ownership = entity.GetComponent<OwnershipInstance>();
 
-            return partyService.IsPlayerInRun(entity.ID)
-                ? DeathOutcome.Player
-                : DeathOutcome.None;
+            // Case A: Unowned entity (e.g., standard wild monsters / creeps)
+            if (ownership == null)
+            {
+                Console.WriteLine($"[CheckDeath] Outcome: Entity (Unowned entity died)");
+                return DeathOutcome.Entity;
+            }
+
+            // Case B: Owned entity - Check if it's a player
+            if (partyService.IsPlayerInRun(entity.ID))
+            {
+                Console.WriteLine($"[CheckDeath] Outcome: Player (Active run player died)");
+                return DeathOutcome.Player;
+            }
+
+            // Case C: Non-player owned entity (e.g., player summons, pet, or owned minion)
+            Console.WriteLine($"[CheckDeath] Outcome: Entity (Owned non-player entity died)");
+            return DeathOutcome.Entity;
         }
         #endregion
     }
