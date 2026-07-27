@@ -23,7 +23,7 @@ namespace Application.Services.MetaService
         #endregion
 
         public VitalService(
-            ICacheProvider cacheProvider, 
+            ICacheProvider cacheProvider,
             IEventBus eventBus)
         {
             this.cacheProvider = cacheProvider;
@@ -38,47 +38,30 @@ namespace Application.Services.MetaService
             var source = effectContext.Source;
             var effect = effectContext.Effect;
 
-            Console.WriteLine($"\n--- [DamageCalc] START ---");
-            Console.WriteLine($"[DamageCalc] Target: '{target?.ID ?? "NULL"}' | Source: '{(source != null ? source.ID : "NULL (No Source)")}' | Effect: '{effect?.ID ?? "NULL"}' ({effect?.AttributeType})");
-
-            var targetCharacteristic = target?.GetComponent<CharacteristicInstance>();
-            if (targetCharacteristic == null)
-            {
-                Console.WriteLine("[DamageCalc] EARLY RETURN: Target missing CharacteristicInstance!");
-                return (null, null);
-            }
+            var targetCharacteristic = target.GetComponent<CharacteristicInstance>();
+            if (targetCharacteristic == null) return (null, null);
 
             var sourceCharacteristic = source?.GetComponent<CharacteristicInstance>();
-            if (source != null && sourceCharacteristic == null)
-            {
-                Console.WriteLine($"[DamageCalc] WARNING: Source '{source.ID}' has no CharacteristicInstance!");
-            }
 
             var healthAttribute = GetScaledAttribute(targetCharacteristic, AttributeType.Health);
-            if (healthAttribute == null)
-            {
-                Console.WriteLine("[DamageCalc] EARLY RETURN: Target missing Health attribute definition!");
-                return (null, null);
-            }
+            if (healthAttribute == null) return (null, null);
 
             var (config, _, maxHealth) = healthAttribute.Value;
             VitalChangeReason reason = VitalChangeReason.Damage;
 
             //--------------------------------------------------------
-            // 1. Source offensive power
+            // Source offensive power
             //--------------------------------------------------------
             var powerType = GetPowerType(effect.AttributeType);
             float offensivePower = sourceCharacteristic != null ? sourceCharacteristic.GetCore(powerType) : 0f;
-            Console.WriteLine($"[DamageCalc] 1. Power -> PowerType: {powerType} | Source Power: {offensivePower}");
 
             //--------------------------------------------------------
-            // 2. Scale by Effect (Raw Damage)
+            // Scale by Effect
             //--------------------------------------------------------
             float rawDamage = ResolveRawDelta(offensivePower, effect);
-            Console.WriteLine($"[DamageCalc] 2. Raw Damage -> Resolved Raw Damage: {rawDamage}");
 
             //--------------------------------------------------------
-            // 3. Resistance / Penetration
+            // Resistance / Penetration
             //--------------------------------------------------------
             var resistanceType = GetResistanceType(effect.AttributeType);
             var penetrationType = GetPenetrationType(effect.AttributeType);
@@ -90,52 +73,28 @@ namespace Application.Services.MetaService
             float mitigation = Math.Clamp(1f - effectiveResistance, 0f, 2f);
             float finalDamage = rawDamage * mitigation;
 
-            Console.WriteLine($"[DamageCalc] 3. Mitigation -> ResType: {resistanceType} ({resistance}) | PenType: {penetrationType} ({penetration}) | EffectiveRes: {effectiveResistance} | Mitigation Multiplier: {mitigation} | Post-Mitigation Damage: {finalDamage}");
-
             //--------------------------------------------------------
-            // 4. Critical Chance
+            // Critical Chance
             //--------------------------------------------------------
             if (sourceCharacteristic != null && finalDamage > 0f)
             {
                 float criticalChance = sourceCharacteristic.GetCore(AttributeType.CriticalChance);
-                float critRoll = Random.Shared.NextSingle();
-                if (criticalChance > critRoll)
+                if (criticalChance > Random.Shared.NextSingle())
                 {
-                    float currentTargetHealth = targetCharacteristic.GetVital(AttributeType.Health);
-                    finalDamage = currentTargetHealth * Constraint.CRITICAL_DAMAGE_VALUE;
+                    finalDamage *= Constraint.CRITICAL_DAMAGE_VALUE;
                     reason = VitalChangeReason.Critical;
-                    Console.WriteLine($"[DamageCalc] 4. Critical HIT -> Roll: {critRoll:F2} < Chance: {criticalChance:F2} | New Crit Damage: {finalDamage}");
-                }
-                else
-                {
-                    Console.WriteLine($"[DamageCalc] 4. Critical Miss -> Roll: {critRoll:F2} >= Chance: {criticalChance:F2}");
                 }
             }
 
             //--------------------------------------------------------
-            // 5. Block
+            // Block
             //--------------------------------------------------------
-            if (finalDamage > 0)
+            // Note: As written, a successful block will completely negate a critical hit.
+            if (finalDamage > 0 && targetCharacteristic.GetCore(AttributeType.BlockChance) > Random.Shared.NextSingle())
             {
-                float blockChance = targetCharacteristic.GetCore(AttributeType.BlockChance);
-                float blockRoll = Random.Shared.NextSingle();
-                if (blockChance > blockRoll)
-                {
-                    reason = VitalChangeReason.Block;
-                    finalDamage = 0f;
-                    Console.WriteLine($"[DamageCalc] 5. BLOCKED! -> Roll: {blockRoll:F2} < BlockChance: {blockChance:F2} | Damage zeroed out.");
-                }
-                else
-                {
-                    Console.WriteLine($"[DamageCalc] 5. Block Check Passed -> Roll: {blockRoll:F2} >= BlockChance: {blockChance:F2}");
-                }
+                reason = VitalChangeReason.Block;
+                finalDamage = 0f;
             }
-
-            //--------------------------------------------------------
-            // Summary
-            //--------------------------------------------------------
-            Console.WriteLine($"[DamageCalc] FINAL RESULT -> Final Damage: {finalDamage} | Reason: {reason}");
-            Console.WriteLine($"--- [DamageCalc] END ---\n");
 
             //--------------------------------------------------------
             // Apply Damage
@@ -144,20 +103,17 @@ namespace Application.Services.MetaService
             float current = Math.Clamp(previous - finalDamage, config.Min, maxHealth);
             targetCharacteristic.SetVital(AttributeType.Health, current);
 
-            if (finalDamage > 0f)
+            var transform = target.GetComponent<TransformInstance>();
+            if (transform != null)
             {
-                var transform = target.GetComponent<TransformInstance>();
-                if (transform != null)
-                {
-                    eventBus.Publish(new EntityActedEvent(
-                        target.ID,
-                        transform.RoomSpatialID,
-                        transform.Position,
-                        transform.FacingDirection,
-                        EntityAction.DAMAGED,
-                        null
-                    ));
-                }
+                eventBus.Publish(new EntityActedEvent(
+                    target.ID,
+                    transform.RoomSpatialID,
+                    transform.Position,
+                    transform.FacingDirection,
+                    EntityAction.DAMAGED,
+                    null
+                ));
             }
 
             //--------------------------------------------------------
@@ -295,7 +251,7 @@ namespace Application.Services.MetaService
                     Vital = AttributeType.Energy,
                     PreviousValue = previous,
                     CurrentValue = current,
-                    Reason = VitalChangeReason.EnergyRestore 
+                    Reason = VitalChangeReason.EnergyRestore
                 },
                 null);
         }
@@ -308,7 +264,6 @@ namespace Application.Services.MetaService
             {
                 EffectType.Flat => baseValue + effect.Value,
                 EffectType.Percentage => baseValue * (1 + effect.Value),
-                EffectType.Multiplier => baseValue * effect.Value,
                 _ => baseValue
             };
         }

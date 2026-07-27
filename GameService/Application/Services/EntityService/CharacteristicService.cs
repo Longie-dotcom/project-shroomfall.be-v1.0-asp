@@ -230,7 +230,6 @@ namespace Application.Services.EntityService
                         {
                             case EffectType.Flat: flat += effect.Value; break;
                             case EffectType.Percentage: percent += effect.Value; break;
-                            case EffectType.Multiplier: multiplier *= effect.Value; break;
                         }
                     }
                 }
