@@ -32,19 +32,30 @@ namespace Application.Services.MetaService
 
         #region Offensive / Restorative Health
         public (VitalChangedRecord? target, VitalChangedRecord? source) ApplyOffensiveHealth(
-            EffectContext effectContext)
+                    EffectContext effectContext)
         {
             var target = effectContext.Target;
             var source = effectContext.Source;
             var effect = effectContext.Effect;
 
-            var targetCharacteristic = target.GetComponent<CharacteristicInstance>();
-            if (targetCharacteristic == null) return (null, null);
+            Console.WriteLine($"\n=================== [DAMAGE PIPELINE START] ===================");
+            Console.WriteLine($"[ApplyOffensiveHealth] Target ID: {target?.ID}, Source ID: {source?.ID}, Effect: {effect?.AttributeType}");
+
+            var targetCharacteristic = target?.GetComponent<CharacteristicInstance>();
+            if (targetCharacteristic == null)
+            {
+                Console.WriteLine($"[ApplyOffensiveHealth] ABORT: Target or Target CharacteristicInstance is NULL.");
+                return (null, null);
+            }
 
             var sourceCharacteristic = source?.GetComponent<CharacteristicInstance>();
 
             var healthAttribute = GetScaledAttribute(targetCharacteristic, AttributeType.Health);
-            if (healthAttribute == null) return (null, null);
+            if (healthAttribute == null)
+            {
+                Console.WriteLine($"[ApplyOffensiveHealth] ABORT: Target Health Attribute is NULL.");
+                return (null, null);
+            }
 
             var (config, _, maxHealth) = healthAttribute.Value;
             VitalChangeReason reason = VitalChangeReason.Damage;
@@ -54,11 +65,13 @@ namespace Application.Services.MetaService
             //--------------------------------------------------------
             var powerType = GetPowerType(effect.AttributeType);
             float offensivePower = sourceCharacteristic != null ? sourceCharacteristic.GetCore(powerType) : 0f;
+            Console.WriteLine($"[Pipeline Step 1] Offensive Power: {offensivePower} (Type: {powerType})");
 
             //--------------------------------------------------------
             // Scale by Effect
             //--------------------------------------------------------
             float rawDamage = ResolveRawDelta(offensivePower, effect);
+            Console.WriteLine($"[Pipeline Step 2] Raw Damage (Post-Effect Scale): {rawDamage}");
 
             //--------------------------------------------------------
             // Resistance / Penetration
@@ -73,27 +86,46 @@ namespace Application.Services.MetaService
             float mitigation = Math.Clamp(1f - effectiveResistance, 0f, 2f);
             float finalDamage = rawDamage * mitigation;
 
+            Console.WriteLine($"[Pipeline Step 3] Mitigation Breakdown:");
+            Console.WriteLine($"  - Target Resistance ({resistanceType}): {resistance}");
+            Console.WriteLine($"  - Source Penetration ({penetrationType}): {penetration}");
+            Console.WriteLine($"  - Effective Resistance: {effectiveResistance}");
+            Console.WriteLine($"  - Mitigation Multiplier: {mitigation}");
+            Console.WriteLine($"  - Mitigated Damage: {finalDamage}");
+
             //--------------------------------------------------------
             // Critical Chance
             //--------------------------------------------------------
             if (sourceCharacteristic != null && finalDamage > 0f)
             {
                 float criticalChance = sourceCharacteristic.GetCore(AttributeType.CriticalChance);
-                if (criticalChance > Random.Shared.NextSingle())
+                float roll = Random.Shared.NextSingle();
+                bool isCrit = criticalChance > roll;
+
+                Console.WriteLine($"[Pipeline Step 4] Critical Check -> Chance: {criticalChance:P2}, Roll: {roll:F4} | IsCrit: {isCrit}");
+
+                if (isCrit)
                 {
+                    float preCritDamage = finalDamage;
                     finalDamage *= Constraint.CRITICAL_DAMAGE_VALUE;
                     reason = VitalChangeReason.Critical;
+                    Console.WriteLine($"  -> CRITICAL HIT! Damage multiplied ({Constraint.CRITICAL_DAMAGE_VALUE}x): {preCritDamage} -> {finalDamage}");
                 }
             }
 
             //--------------------------------------------------------
             // Block
             //--------------------------------------------------------
-            // Note: As written, a successful block will completely negate a critical hit.
             if (finalDamage > 0 && targetCharacteristic.GetCore(AttributeType.BlockChance) > Random.Shared.NextSingle())
             {
+                float blockChance = targetCharacteristic.GetCore(AttributeType.BlockChance);
                 reason = VitalChangeReason.Block;
+                Console.WriteLine($"[Pipeline Step 5] Block Check -> Blocked! Target Block Chance: {blockChance:P2}. Damage reduced from {finalDamage} to 0.");
                 finalDamage = 0f;
+            }
+            else
+            {
+                Console.WriteLine($"[Pipeline Step 5] Block Check -> Not blocked.");
             }
 
             //--------------------------------------------------------
@@ -102,6 +134,9 @@ namespace Application.Services.MetaService
             float previous = targetCharacteristic.GetVital(AttributeType.Health);
             float current = Math.Clamp(previous - finalDamage, config.Min, maxHealth);
             targetCharacteristic.SetVital(AttributeType.Health, current);
+
+            Console.WriteLine($"[Pipeline Step 6] Applied Final Damage: {finalDamage} (Reason: {reason})");
+            Console.WriteLine($"  -> Target Health: {previous} -> {current} (Min: {config.Min}, Max: {maxHealth})");
 
             var transform = target.GetComponent<TransformInstance>();
             if (transform != null)
@@ -123,6 +158,8 @@ namespace Application.Services.MetaService
             if (sourceCharacteristic != null && finalDamage > 0f && source != null)
             {
                 float lifeSteal = sourceCharacteristic.GetCore(AttributeType.LifeSteal);
+                Console.WriteLine($"[Pipeline Step 7] Life Steal Check -> Life Steal Value: {lifeSteal:P2}");
+
                 if (lifeSteal > 0f)
                 {
                     var sourceHealth = GetScaledAttribute(sourceCharacteristic, AttributeType.Health);
@@ -130,9 +167,13 @@ namespace Application.Services.MetaService
                     {
                         var (sourceConfig, _, sourceMaxHealth) = sourceHealth.Value;
                         float sourcePrevious = sourceCharacteristic.GetVital(AttributeType.Health);
-                        float sourceCurrent = Math.Clamp(sourcePrevious + finalDamage * lifeSteal, sourceConfig.Min, sourceMaxHealth);
+                        float healedAmount = finalDamage * lifeSteal;
+                        float sourceCurrent = Math.Clamp(sourcePrevious + healedAmount, sourceConfig.Min, sourceMaxHealth);
 
                         sourceCharacteristic.SetVital(AttributeType.Health, sourceCurrent);
+
+                        Console.WriteLine($"  -> Life Steal Applied! Source healed by: {healedAmount}");
+                        Console.WriteLine($"  -> Source Health: {sourcePrevious} -> {sourceCurrent} (Max: {sourceMaxHealth})");
 
                         sourceChanged = new VitalChangedRecord
                         {
@@ -145,6 +186,8 @@ namespace Application.Services.MetaService
                     }
                 }
             }
+
+            Console.WriteLine($"=================== [DAMAGE PIPELINE END] ===================\n");
 
             return (
                 new VitalChangedRecord
