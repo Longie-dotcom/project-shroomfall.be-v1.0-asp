@@ -46,19 +46,16 @@ namespace Application.Services.MetaService
             // Case A: Unowned entity (e.g., standard wild monsters / creeps)
             if (ownership == null)
             {
-                Console.WriteLine($"[CheckDeath] Outcome: Entity (Unowned entity died)");
                 return DeathOutcome.Entity;
             }
 
             // Case B: Owned entity - Check if it's a player
             if (partyService.IsPlayerInRun(entity.ID))
             {
-                Console.WriteLine($"[CheckDeath] Outcome: Player (Active run player died)");
                 return DeathOutcome.Player;
             }
 
             // Case C: Non-player owned entity (e.g., player summons, pet, or owned minion)
-            Console.WriteLine($"[CheckDeath] Outcome: Entity (Owned non-player entity died)");
             return DeathOutcome.Entity;
         }
         #endregion

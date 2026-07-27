@@ -143,8 +143,13 @@ namespace Application.Services.WorldService.Creation
             worldContext.AddEntity(entity);
 
             // Inform netcode to render the instance for clients in range
+            Vector2? direction = null;
+            if (context is ProjectileEntityCreateContext projectileContext)
+                direction = projectileContext.Direction;
+
             eventBus.Publish(new EntityLifecycleEvent(
                 entity,
+                direction,
                 transform.RoomSpatialID,
                 EntityLifecycleType.Spawn));
         }
@@ -161,6 +166,7 @@ namespace Application.Services.WorldService.Creation
             // Inform netcode to tell clients to delete their local visual actor
             eventBus.Publish(new EntityLifecycleEvent(
                 entity,
+                null,
                 transform.RoomSpatialID,
                 EntityLifecycleType.Despawn));
         }
@@ -183,6 +189,7 @@ namespace Application.Services.WorldService.Creation
             // Alert current nearby clients using the pre-mutation location state properties
             eventBus.Publish(new EntityLifecycleEvent(
                 entity,
+                null,
                 oldRoomSpatialId,
                 EntityLifecycleType.Despawn));
 
@@ -198,6 +205,7 @@ namespace Application.Services.WorldService.Creation
             // Alert newly targeted zone observers using the updated spatial coordinates
             eventBus.Publish(new EntityLifecycleEvent(
                 entity,
+                null,
                 targetRoomSpatialId,
                 EntityLifecycleType.Spawn));
         }

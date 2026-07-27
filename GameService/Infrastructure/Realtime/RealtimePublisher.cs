@@ -3,7 +3,6 @@ using Contract;
 using Contract.DTO.Feature.Admin.Response;
 using Contract.DTO.Feature.Design.Response;
 using Contract.DTO.Feature.Game.Response;
-using Contract.DTO.Runtime.EntityDomain;
 using Contract.DTO.Runtime.EntityDomain.Component;
 using Contract.DTO.Runtime.WorldDomain;
 using Microsoft.AspNetCore.SignalR;
@@ -86,12 +85,12 @@ namespace Infrastructure.Realtime
         // Spawn & Despawn (broadcast to room)
         // ─────────────────────────────
         public Task SendEntitySpawned(
-            string roomId, 
-            EntityInstanceDTO entity)
+            string roomId,
+            EntitySpawnedDTO payload)
         {
             return gameHub.Clients
                 .Group(roomId)
-                .SendAsync(NetworkMethod.OnEntitySpawned, entity);
+                .SendAsync(NetworkMethod.OnEntitySpawned, payload);
         }
 
         public Task SendEntityDespawned(

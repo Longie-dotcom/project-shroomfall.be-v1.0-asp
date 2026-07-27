@@ -2,6 +2,8 @@
 using Application.Interfaces.Realtime.Events;
 using Application.Interfaces.Realtime.Events.Game;
 using AutoMapper;
+using Contract.DTO.Common;
+using Contract.DTO.Feature.Game.Response;
 using Contract.DTO.Runtime.EntityDomain;
 
 namespace Infrastructure.Realtime.Events.Game
@@ -37,7 +39,11 @@ namespace Infrastructure.Realtime.Events.Game
                     {
                         await publisher.SendEntitySpawned(
                             e.RoomSpatialID,
-                            mapper.Map<EntityInstanceDTO>(e.Entity));
+                            new EntitySpawnedDTO
+                            {
+                                EntityInstance = mapper.Map<EntityInstanceDTO>(e.Entity),
+                                Direction = mapper.Map<Vector2DTO>(e.Direction),
+                            });
                         break;
                     }
 

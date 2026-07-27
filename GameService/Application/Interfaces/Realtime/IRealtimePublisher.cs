@@ -41,8 +41,8 @@ namespace Application.Interfaces.Realtime
         // Lifecycle (spawn / despawn)
         // ─────────────────────────────
         Task SendEntitySpawned(
-            string roomSpatialId, 
-            EntityInstanceDTO entity);
+            string roomSpatialId,
+            EntitySpawnedDTO payload);
         Task SendEntityDespawned(
             string roomSpatialId, 
             string entityId);
