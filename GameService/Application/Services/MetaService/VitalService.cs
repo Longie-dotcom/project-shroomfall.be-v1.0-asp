@@ -105,11 +105,16 @@ namespace Application.Services.MetaService
             float current = Math.Clamp(previous - finalDamage, config.Min, maxHealth);
             targetCharacteristic.SetVital(AttributeType.Health, current);
 
+            //--------------------------------------------------------
+            // Event Bus Publish Gate & Debug Logs
+            //--------------------------------------------------------
             if (finalDamage > 0f)
             {
                 var transform = target.GetComponent<TransformInstance>();
                 if (transform != null)
                 {
+                    Console.WriteLine($"[Server][ApplyOffensiveHealth] SUCCESS -> Publishing EntityActedEvent (DAMAGED) to EventBus for Entity '{target.ID}' | Final Damage: {finalDamage:F1} | Reason: {reason}");
+
                     eventBus.Publish(new EntityActedEvent(
                         target.ID,
                         transform.RoomSpatialID,
@@ -119,6 +124,14 @@ namespace Application.Services.MetaService
                         null
                     ));
                 }
+                else
+                {
+                    Console.WriteLine($"[Server][ApplyOffensiveHealth] REJECTED: Final damage was {finalDamage:F1}, but Target '{target.ID}' is missing TransformInstance! Event not published.");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"[Server][ApplyOffensiveHealth] NO EVENT PUBLISHED: Final damage was 0 (Reason: {reason}).");
             }
 
             //--------------------------------------------------------

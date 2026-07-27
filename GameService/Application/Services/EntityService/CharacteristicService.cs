@@ -123,14 +123,10 @@ namespace Application.Services.EntityService
             var effectDef = effectContext.Effect;
             var source = effectContext.Source;
 
-            Console.WriteLine($"[Server][ApplyVital] Processing effect '{effectDef.ID}' ({effectDef.AttributeType}) | " +
-                              $"Target: '{target.ID}' | Source: '{(source != null ? source.ID : "None")}'");
-
             (VitalChangedRecord? targetRecord, VitalChangedRecord? sourceRecord) result = (null, null);
 
             // Dispatch to the proper vital resolver based on the semantic Category
             var attribute = AttributeDefinitions.Get(effectDef.AttributeType);
-            Console.WriteLine($"[Server][ApplyVital] Attribute Category: {attribute.Category}");
 
             switch (attribute.Category)
             {
@@ -149,10 +145,6 @@ namespace Application.Services.EntityService
                 case AttributeCategory.RestorativeEnergy:
                     result = vitalService.ApplyRestorativeEnergy(effectContext);
                     break;
-
-                default:
-                    Console.WriteLine($"[Server][ApplyVital] Unhandled Attribute Category: {attribute.Category}");
-                    break;
             }
 
             // Queue valid records into the Command buffer cycle
@@ -161,17 +153,9 @@ namespace Application.Services.EntityService
                 // Validate transform for publishing
                 var targetTransform = target.GetComponent<TransformInstance>();
                 if (targetTransform == null)
-                {
-                    Console.WriteLine($"[Server][ApplyVital] REJECTED: Target '{target.ID}' has targetRecord but missing TransformInstance!");
                     return;
-                }
 
-                Console.WriteLine($"[Server][ApplyVital] SUCCESS -> Publishing target vital change for Entity '{target.ID}'");
                 PublishVitalChange(result.targetRecord, targetTransform);
-            }
-            else
-            {
-                Console.WriteLine($"[Server][ApplyVital] No target record produced for Target '{target.ID}'.");
             }
 
             if (result.sourceRecord != null && source != null)
@@ -179,12 +163,8 @@ namespace Application.Services.EntityService
                 // Validate transform for publishing
                 var sourceTransform = source.GetComponent<TransformInstance>();
                 if (sourceTransform == null)
-                {
-                    Console.WriteLine($"[Server][ApplyVital] REJECTED: Source '{source.ID}' has sourceRecord but missing TransformInstance!");
                     return;
-                }
 
-                Console.WriteLine($"[Server][ApplyVital] SUCCESS -> Publishing source vital change for Entity '{source.ID}'");
                 PublishVitalChange(result.sourceRecord, sourceTransform);
             }
         }
