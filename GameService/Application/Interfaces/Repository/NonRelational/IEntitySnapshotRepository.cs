@@ -9,7 +9,7 @@ namespace Application.Interfaces.Repository.NonRelational
             string roomSpatialId);
         Task<IEnumerable<EntitySnapshot>> GetPlayerSnapshotByUserIdAsync(
             string userId);
-        Task DeleteMissingEntitiesInRoomAsync(
+        Task DeleteMissingUnownedEntitiesInRoomAsync(
             string roomSpatialId,
             IEnumerable<string> activeEntityIds);
     }

@@ -46,21 +46,30 @@ namespace Infrastructure.Repository.NonRelational
             return await collection.Find(filter).ToListAsync();
         }
 
-        public async Task DeleteMissingEntitiesInRoomAsync(
+        public async Task DeleteMissingUnownedEntitiesInRoomAsync(
             string roomSpatialId,
             IEnumerable<string> activeEntityIds)
         {
             var filterBuilder = Builders<EntitySnapshot>.Filter;
 
+            // 1. Target entities located in this specific room
             var roomFilter = filterBuilder.ElemMatch(
                 entity => entity.Components,
                 Builders<ComponentSnapshot>.Filter.OfType<TransformSnapshot>(
                     c => c.RoomSpatialID == roomSpatialId));
 
+            // 2. Exclude entities that are currently active in runtime
             var missingFilter = filterBuilder.Not(
                 filterBuilder.In(entity => entity.ID, activeEntityIds));
 
-            var finalFilter = filterBuilder.And(roomFilter, missingFilter);
+            // 3. EXCLUDE PLAYER/OWNED ENTITIES (Only target entities that have NO OwnershipSnapshot)
+            var hasNoOwnershipFilter = filterBuilder.Not(
+                filterBuilder.ElemMatch(
+                    entity => entity.Components,
+                    Builders<ComponentSnapshot>.Filter.OfType<OwnershipSnapshot>()));
+
+            // Combine all conditions
+            var finalFilter = filterBuilder.And(roomFilter, missingFilter, hasNoOwnershipFilter);
 
             await collection.DeleteManyAsync(finalFilter);
         }

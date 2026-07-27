@@ -63,12 +63,12 @@ namespace Application.Services.WorldService.Persistence
             await entitySnapshotRepo.UpdateManyAsync(snapshots);
         }
 
-        public async Task DeleteMissingEntitiesInRoomAsync(
+        public async Task DeleteMissingUnownedEntitiesInRoomAsync(
             string roomSpatialId,
             IEnumerable<string> activeEntityIds)
         {
             var entitySnapshotRepo = nonRelationalUoW.GetRepository<IEntitySnapshotRepository>();
-            await entitySnapshotRepo.DeleteMissingEntitiesInRoomAsync(roomSpatialId, activeEntityIds);
+            await entitySnapshotRepo.DeleteMissingUnownedEntitiesInRoomAsync(roomSpatialId, activeEntityIds);
         }
         #endregion
     }
