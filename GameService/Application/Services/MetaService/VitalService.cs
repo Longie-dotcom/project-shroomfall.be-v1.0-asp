@@ -38,30 +38,47 @@ namespace Application.Services.MetaService
             var source = effectContext.Source;
             var effect = effectContext.Effect;
 
-            var targetCharacteristic = target.GetComponent<CharacteristicInstance>();
-            if (targetCharacteristic == null) return (null, null);
+            Console.WriteLine($"\n--- [DamageCalc] START ---");
+            Console.WriteLine($"[DamageCalc] Target: '{target?.ID ?? "NULL"}' | Source: '{(source != null ? source.ID : "NULL (No Source)")}' | Effect: '{effect?.ID ?? "NULL"}' ({effect?.AttributeType})");
+
+            var targetCharacteristic = target?.GetComponent<CharacteristicInstance>();
+            if (targetCharacteristic == null)
+            {
+                Console.WriteLine("[DamageCalc] EARLY RETURN: Target missing CharacteristicInstance!");
+                return (null, null);
+            }
 
             var sourceCharacteristic = source?.GetComponent<CharacteristicInstance>();
+            if (source != null && sourceCharacteristic == null)
+            {
+                Console.WriteLine($"[DamageCalc] WARNING: Source '{source.ID}' has no CharacteristicInstance!");
+            }
 
             var healthAttribute = GetScaledAttribute(targetCharacteristic, AttributeType.Health);
-            if (healthAttribute == null) return (null, null);
+            if (healthAttribute == null)
+            {
+                Console.WriteLine("[DamageCalc] EARLY RETURN: Target missing Health attribute definition!");
+                return (null, null);
+            }
 
             var (config, _, maxHealth) = healthAttribute.Value;
             VitalChangeReason reason = VitalChangeReason.Damage;
 
             //--------------------------------------------------------
-            // Source offensive power
+            // 1. Source offensive power
             //--------------------------------------------------------
             var powerType = GetPowerType(effect.AttributeType);
             float offensivePower = sourceCharacteristic != null ? sourceCharacteristic.GetCore(powerType) : 0f;
+            Console.WriteLine($"[DamageCalc] 1. Power -> PowerType: {powerType} | Source Power: {offensivePower}");
 
             //--------------------------------------------------------
-            // Scale by Effect
+            // 2. Scale by Effect (Raw Damage)
             //--------------------------------------------------------
             float rawDamage = ResolveRawDelta(offensivePower, effect);
+            Console.WriteLine($"[DamageCalc] 2. Raw Damage -> Resolved Raw Damage: {rawDamage}");
 
             //--------------------------------------------------------
-            // Resistance / Penetration
+            // 3. Resistance / Penetration
             //--------------------------------------------------------
             var resistanceType = GetResistanceType(effect.AttributeType);
             var penetrationType = GetPenetrationType(effect.AttributeType);
@@ -73,30 +90,52 @@ namespace Application.Services.MetaService
             float mitigation = Math.Clamp(1f - effectiveResistance, 0f, 2f);
             float finalDamage = rawDamage * mitigation;
 
+            Console.WriteLine($"[DamageCalc] 3. Mitigation -> ResType: {resistanceType} ({resistance}) | PenType: {penetrationType} ({penetration}) | EffectiveRes: {effectiveResistance} | Mitigation Multiplier: {mitigation} | Post-Mitigation Damage: {finalDamage}");
+
             //--------------------------------------------------------
-            // Critical Chance
+            // 4. Critical Chance
             //--------------------------------------------------------
             if (sourceCharacteristic != null && finalDamage > 0f)
             {
                 float criticalChance = sourceCharacteristic.GetCore(AttributeType.CriticalChance);
-                if (criticalChance > Random.Shared.NextSingle())
+                float critRoll = Random.Shared.NextSingle();
+                if (criticalChance > critRoll)
                 {
-                    // Override final damage to Constraint.CRITICAL_DAMAGE_VALUE of the target's current health
                     float currentTargetHealth = targetCharacteristic.GetVital(AttributeType.Health);
                     finalDamage = currentTargetHealth * Constraint.CRITICAL_DAMAGE_VALUE;
                     reason = VitalChangeReason.Critical;
+                    Console.WriteLine($"[DamageCalc] 4. Critical HIT -> Roll: {critRoll:F2} < Chance: {criticalChance:F2} | New Crit Damage: {finalDamage}");
+                }
+                else
+                {
+                    Console.WriteLine($"[DamageCalc] 4. Critical Miss -> Roll: {critRoll:F2} >= Chance: {criticalChance:F2}");
                 }
             }
 
             //--------------------------------------------------------
-            // Block
+            // 5. Block
             //--------------------------------------------------------
-            // Note: As written, a successful block will completely negate a critical hit.
-            if (finalDamage > 0 && targetCharacteristic.GetCore(AttributeType.BlockChance) > Random.Shared.NextSingle())
+            if (finalDamage > 0)
             {
-                reason = VitalChangeReason.Block;
-                finalDamage = 0f;
+                float blockChance = targetCharacteristic.GetCore(AttributeType.BlockChance);
+                float blockRoll = Random.Shared.NextSingle();
+                if (blockChance > blockRoll)
+                {
+                    reason = VitalChangeReason.Block;
+                    finalDamage = 0f;
+                    Console.WriteLine($"[DamageCalc] 5. BLOCKED! -> Roll: {blockRoll:F2} < BlockChance: {blockChance:F2} | Damage zeroed out.");
+                }
+                else
+                {
+                    Console.WriteLine($"[DamageCalc] 5. Block Check Passed -> Roll: {blockRoll:F2} >= BlockChance: {blockChance:F2}");
+                }
             }
+
+            //--------------------------------------------------------
+            // Summary
+            //--------------------------------------------------------
+            Console.WriteLine($"[DamageCalc] FINAL RESULT -> Final Damage: {finalDamage} | Reason: {reason}");
+            Console.WriteLine($"--- [DamageCalc] END ---\n");
 
             //--------------------------------------------------------
             // Apply Damage
@@ -105,16 +144,11 @@ namespace Application.Services.MetaService
             float current = Math.Clamp(previous - finalDamage, config.Min, maxHealth);
             targetCharacteristic.SetVital(AttributeType.Health, current);
 
-            //--------------------------------------------------------
-            // Event Bus Publish Gate & Debug Logs
-            //--------------------------------------------------------
             if (finalDamage > 0f)
             {
                 var transform = target.GetComponent<TransformInstance>();
                 if (transform != null)
                 {
-                    Console.WriteLine($"[Server][ApplyOffensiveHealth] SUCCESS -> Publishing EntityActedEvent (DAMAGED) to EventBus for Entity '{target.ID}' | Final Damage: {finalDamage:F1} | Reason: {reason}");
-
                     eventBus.Publish(new EntityActedEvent(
                         target.ID,
                         transform.RoomSpatialID,
@@ -124,14 +158,6 @@ namespace Application.Services.MetaService
                         null
                     ));
                 }
-                else
-                {
-                    Console.WriteLine($"[Server][ApplyOffensiveHealth] REJECTED: Final damage was {finalDamage:F1}, but Target '{target.ID}' is missing TransformInstance! Event not published.");
-                }
-            }
-            else
-            {
-                Console.WriteLine($"[Server][ApplyOffensiveHealth] NO EVENT PUBLISHED: Final damage was 0 (Reason: {reason}).");
             }
 
             //--------------------------------------------------------
