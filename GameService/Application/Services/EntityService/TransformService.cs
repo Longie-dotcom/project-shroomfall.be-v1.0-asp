@@ -45,22 +45,29 @@ namespace Application.Services.EntityService
             EntityInstance entity)
         {
             var transform = entity.GetComponent<TransformInstance>();
-            if (transform == null) 
+            if (transform == null)
                 return null;
 
             var characteristic = entity.GetComponent<CharacteristicInstance>();
-            if (characteristic == null) 
+            if (characteristic == null)
                 return null;
 
             var collision = entity.GetComponent<CollisionInstance>();
-            if (collision == null) 
+            if (collision == null)
                 return null;
 
             if (!transform.WantsToMove)
+            {
+                // LOG 1: Fired when the entity is in IDLE or stopped moving
+                System.Console.WriteLine($"[TransformService] Entity {entity.ID} | WantsToMove: FALSE | Action: {transform.CurrentAction} | Facing: {transform.FacingDirection}");
                 return null;
+            }
 
             float speed = characteristic.GetCore(AttributeType.MoveSpeed);
             var desired = transform.Position + transform.MovementVector * speed * dt;
+
+            // LOG 2: Fired when a movement command is actively generated
+            System.Console.WriteLine($"[TransformService] Entity {entity.ID} | MovementCommand Created | Pos: {transform.Position} -> Desired: {desired} | Dir: {transform.MovementVector}");
 
             var body = new CollisionBody(
                 entity.ID,
