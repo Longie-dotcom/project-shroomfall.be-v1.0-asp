@@ -69,8 +69,8 @@ namespace Application.Services.MetaService
 
         #region Methods
         public void Tick(
-    float dt,
-    CommandBuffer commandBuffer)
+            float dt,
+            CommandBuffer commandBuffer)
         {
             var entities = worldContext.GetEntities().ToList();
 
@@ -82,7 +82,7 @@ namespace Application.Services.MetaService
 
                 var actionState = entity.GetComponent<ActionInstance>();
                 if (actionState == null)
-                    continue;
+                    continue; 
 
                 // 1. Update active cooldown timers on the instance
                 if (actionState.ActiveCooldowns.Count > 0)
@@ -101,23 +101,19 @@ namespace Application.Services.MetaService
                 // 2. Process pending item uses
                 if (actionState.PendingItemUseID != null)
                 {
-                    Console.WriteLine($"[Server][Tick] Processing pending item use '{actionState.PendingItemUseID}' for Entity ID: {entity.ID}");
-
                     var inventory = entity.GetComponent<InventoryInstance>();
                     var item = inventory?.Items.FirstOrDefault(i => i.ID == actionState.PendingItemUseID);
 
                     // If the item isn't in their inventory, clear the intent and jump to the next entity
                     if (item == null)
                     {
-                        Console.WriteLine($"[Server][Tick] REJECTED: Item '{actionState.PendingItemUseID}' was not found in Entity '{entity.ID}' inventory.");
                         actionState.ClearItemUseIntent();
-                        continue;
+                        continue; // CRITICAL: Use 'continue' instead of 'return'
                     }
 
                     // 3. Cooldown Gatekeeper Check
                     if (actionState.IsOnCooldown(item.ID))
                     {
-                        Console.WriteLine($"[Server][Tick] REJECTED: Item '{item.ID}' is currently on cooldown for Entity '{entity.ID}'.");
                         actionState.ClearItemUseIntent();
                         continue;
                     }
@@ -125,9 +121,8 @@ namespace Application.Services.MetaService
                     var itemDef = cacheProvider.Item.Get(item.DefinitionID);
                     if (itemDef == null)
                     {
-                        Console.WriteLine($"[Server][Tick] REJECTED: Definition '{item.DefinitionID}' missing from cache for Item '{item.ID}'.");
                         actionState.ClearItemUseIntent();
-                        continue;
+                        continue; // CRITICAL: Use 'continue' instead of 'return'
                     }
 
                     // Create the correct usage action object based on the enum intent and available data
@@ -149,9 +144,6 @@ namespace Application.Services.MetaService
                     float modifiedCooldown = Constraint.ITEM_COOLDOWN_VALUE * (1f - cdr);
 
                     actionState.ApplyCooldown(item.ID, MathF.Max(0f, modifiedCooldown));
-
-                    // SUCCESS LOG
-                    Console.WriteLine($"[Server][Tick] SUCCESS -> Queued ItemActionCommand! Entity: {entity.ID} | Item: '{item.ID}' ({itemDef.ID}) | Action: {actionState.ItemUsageAction} | Cooldown Reduction: {cdr} Cooldown Applied: {modifiedCooldown:F2}s");
 
                     // Clear the intent
                     actionState.ClearItemUseIntent();
