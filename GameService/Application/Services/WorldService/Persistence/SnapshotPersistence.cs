@@ -37,14 +37,14 @@ namespace Application.Services.WorldService.Persistence
             };
         }
 
-        public async Task SaveRoomInstanceAsync(
-            RoomInstance instance)
+        public async Task SaveRoomInstanceAsync(RoomInstance instance)
         {
             await roomPersistence.SaveAsync(instance.Room);
 
             if (instance.Entities != null && instance.Entities.Any())
             {
                 await entityPersistence.SaveManyAsync(instance.Entities);
+                await entityPersistence.DeleteMissingEntitiesInRoomAsync(instance.Room.ID, instance.Entities.Select(e => e.ID).ToList());
             }
         }
         #endregion

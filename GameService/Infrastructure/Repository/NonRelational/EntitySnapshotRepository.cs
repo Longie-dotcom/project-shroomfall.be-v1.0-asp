@@ -4,7 +4,6 @@ using Domain.Snapshot.EntityDomain;
 using Domain.Snapshot.EntityDomain.Component;
 using Infrastructure.Persistence;
 using Infrastructure.Repository.Base;
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Infrastructure.Repository.NonRelational
@@ -45,6 +44,25 @@ namespace Infrastructure.Repository.NonRelational
                     Builders<OwnershipSnapshot>.Filter.Eq(c => c.UserID, userId)));
 
             return await collection.Find(filter).ToListAsync();
+        }
+
+        public async Task DeleteMissingEntitiesInRoomAsync(
+            string roomSpatialId,
+            IEnumerable<string> activeEntityIds)
+        {
+            var filterBuilder = Builders<EntitySnapshot>.Filter;
+
+            var roomFilter = filterBuilder.ElemMatch(
+                entity => entity.Components,
+                Builders<ComponentSnapshot>.Filter.OfType<TransformSnapshot>(
+                    c => c.RoomSpatialID == roomSpatialId));
+
+            var missingFilter = filterBuilder.Not(
+                filterBuilder.In(entity => entity.ID, activeEntityIds));
+
+            var finalFilter = filterBuilder.And(roomFilter, missingFilter);
+
+            await collection.DeleteManyAsync(finalFilter);
         }
         #endregion
     }

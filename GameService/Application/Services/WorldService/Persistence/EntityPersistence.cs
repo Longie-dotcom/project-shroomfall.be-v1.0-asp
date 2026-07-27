@@ -2,6 +2,7 @@
 using Application.Interfaces.Repository.NonRelational;
 using Application.Services.WorldService.Factory;
 using AutoMapper;
+using Domain.Abstraction;
 using Domain.Runtime.EntityDomain;
 using Domain.Snapshot.EntityDomain;
 
@@ -60,6 +61,14 @@ namespace Application.Services.WorldService.Persistence
             var entitySnapshotRepo = nonRelationalUoW.GetRepository<IEntitySnapshotRepository>();
             var snapshots = entities.Select(e => mapper.Map<EntitySnapshot>(e));
             await entitySnapshotRepo.UpdateManyAsync(snapshots);
+        }
+
+        public async Task DeleteMissingEntitiesInRoomAsync(
+            string roomSpatialId,
+            IEnumerable<string> activeEntityIds)
+        {
+            var entitySnapshotRepo = nonRelationalUoW.GetRepository<IEntitySnapshotRepository>();
+            await entitySnapshotRepo.DeleteMissingEntitiesInRoomAsync(roomSpatialId, activeEntityIds);
         }
         #endregion
     }
