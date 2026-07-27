@@ -151,7 +151,7 @@ namespace Application.Services.MetaService
                     actionState.ApplyCooldown(item.ID, MathF.Max(0f, modifiedCooldown));
 
                     // SUCCESS LOG
-                    Console.WriteLine($"[Server][Tick] SUCCESS -> Queued ItemActionCommand! Entity: {entity.ID} | Item: '{item.ID}' ({itemDef.ID}) | Action: {actionState.ItemUsageAction} | Cooldown Applied: {modifiedCooldown:F2}s");
+                    Console.WriteLine($"[Server][Tick] SUCCESS -> Queued ItemActionCommand! Entity: {entity.ID} | Item: '{item.ID}' ({itemDef.ID}) | Action: {actionState.ItemUsageAction} | Cooldown Reduction: {cdr} Cooldown Applied: {modifiedCooldown:F2}s");
 
                     // Clear the intent
                     actionState.ClearItemUseIntent();
