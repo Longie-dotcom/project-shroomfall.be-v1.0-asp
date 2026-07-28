@@ -1,4 +1,6 @@
-﻿using Application.Services.WorldService;
+﻿using Application.Interfaces.Realtime.Events;
+using Application.Interfaces.Realtime.Events.Game;
+using Application.Services.WorldService;
 using Application.Systems.Abstraction;
 using Application.Systems.Queue;
 using Contract.Enum.MetaDomain.Effect;
@@ -11,15 +13,18 @@ namespace Application.Services.EntityService
     {
         #region Attributes
         private readonly WorldContext worldContext;
+        private readonly IEventBus eventBus;
         #endregion
 
         #region Properties
         #endregion
 
         public TransformService(
-            WorldContext worldContext)
+            WorldContext worldContext, 
+            IEventBus eventBus)
         {
             this.worldContext = worldContext;
+            this.eventBus = eventBus;
         }
 
         #region Methods
@@ -28,15 +33,11 @@ namespace Application.Services.EntityService
             CommandBuffer commandBuffer)
         {
             var entities = worldContext.GetEntities().ToList();
-
             foreach (var entity in entities)
             {
                 var command = CreateMovementCommand(dt, entity);
-
                 if (command != null)
-                {
                     commandBuffer.Commands.Enqueue(command.Value);
-                }
             }
         }
 
@@ -58,16 +59,25 @@ namespace Application.Services.EntityService
 
             if (!transform.WantsToMove)
             {
-                // LOG 1: Fired when the entity is in IDLE or stopped moving
-                System.Console.WriteLine($"[TransformService] Entity {entity.ID} | WantsToMove: FALSE | Action: {transform.CurrentAction} | Facing: {transform.FacingDirection}");
+                if (transform.NeedsActionSync)
+                {
+                    eventBus.Publish(new EntityActedEvent(
+                        entity.ID,
+                        transform.RoomSpatialID,
+                        transform.Position,
+                        transform.FacingDirection,
+                        transform.CurrentAction,
+                        null
+                    ));
+
+                    transform.ClearActionSync(); 
+                }
+
                 return null;
             }
 
             float speed = characteristic.GetCore(AttributeType.MoveSpeed);
             var desired = transform.Position + transform.MovementVector * speed * dt;
-
-            // LOG 2: Fired when a movement command is actively generated
-            System.Console.WriteLine($"[TransformService] Entity {entity.ID} | MovementCommand Created | Pos: {transform.Position} -> Desired: {desired} | Dir: {transform.MovementVector}");
 
             var body = new CollisionBody(
                 entity.ID,

@@ -22,6 +22,7 @@ namespace Domain.Runtime.EntityDomain.Component
         public Vector2 MovementVector { get; private set; }
         public bool PositionChangedThisFrame { get; private set; }
         public bool IsActionLocked { get; private set; }
+        public bool NeedsActionSync { get; private set; }
         #endregion
 
         public TransformInstance(
@@ -40,26 +41,6 @@ namespace Domain.Runtime.EntityDomain.Component
         }
 
         #region Methods
-        public void ExecuteAction(
-            EntityAction action,
-            float lockDuration)
-        {
-            CurrentAction = action;
-            MovementVector = Vector2.Zero;
-            WantsToMove = false;
-
-            if (lockDuration > 0f)
-            {
-                IsActionLocked = true;
-            }
-        }
-
-        public void UnlockAction()
-        {
-            IsActionLocked = false;
-            CurrentAction = EntityAction.IDLE;
-        }
-
         public void SetMovementIntent(
             Vector2 inputVector)
         {
@@ -68,6 +49,11 @@ namespace Domain.Runtime.EntityDomain.Component
             // Check if the player cleared their inputs (Stopped moving)
             if (inputVector.LengthSquared() < 0.0001f)
             {
+                if (WantsToMove || CurrentAction != EntityAction.IDLE)
+                {
+                    NeedsActionSync = true;
+                }
+
                 MovementVector = Vector2.Zero;
                 WantsToMove = false;
                 CurrentAction = EntityAction.IDLE;
@@ -88,9 +74,12 @@ namespace Domain.Runtime.EntityDomain.Component
 
         public void ClearMovementIntent()
         {
-            MovementVector = Vector2.Zero;
-            WantsToMove = false;
-            CurrentAction = EntityAction.IDLE;
+            SetMovementIntent(Vector2.Zero);
+        }
+
+        public void ClearActionSync()
+        {
+            NeedsActionSync = false;
         }
 
         public void SetPosition(

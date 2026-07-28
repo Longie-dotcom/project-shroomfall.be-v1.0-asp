@@ -101,20 +101,22 @@ namespace Application.Services.EntityService
             EntityInstance entity,
             AIInstance ai)
         {
-            if (string.IsNullOrEmpty(ai.TargetEntityId))
-            {
-                ai.AIState = AIState.ReturnHome;
-                return;
-            }
-
             var movement = entity.GetComponent<TransformInstance>();
             if (movement == null || string.IsNullOrEmpty(ai.TargetEntityId))
                 return;
+
+            if (string.IsNullOrEmpty(ai.TargetEntityId))
+            {
+                movement.ClearMovementIntent();
+                ai.AIState = AIState.ReturnHome;
+                return;
+            }
 
             var target = worldContext.GetEntity(ai.TargetEntityId);
             var targetTransform = target?.GetComponent<TransformInstance>();
             if (target == null || targetTransform == null)
             {
+                movement.ClearMovementIntent();
                 ai.AIState = AIState.ReturnHome;
                 return;
             }
@@ -125,6 +127,7 @@ namespace Application.Services.EntityService
             {
                 ai.TargetEntityId = null;
                 ai.AIState = AIState.ReturnHome;
+                movement.ClearMovementIntent();
                 return;
             }
 
@@ -133,7 +136,7 @@ namespace Application.Services.EntityService
             if (distance <= attackRange)
             {
                 ai.AIState = AIState.Attack;
-                movement?.SetMovementIntent(Vector2.Zero); // Stop moving to attack
+                movement.ClearMovementIntent();
                 return;
             }
 
@@ -145,18 +148,18 @@ namespace Application.Services.EntityService
             EntityInstance entity,
             AIInstance ai)
         {
-            ai.AttackTimer -= dt;
-            if (ai.AttackTimer > 0) return;
-            if (string.IsNullOrEmpty(ai.TargetEntityId))
+
+            var transform = entity.GetComponent<TransformInstance>();
+            if (transform == null || string.IsNullOrEmpty(ai.TargetEntityId))
             {
                 ai.AIState = AIState.ReturnHome;
                 return;
             }
 
             var target = worldContext.GetEntity(ai.TargetEntityId);
-            var transform = entity.GetComponent<TransformInstance>();
-            if (target == null || transform == null)
+            if (target == null)
             {
+                transform.ClearMovementIntent();
                 ai.AIState = AIState.ReturnHome;
                 return;
             }
@@ -164,12 +167,17 @@ namespace Application.Services.EntityService
             var targetTransform = target.GetComponent<TransformInstance>();
             if (targetTransform == null)
             {
+                transform.ClearMovementIntent();
                 ai.AIState = AIState.ReturnHome;
                 return;
             }
 
             // 1. Stop moving when preparing/executing the attack
-            transform.SetMovementIntent(Vector2.Zero);
+            transform.ClearMovementIntent();
+
+            ai.AttackTimer -= dt;
+            if (ai.AttackTimer > 0)
+                return;
 
             // 2. Trigger the item action if the AI has an item equipped
             if (!string.IsNullOrEmpty(ai.EquippedItemDefinitionID))

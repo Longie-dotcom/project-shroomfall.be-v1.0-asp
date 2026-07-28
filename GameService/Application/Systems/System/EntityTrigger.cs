@@ -83,16 +83,13 @@ namespace Application.Systems.System
             if (transform == null)
                 return;
 
-            // Remember whether the entity was moving before this frame
-            bool wasMoving = transform.WantsToMove;
-
             // Apply authoritative movement
             worldContext.EntityMove(
                 entity.ID,
                 result.FinalPosition,
                 result.LayerZ);
 
-            // Publish movement update if position changed
+            // Publish active movement position update
             if (transform.PositionChangedThisFrame)
             {
                 eventBus.Publish(new EntityActedEvent(
@@ -103,25 +100,6 @@ namespace Application.Systems.System
                     transform.CurrentAction,
                     null
                 ));
-            }
-
-            // AI movement lasts only one tick, so clear it
-            if (entity.GetComponent<AIInstance>() != null)
-            {
-                transform.ClearMovementIntent();
-
-                // Send one final IDLE packet so clients stop interpolating
-                if (wasMoving)
-                {
-                    eventBus.Publish(new EntityActedEvent(
-                        entity.ID,
-                        transform.RoomSpatialID,
-                        transform.Position,
-                        transform.FacingDirection,
-                        transform.CurrentAction,
-                        null
-                    ));
-                }
             }
 
             foreach (var touched in result.TriggeredEntities)
