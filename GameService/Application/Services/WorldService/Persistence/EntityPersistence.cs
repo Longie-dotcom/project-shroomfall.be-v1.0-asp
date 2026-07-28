@@ -55,11 +55,13 @@ namespace Application.Services.WorldService.Persistence
             return snapshots.Select(x => entityInstanceFactory.Rehydrate(x)).ToList();
         }
 
-        public async Task SaveManyAsync(
-            IEnumerable<EntityInstance> entities)
+        public async Task SaveManyAsync(IEnumerable<EntityInstance> entities)
         {
+            var snapshots = entities.Select(e => mapper.Map<EntitySnapshot>(e)).ToList();
+            if (snapshots.Count == 0)
+                return;
+
             var entitySnapshotRepo = nonRelationalUoW.GetRepository<IEntitySnapshotRepository>();
-            var snapshots = entities.Select(e => mapper.Map<EntitySnapshot>(e));
             await entitySnapshotRepo.UpdateManyAsync(snapshots);
         }
 
