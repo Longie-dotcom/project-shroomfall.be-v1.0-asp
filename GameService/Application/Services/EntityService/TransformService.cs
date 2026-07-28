@@ -49,6 +49,8 @@ namespace Application.Services.EntityService
             if (transform == null)
                 return null;
 
+            transform.TickActionLock(dt);
+
             var characteristic = entity.GetComponent<CharacteristicInstance>();
             if (characteristic == null)
                 return null;
@@ -67,7 +69,7 @@ namespace Application.Services.EntityService
                         transform.Position,
                         transform.FacingDirection,
                         transform.CurrentAction,
-                        null
+                        transform.ActiveItemDefinitionID
                     ));
 
                     transform.ClearActionSync(); 

@@ -5,7 +5,6 @@ using Application.Services.MetaService;
 using Application.Services.WorldService;
 using Application.Services.WorldService.Creation;
 using Application.Systems.Queue;
-using Contract.Enum.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
 
 namespace Application.Systems.System
@@ -134,16 +133,9 @@ namespace Application.Systems.System
             var transform = entity.GetComponent<TransformInstance>();
             if (transform != null && result.Context.ItemDef.TriggeredAction.HasValue)
             {
-                eventBus.Publish(new EntityActedEvent(
-                    entity.ID,
-                    transform.RoomSpatialID,
-                    transform.Position,
-                    transform.FacingDirection,
+                transform.ExecuteAction(
                     result.Context.ItemDef.TriggeredAction.Value,
-                    result.Context.ItemDef.ID
-                ));
-
-                transform.ClearMovementIntent();
+                    result.Context.ItemDef.ID);
             }
         }
 

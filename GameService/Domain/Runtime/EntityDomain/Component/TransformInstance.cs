@@ -19,9 +19,11 @@ namespace Domain.Runtime.EntityDomain.Component
         public EntityAction CurrentAction { get; private set; }
 
         public bool WantsToMove { get; private set; }
+        public string? ActiveItemDefinitionID { get; private set; }
         public Vector2 MovementVector { get; private set; }
         public bool PositionChangedThisFrame { get; private set; }
-        public bool IsActionLocked { get; private set; }
+        public float ActionLockTimer { get; private set; }
+        public bool IsActionLocked => ActionLockTimer > 0f;
         public bool NeedsActionSync { get; private set; }
         #endregion
 
@@ -41,22 +43,52 @@ namespace Domain.Runtime.EntityDomain.Component
         }
 
         #region Methods
+        public void ExecuteAction(
+            EntityAction action,
+            string? itemDefinitionId = null,
+            float lockDuration = 0f)
+        {
+            NeedsActionSync = true;
+            MovementVector = Vector2.Zero;
+            WantsToMove = false;
+            CurrentAction = action;
+            ActiveItemDefinitionID = itemDefinitionId;
+            ActionLockTimer = lockDuration;
+        }
+
+        public void TickActionLock(
+            float dt)
+        {
+            if (ActionLockTimer <= 0f)
+                return;
+
+            ActionLockTimer -= dt;
+
+            if (ActionLockTimer <= 0f)
+            {
+                NeedsActionSync = true;
+                CurrentAction = EntityAction.IDLE;
+                ActiveItemDefinitionID = null;
+                ActionLockTimer = 0f;
+            }
+        }
+
         public void SetMovementIntent(
             Vector2 inputVector)
         {
-            if (IsActionLocked) return;
+            if (IsActionLocked) 
+                return;
 
             // Check if the player cleared their inputs (Stopped moving)
             if (inputVector.LengthSquared() < 0.0001f)
             {
                 if (WantsToMove || CurrentAction != EntityAction.IDLE)
-                {
                     NeedsActionSync = true;
-                }
 
                 MovementVector = Vector2.Zero;
                 WantsToMove = false;
                 CurrentAction = EntityAction.IDLE;
+                ActiveItemDefinitionID = null;
                 return;
             }
 
@@ -67,8 +99,7 @@ namespace Domain.Runtime.EntityDomain.Component
             MovementVector = Vector2.Normalize(inputVector);
             WantsToMove = true;
             CurrentAction = EntityAction.RUN;
-
-            // Server-side Direction Derivation
+            ActiveItemDefinitionID = null;
             FacingDirection = Vector2ToDirection(MovementVector, FacingDirection);
         }
 
@@ -88,7 +119,6 @@ namespace Domain.Runtime.EntityDomain.Component
         {
             // Check if the new position actually shifts away from old coordinates
             PositionChangedThisFrame = (Position - position).LengthSquared() > 0.0001f;
-
             Position = position;
             LayerZ = layerZ;
         }
