@@ -59,6 +59,8 @@ namespace Application.Services.EntityService
             if (collision == null)
                 return null;
 
+            // Handles synchronization for stationary actions (IDLE, SWING, SHOOT, ...).
+            // Active movement (RUN) is handled separately by the movement/physics pipeline.
             if (!transform.WantsToMove)
             {
                 if (transform.NeedsActionSync)

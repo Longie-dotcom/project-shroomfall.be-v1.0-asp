@@ -51,7 +51,7 @@ namespace Domain.Runtime.EntityDomain.Component
             NeedsActionSync = true;
             MovementVector = Vector2.Zero;
             WantsToMove = false;
-            CurrentAction = action;
+            CurrentAction = action; // Sync Action
             ActiveItemDefinitionID = itemDefinitionId;
             ActionLockTimer = lockDuration;
         }
@@ -67,7 +67,7 @@ namespace Domain.Runtime.EntityDomain.Component
             if (ActionLockTimer <= 0f)
             {
                 NeedsActionSync = true;
-                CurrentAction = EntityAction.IDLE;
+                CurrentAction = EntityAction.IDLE; // Sync Action
                 ActiveItemDefinitionID = null;
                 ActionLockTimer = 0f;
             }
@@ -76,18 +76,16 @@ namespace Domain.Runtime.EntityDomain.Component
         public void SetMovementIntent(
             Vector2 inputVector)
         {
-            if (IsActionLocked) 
+            if (IsActionLocked)
                 return;
 
             // Check if the player cleared their inputs (Stopped moving)
             if (inputVector.LengthSquared() < 0.0001f)
             {
-                if (WantsToMove || CurrentAction != EntityAction.IDLE)
-                    NeedsActionSync = true;
-
+                NeedsActionSync = true;
                 MovementVector = Vector2.Zero;
                 WantsToMove = false;
-                CurrentAction = EntityAction.IDLE;
+                CurrentAction = EntityAction.IDLE; // Sync Action
                 ActiveItemDefinitionID = null;
                 return;
             }
