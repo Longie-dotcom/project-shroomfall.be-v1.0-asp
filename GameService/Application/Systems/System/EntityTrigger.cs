@@ -142,6 +142,8 @@ namespace Application.Systems.System
                     result.Context.ItemDef.TriggeredAction.Value,
                     result.Context.ItemDef.ID
                 ));
+
+                transform.ClearActionSync();
             }
         }
 
