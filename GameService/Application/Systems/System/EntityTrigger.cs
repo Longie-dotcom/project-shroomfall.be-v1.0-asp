@@ -5,6 +5,7 @@ using Application.Services.MetaService;
 using Application.Services.WorldService;
 using Application.Services.WorldService.Creation;
 using Application.Systems.Queue;
+using Contract;
 using Domain.Runtime.EntityDomain.Component;
 
 namespace Application.Systems.System
@@ -135,7 +136,8 @@ namespace Application.Systems.System
             {
                 transform.ExecuteAction(
                     result.Context.ItemDef.TriggeredAction.Value,
-                    result.Context.ItemDef.ID);
+                    result.Context.ItemDef.ID,
+                    Constraint.LOCK_ACTION_DURATION);
             }
         }
 
