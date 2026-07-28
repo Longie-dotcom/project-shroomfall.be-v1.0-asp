@@ -143,7 +143,7 @@ namespace Application.Systems.System
                     result.Context.ItemDef.ID
                 ));
 
-                transform.ClearActionSync();
+                transform.ClearMovementIntent();
             }
         }
 
