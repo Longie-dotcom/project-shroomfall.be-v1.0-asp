@@ -41,7 +41,7 @@ namespace Application.Services.WorldService.Persistence
         {
             await roomPersistence.SaveAsync(instance.Room);
 
-            if (instance.Entities != null && instance.Entities.Any())
+            if (instance.Entities != null)
             {
                 await entityPersistence.SaveManyAsync(instance.Entities);
                 await entityPersistence.DeleteMissingUnownedEntitiesInRoomAsync(instance.Room.ID, instance.Entities.Select(e => e.ID).ToList());
