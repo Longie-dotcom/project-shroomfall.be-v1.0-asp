@@ -138,6 +138,53 @@ namespace Application.Services.EntityService
         }
 
         /// <summary>
+        /// Equips an item on an entity and notifies the frontend of updated states
+        /// for both the newly equipped item and any swapped-out item.
+        /// </summary>
+        public ItemInstance? EquipItem(
+            EntityInstance entity,
+            ItemInstance item,
+            EquipmentSlot slot)
+        {
+            var inventory = entity.GetComponent<InventoryInstance>();
+            if (inventory == null)
+                return null;
+
+            var unequippedItem = inventory.Equip(item, slot);
+
+            // Notify UI for the newly equipped item
+            eventBus.Publish(new InventoryItemChangedEvent(entity.ID, item, ItemInventorySyncEvent.Updated));
+
+            // Notify UI for the unequipped/swapped item if one existed
+            if (unequippedItem != null)
+            {
+                eventBus.Publish(new InventoryItemChangedEvent(entity.ID, unequippedItem, ItemInventorySyncEvent.Updated));
+            }
+
+            return unequippedItem;
+        }
+
+        /// <summary>
+        /// Unequips an item from the given slot on an entity and notifies the frontend.
+        /// </summary>
+        public ItemInstance? UnequipItem(
+            EntityInstance entity,
+            EquipmentSlot slot)
+        {
+            var inventory = entity.GetComponent<InventoryInstance>();
+            if (inventory == null)
+                return null;
+
+            var unequippedItem = inventory.Unequip(slot);
+            if (unequippedItem != null)
+            {
+                eventBus.Publish(new InventoryItemChangedEvent(entity.ID, unequippedItem, ItemInventorySyncEvent.Updated));
+            }
+
+            return unequippedItem;
+        }
+
+        /// <summary>
         /// Removes an exact reference of an item stack entirely from an entity's inventory.
         /// </summary>
         public ItemInstance RemoveItem(

@@ -27,12 +27,6 @@ namespace Domain.Runtime.EntityDomain.Component
         }
 
         #region Methods
-        public void AddItems(
-            List<ItemInstance> items)
-        {
-            Items.AddRange(items);
-        }
-
         public ItemInstance? GetEquipped(
             EquipmentSlot slot)
         {
@@ -44,31 +38,48 @@ namespace Domain.Runtime.EntityDomain.Component
             return equippedCache;
         }
 
-        public void Equip(
-            ItemInstance item, 
+        /// <summary>
+        /// Equips an item into the specified slot.
+        /// If an item was already equipped in that slot, it is unequipped and returned so the caller can publish sync events.
+        /// </summary>
+        /// <returns>The unequipped/swapped item, or null if the slot was empty.</returns>
+        public ItemInstance? Equip(
+            ItemInstance item,
             EquipmentSlot slot)
         {
             if (!Items.Contains(item))
-                return;
+                return null;
 
-            // If a different item is already in this slot, it must be forcefully un-tagged first
+            ItemInstance? unequippedItem = null;
+
+            // If a different item is already in this slot, untag and store reference
             if (equippedCache.TryGetValue(slot, out var existingItem))
             {
                 existingItem.SetEquippedState(null);
+                unequippedItem = existingItem;
             }
 
             // Tag the new item and update the cache
             item.SetEquippedState(slot);
             equippedCache[slot] = item;
+
+            return unequippedItem;
         }
 
-        public void Unequip(
+        /// <summary>
+        /// Unequips the item from the target slot.
+        /// </summary>
+        /// <returns>The unequipped item instance, or null if nothing was equipped in that slot.</returns>
+        public ItemInstance? Unequip(
             EquipmentSlot slot)
         {
             if (equippedCache.Remove(slot, out var item))
             {
                 item.SetEquippedState(null);
+                return item;
             }
+
+            return null;
         }
         #endregion
     }

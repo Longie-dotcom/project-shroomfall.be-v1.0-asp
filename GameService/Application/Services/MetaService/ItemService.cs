@@ -266,7 +266,7 @@ namespace Application.Services.MetaService
             }
 
             // Equip the new item
-            inventory.Equip(item, slot);
+            inventoryService.EquipItem(entity, item, slot);
         }
 
         private void ExecuteUnequip(
@@ -300,7 +300,7 @@ namespace Application.Services.MetaService
                 }
             }
 
-            inventory.Unequip(slot);
+            inventoryService.UnequipItem(entity, slot);
         }
 
         private void ExecutePlaceable(
