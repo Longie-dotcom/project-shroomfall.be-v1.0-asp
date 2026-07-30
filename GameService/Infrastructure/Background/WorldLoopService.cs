@@ -6,6 +6,7 @@ using Application.Systems.System;
 using Contract;
 using Domain.DomainException;
 using Microsoft.Extensions.Hosting;
+using ResponseCode;
 
 namespace Infrastructure.Background
 {
@@ -108,7 +109,7 @@ namespace Infrastructure.Background
 
                         default:
                             telemetryQueue.EnqueueAlert(
-                                "world.loop.unhandled",
+                                InfrastructureCode.WorldLoopServiceCode.UnhandleException,
                                 ex.Message,
                                 TelemetrySeverity.Fatal);
 
