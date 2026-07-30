@@ -247,14 +247,14 @@ namespace Application.Services.MetaService
             if (inventory == null)
                 return;
 
-            var slot = config.Slot;
-            if (inventory.GetEquipped(slot) != null)
-                ExecuteUnequip(entity, slot);
+            var unequippedItem = inventoryService.EquipItem(entity, item, config.Slot);
+            if (unequippedItem != null)
+                RemoveItemEffects(entity, unequippedItem);
 
             foreach (var effectId in config.EffectDefinitionIDs)
             {
                 var effectDef = cacheProvider.Effect.Get(effectId);
-                if (effectDef == null) 
+                if (effectDef == null)
                     continue;
 
                 effectService.ApplyEffect(new EffectContext()
@@ -264,43 +264,22 @@ namespace Application.Services.MetaService
                     Effect = effectDef,
                 });
             }
-
-            // Equip the new item
-            inventoryService.EquipItem(entity, item, slot);
         }
 
         private void ExecuteUnequip(
-            EntityInstance entity,
-            EquipmentSlot slot)
+                    EntityInstance entity,
+                    EquipmentSlot slot)
         {
-            var inventory = entity.GetComponent<InventoryInstance>();
-            if (inventory == null)
-                return;
-
-            var equippedItem = inventory.GetEquipped(slot);
-            if (equippedItem == null)
-                return;
-
-            // Directly remove the equipment's effects if they exist
-            var itemDef = cacheProvider.Item.Get(equippedItem.DefinitionID);
-            if (itemDef?.EquippableConfig?.EffectDefinitionIDs != null)
+            var unequippedItem = inventoryService.UnequipItem(entity, slot);
+            if (unequippedItem != null)
             {
-                foreach (var effectId in itemDef.EquippableConfig.EffectDefinitionIDs)
-                {
-                    var effectDef = cacheProvider.Effect.Get(effectId);
-                    if (effectDef == null)
-                        continue;
-
-                    effectService.RemoveEffect(new EffectContext()
-                    {
-                        Target = entity,
-                        Source = null,
-                        Effect = effectDef,
-                    });
-                }
+                Console.WriteLine($"[ExecuteUnequip] Successfully unequipped item {unequippedItem.ID} from slot {slot} for entity {entity.ID}");
+                RemoveItemEffects(entity, unequippedItem);
             }
-
-            inventoryService.UnequipItem(entity, slot);
+            else
+            {
+                Console.WriteLine($"[ExecuteUnequip] Failed to unequip: Slot {slot} was already empty for entity {entity.ID}");
+            }
         }
 
         private void ExecutePlaceable(
@@ -484,6 +463,29 @@ namespace Application.Services.MetaService
             Vector2 projectileSpawnPos = casterCenter + (finalDirection * spawnOffsetDist);
 
             return (projectileSpawnPos, finalDirection);
+        }
+
+        private void RemoveItemEffects(
+            EntityInstance entity,
+            ItemInstance item)
+        {
+            var itemDef = cacheProvider.Item.Get(item.DefinitionID);
+            if (itemDef?.EquippableConfig?.EffectDefinitionIDs != null)
+            {
+                foreach (var effectId in itemDef.EquippableConfig.EffectDefinitionIDs)
+                {
+                    var effectDef = cacheProvider.Effect.Get(effectId);
+                    if (effectDef == null)
+                        continue;
+
+                    effectService.RemoveEffect(new EffectContext()
+                    {
+                        Target = entity,
+                        Source = null,
+                        Effect = effectDef,
+                    });
+                }
+            }
         }
         #endregion
     }
