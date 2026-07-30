@@ -112,7 +112,7 @@ namespace Application.Services.EntityService
                 new Vector2(Random.Shared.NextSingle() - 0.5f, Random.Shared.NextSingle() - 0.5f));
 
             movement.SetMovementIntent(randomDirection);
-            Console.WriteLine($"[AIService - Wander] Entity '{entity.ID}' wandering towards Direction: {randomDirection}");
+            Console.WriteLine($"[AIService - Wander] Entity '{entity.ID}' wandering towards Direction: {randomDirection.X}: {randomDirection.Y}");
         }
 
         private void TickChase(
