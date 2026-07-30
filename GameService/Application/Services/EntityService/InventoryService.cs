@@ -168,25 +168,17 @@ namespace Application.Services.EntityService
         /// Unequips an item from the given slot on an entity and notifies the frontend.
         /// </summary>
         public ItemInstance? UnequipItem(
-                    EntityInstance entity,
-                    EquipmentSlot slot)
+            EntityInstance entity,
+            EquipmentSlot slot)
         {
             var inventory = entity.GetComponent<InventoryInstance>();
             if (inventory == null)
-            {
-                Console.WriteLine($"[UnequipItem] Failed: InventoryInstance component not found on entity {entity.ID}");
                 return null;
-            }
 
             var unequippedItem = inventory.Unequip(slot);
             if (unequippedItem != null)
             {
-                Console.WriteLine($"[UnequipItem] Publishing InventoryItemChangedEvent (Updated) for item {unequippedItem.ID} on entity {entity.ID}");
                 eventBus.Publish(new InventoryItemChangedEvent(entity.ID, unequippedItem, ItemInventorySyncEvent.Updated));
-            }
-            else
-            {
-                Console.WriteLine($"[UnequipItem] Inventory.Unequip returned null for slot {slot} on entity {entity.ID}");
             }
 
             return unequippedItem;

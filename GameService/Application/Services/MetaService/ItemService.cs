@@ -267,19 +267,12 @@ namespace Application.Services.MetaService
         }
 
         private void ExecuteUnequip(
-                    EntityInstance entity,
-                    EquipmentSlot slot)
+            EntityInstance entity,
+            EquipmentSlot slot)
         {
             var unequippedItem = inventoryService.UnequipItem(entity, slot);
             if (unequippedItem != null)
-            {
-                Console.WriteLine($"[ExecuteUnequip] Successfully unequipped item {unequippedItem.ID} from slot {slot} for entity {entity.ID}");
                 RemoveItemEffects(entity, unequippedItem);
-            }
-            else
-            {
-                Console.WriteLine($"[ExecuteUnequip] Failed to unequip: Slot {slot} was already empty for entity {entity.ID}");
-            }
         }
 
         private void ExecutePlaceable(
