@@ -92,6 +92,10 @@ namespace Application.Features.Design.Handlers
                 await repo.AddAsync(newRoom);
                 await localizationEntryFactory.PreSavePlaceholderKeysAsync(localizedText);
             }
+            else
+            {
+                existingRoom.UpdateFields(dto.Type);
+            }
 
             // Map Child Collections directly using your shared project DTOs
             var domainCells = payload.Cells.Select(c => new Cell(

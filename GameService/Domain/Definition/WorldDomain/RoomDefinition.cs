@@ -31,6 +31,11 @@ namespace Domain.Definition.WorldDomain
         }
 
         #region Methods
+        public void UpdateFields(
+            RoomType roomType)
+        {
+            Type = roomType;
+        }
         #endregion
     }
 
