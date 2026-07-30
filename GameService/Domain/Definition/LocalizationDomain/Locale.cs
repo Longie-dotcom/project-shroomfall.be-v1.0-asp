@@ -25,7 +25,7 @@ namespace Domain.Definition.LocalizationDomain
             bool isDefault = false,
             bool isEnabled = true)
         {
-            Code = code.Trim().ToLowerInvariant();
+            Code = code;
             Name = name;
             IsDefault = isDefault;
             IsEnabled = isEnabled;
