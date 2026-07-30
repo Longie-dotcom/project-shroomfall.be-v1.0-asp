@@ -9,20 +9,15 @@ namespace Domain.Runtime.EntityDomain.Component
         #endregion
 
         #region Properties
-        // State Management
         public AIState AIState { get; set; } = AIState.Idle;
         public string? TargetEntityId { get; set; }
         public bool IsAIControlled { get; set; } = true;
-
-        // Timers (To keep AI performance efficient)
         public float ThinkCooldownRemaining { get; set; }
         public float AttackTimer { get; set; }
-
-        // Configuration (Behavioral limits)
         public float LeashDistance { get; set; } = 10.0f;
         public float AggroRadius { get; set; } = 5.0f;
-        // Attack
         public string EquippedItemDefinitionID { get; private set; }
+        public float ThinkInterval { get; set; }
         public float AttackRange { get; private set; }
         #endregion
 
@@ -38,6 +33,7 @@ namespace Domain.Runtime.EntityDomain.Component
             LeashDistance = leashDistance;
             AggroRadius = aggroRadius;
             IsAIControlled = isAIControlled;
+            ThinkInterval = thinkInterval;
             ThinkCooldownRemaining = thinkInterval;
             EquippedItemDefinitionID = equippedItemDefinitionId;
             AttackRange = attackRange;

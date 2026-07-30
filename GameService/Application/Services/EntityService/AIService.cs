@@ -42,14 +42,14 @@ namespace Application.Services.EntityService
                 if (ai.ThinkCooldownRemaining > 0)
                     continue;
 
-                ai.ThinkCooldownRemaining = 0.25f;
+                ai.ThinkCooldownRemaining = ai.ThinkInterval;
 
                 Console.WriteLine($"[AIService] Entity '{entity.ID}' processing state: {ai.AIState}");
 
                 switch (ai.AIState)
                 {
                     case AIState.Idle: TickIdle(entity, ai); break;
-                    case AIState.Wander: TickWander(entity); break;
+                    case AIState.Wander: TickWander(entity, ai); break;
                     case AIState.Chase: TickChase(entity, ai); break;
                     case AIState.Attack: TickAttack(dt, entity, ai); break;
                     default:
@@ -57,6 +57,34 @@ namespace Application.Services.EntityService
                         break;
                 }
             }
+        }
+
+        // NEW: Extracted target finding logic so both Idle and Wander can use it
+        private bool TryFindPlayer(EntityInstance entity, AIInstance ai, TransformInstance transform)
+        {
+            var detectionShape = new CircleShape(ai.AggroRadius, isBlocking: false);
+
+            var body = new CollisionBody(
+                entity.ID,
+                transform.RoomSpatialID,
+                transform.Position,
+                new Vector2(0, 0),
+                transform.LayerZ,
+                detectionShape,
+                CollisionLayer.None,
+                CollisionLayer.Player);
+
+            var collision = collisionService.QueryOverlap(body, transform.Position);
+
+            Console.WriteLine($"[AIService - Vision] Entity '{entity.ID}' queried player collision at {transform.Position} (Radius: {ai.AggroRadius}). Detected {collision.Entities.Count} entities.");
+
+            foreach (var hit in collision.Entities)
+            {
+                ai.TargetEntityId = hit.ID;
+                return true;
+            }
+
+            return false;
         }
 
         private void TickIdle(
@@ -70,27 +98,11 @@ namespace Application.Services.EntityService
                 return;
             }
 
-            var detectionShape = new CircleShape(ai.AggroRadius, isBlocking: false);
-
-            var body = new CollisionBody(
-                entity.ID,
-                transform.RoomSpatialID,
-                transform.Position,
-                new Vector2(0, 0),
-                transform.LayerZ,
-                detectionShape,
-                CollisionLayer.None,
-                CollisionLayer.Player); // Follow player only
-
-            var collision = collisionService.QueryOverlap(body, transform.Position);
-
-            Console.WriteLine($"[AIService - Idle] Entity '{entity.ID}' queried player collision at {transform.Position} (Radius: {ai.AggroRadius}). Detected {collision.Entities.Count} entities.");
-
-            foreach (var hit in collision.Entities)
+            // Check for player
+            if (TryFindPlayer(entity, ai, transform))
             {
-                ai.TargetEntityId = hit.ID;
                 ai.AIState = AIState.Chase;
-                Console.WriteLine($"[AIService - Idle] Entity '{entity.ID}' detected Player target '{hit.ID}'! Changing state to Chase.");
+                Console.WriteLine($"[AIService - Idle] Entity '{entity.ID}' detected Player target '{ai.TargetEntityId}'! Changing state to Chase.");
                 return;
             }
 
@@ -99,7 +111,8 @@ namespace Application.Services.EntityService
         }
 
         private void TickWander(
-            EntityInstance entity)
+            EntityInstance entity,
+            AIInstance ai) // Added AIInstance parameter
         {
             var movement = entity.GetComponent<TransformInstance>();
             if (movement == null)
@@ -108,11 +121,23 @@ namespace Application.Services.EntityService
                 return;
             }
 
+            // 1. Check for the player while wandering!
+            if (TryFindPlayer(entity, ai, movement))
+            {
+                ai.AIState = AIState.Chase;
+                Console.WriteLine($"[AIService - Wander] Entity '{entity.ID}' detected Player while wandering! Changing state to Chase.");
+                return;
+            }
+
+            // 2. If no player, wander
             Vector2 randomDirection = Vector2.Normalize(
                 new Vector2(Random.Shared.NextSingle() - 0.5f, Random.Shared.NextSingle() - 0.5f));
 
             movement.SetMovementIntent(randomDirection);
-            Console.WriteLine($"[AIService - Wander] Entity '{entity.ID}' wandering towards Direction: {randomDirection.X}: {randomDirection.Y}");
+            Console.WriteLine($"[AIService - Wander] Entity '{entity.ID}' wandering towards Direction: {randomDirection.X:F2}: {randomDirection.Y:F2}");
+
+            // 3. Return to idle so it stops and looks around next tick, rather than getting stuck in Wander
+            ai.AIState = AIState.Idle;
         }
 
         private void TickChase(
@@ -133,7 +158,7 @@ namespace Application.Services.EntityService
                 Console.WriteLine($"[AIService - Chase] Entity '{entity.ID}' target '{ai.TargetEntityId}' not found in world context or missing TransformInstance. Returning Home.");
                 movement.ClearMovementIntent();
                 ai.TargetEntityId = null;
-                ai.AIState = AIState.ReturnHome;
+                ai.AIState = AIState.Idle; // Changed to Idle instead of ReturnHome unless you have a specific ReturnHome state logic
                 return;
             }
 
@@ -142,9 +167,9 @@ namespace Application.Services.EntityService
 
             if (distance > ai.LeashDistance)
             {
-                Console.WriteLine($"[AIService - Chase] Entity '{entity.ID}' target exceeded LeashDistance. Losing aggro and Returning Home.");
+                Console.WriteLine($"[AIService - Chase] Entity '{entity.ID}' target exceeded LeashDistance. Losing aggro and going Idle.");
                 ai.TargetEntityId = null;
-                ai.AIState = AIState.ReturnHome;
+                ai.AIState = AIState.Idle; // Changed to Idle
                 movement.ClearMovementIntent();
                 return;
             }
@@ -172,25 +197,25 @@ namespace Application.Services.EntityService
             if (transform == null || string.IsNullOrEmpty(ai.TargetEntityId))
             {
                 Console.WriteLine($"[AIService - Attack] Entity '{entity.ID}' missing TransformInstance or TargetEntityId is null.");
-                ai.AIState = AIState.ReturnHome;
+                ai.AIState = AIState.Idle;
                 return;
             }
 
             var target = worldContext.GetEntity(ai.TargetEntityId);
             if (target == null)
             {
-                Console.WriteLine($"[AIService - Attack] Entity '{entity.ID}' target null. Returning Home.");
+                Console.WriteLine($"[AIService - Attack] Entity '{entity.ID}' target null. Going Idle.");
                 transform.ClearMovementIntent();
-                ai.AIState = AIState.ReturnHome;
+                ai.AIState = AIState.Idle;
                 return;
             }
 
             var targetTransform = target.GetComponent<TransformInstance>();
             if (targetTransform == null)
             {
-                Console.WriteLine($"[AIService - Attack] Entity '{entity.ID}' target missing TransformInstance. Returning Home.");
+                Console.WriteLine($"[AIService - Attack] Entity '{entity.ID}' target missing TransformInstance. Going Idle.");
                 transform.ClearMovementIntent();
-                ai.AIState = AIState.ReturnHome;
+                ai.AIState = AIState.Idle;
                 return;
             }
 
