@@ -82,7 +82,13 @@ namespace Application.Services.MetaService
 
                 var actionState = entity.GetComponent<ActionInstance>();
                 if (actionState == null)
-                    continue; 
+                    continue;
+
+                if (!actionState.CanUseItems)
+                {
+                    actionState.ClearItemUseIntent();
+                    return;
+                }
 
                 // 1. Update active cooldown timers on the instance
                 if (actionState.ActiveCooldowns.Count > 0)

@@ -20,6 +20,7 @@ using Application.Services.WorldService.Creation;
 using Application.Services.WorldService.Factory;
 using Application.Services.WorldService.Factory.Component;
 using Application.Services.WorldService.Persistence;
+using Application.Services.WorldService.Run;
 using Application.Systems.Queue;
 using Application.Systems.System;
 using Contract.DTO.Common;
@@ -146,6 +147,8 @@ namespace Application
             services.AddScoped<EntityPersistence>();
             services.AddScoped<RoomPersistence>();
             services.AddScoped<SnapshotPersistence>();
+
+            services.AddSingleton<CombatRunService>();
 
             services.AddSingleton<BootstrapService>();
             services.AddSingleton<PartyService<CombatRunInstance, CombatRunParticipant>>();

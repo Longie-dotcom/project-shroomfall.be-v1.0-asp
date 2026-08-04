@@ -23,31 +23,36 @@ namespace Domain.Runtime.WorldDomain.Run
             string id,
             string combatRunDefinitionId,
             string leaderEntityInstanceId,
-            IEnumerable<string> playerEntityInstanceIds)
+            IEnumerable<string> playerEntityInstanceIds,
+            string initialRoomSpatialId)
         {
             ID = id;
             CombatRunDefinitionID = combatRunDefinitionId;
             LeaderEntityInstanceID = leaderEntityInstanceId;
+            CurrentRoomSpatialID = initialRoomSpatialId;
+
             participants = playerEntityInstanceIds.ToDictionary(
-                id => id,
-                id => new CombatRunParticipant(id));
+                pId => pId,
+                pId => new CombatRunParticipant(pId));
 
             CurrentLevel = 1;
-            CurrentRoomSpatialID = string.Empty;
-            Status = CombatRunStatus.Waiting;
-        }
-
-        #region Methods
-        public void Start(
-            string roomSpatialId)
-        {
-            CurrentRoomSpatialID = roomSpatialId;
             Status = CombatRunStatus.InProgress;
         }
 
-        public void AdvanceFloor(
-            string nextRoomSpatialId)
+        #region Methods
+        public void AddParticipant(
+            string entityInstanceId)
         {
+            if (!participants.ContainsKey(entityInstanceId))
+            {
+                participants.Add(entityInstanceId, new CombatRunParticipant(entityInstanceId));
+            }
+        }
+
+        public void AdvanceFloor(string nextRoomSpatialId)
+        {
+            if (Status != CombatRunStatus.InProgress) return;
+
             CurrentLevel++;
             CurrentRoomSpatialID = nextRoomSpatialId;
         }
@@ -57,9 +62,12 @@ namespace Domain.Runtime.WorldDomain.Run
             Status = CombatRunStatus.Completed;
         }
 
-        public void Fail()
+        public void CheckFail()
         {
-            Status = CombatRunStatus.Failed;
+            if (participants.Values.All(p => p.Mode == CombatRunParticipantMode.Spectator))
+            {
+                Status = CombatRunStatus.Failed;
+            }
         }
         #endregion
     }

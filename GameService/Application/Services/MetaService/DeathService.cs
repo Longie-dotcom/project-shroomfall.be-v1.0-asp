@@ -1,8 +1,7 @@
-﻿using Application.Services.WorldService;
+﻿using Application.Services.WorldService.Run;
 using Contract.Enum.MetaDomain.Effect;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
-using Domain.Runtime.WorldDomain.Run;
 
 namespace Application.Services.MetaService
 {
@@ -10,22 +9,22 @@ namespace Application.Services.MetaService
     {
         None,
         Entity,
-        Player // Keep this simple first
+        Player
     }
 
     public class DeathService
     {
         #region Attributes
-        private readonly PartyService<CombatRunInstance, CombatRunParticipant> partyService;
+        private readonly CombatRunService combatRunService;
         #endregion
 
         #region Properties
         #endregion
 
         public DeathService(
-            PartyService<CombatRunInstance, CombatRunParticipant> partyService)
+            CombatRunService combatRunService)
         {
-            this.partyService = partyService;
+            this.combatRunService = combatRunService;
         }
 
         #region Methods
@@ -35,28 +34,25 @@ namespace Application.Services.MetaService
             float previousValue,
             float currentValue)
         {
-            if (vital != AttributeType.Health)
-                return DeathOutcome.None;
-
-            if (currentValue > 0f)
+            if (vital != AttributeType.Health || currentValue > 0f)
                 return DeathOutcome.None;
 
             var ownership = entity.GetComponent<OwnershipInstance>();
 
-            // Case A: Unowned entity (e.g., standard wild monsters / creeps)
+            // Case A: Unowned entity (e.g., wild monsters, creeps)
             if (ownership == null)
             {
                 return DeathOutcome.Entity;
             }
 
-            // Case B: Owned entity - Check if it's a player
-            if (partyService.IsPlayerInRun(entity.ID))
+            // Case B: Player in an active combat run
+            if (combatRunService.HandlePlayerDeath(entity))
             {
                 return DeathOutcome.Player;
             }
 
-            // Case C: Non-player owned entity (e.g., player summons, pet, or owned minion)
-            return DeathOutcome.Entity;
+            // Case C: Non-player owned entity (summons, pets) or player outside a run
+            return DeathOutcome.None;
         }
         #endregion
     }

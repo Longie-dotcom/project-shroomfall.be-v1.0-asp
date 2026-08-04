@@ -11,12 +11,12 @@ namespace Domain.Shared
         // Players bump into walls, enemies, enemy bullets, step on traps, and pick up items.
         // (They ignore ally players and their own bullets!)
         public const CollisionLayer PlayerMask =
-            CollisionLayer.Wall | CollisionLayer.Player | CollisionLayer.Enemy | CollisionLayer.EnemyProjectile | CollisionLayer.Collectible;
+            CollisionLayer.Wall | CollisionLayer.EnemyProjectile | CollisionLayer.Collectible;
 
         // Enemies bump into walls, players, player bullets, and step on traps.
         // (They ignore other enemies, enemy bullets, and dropped items on the floor!)
         public const CollisionLayer EnemyMask =
-            CollisionLayer.Wall | CollisionLayer.Player | CollisionLayer.Enemy | CollisionLayer.PlayerProjectile;
+            CollisionLayer.Wall | CollisionLayer.PlayerProjectile;
 
         // Player Projectiles only care about slamming into walls or popping enemies.
         public const CollisionLayer PlayerProjectileMask =

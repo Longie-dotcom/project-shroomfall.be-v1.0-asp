@@ -74,17 +74,6 @@ namespace Application.Services.WorldService
 
             return GetRun(runId);
         }
-
-        public bool IsPlayerInRun(
-            string playerEntityInstanceId)
-        {
-            return playerToRun.ContainsKey(playerEntityInstanceId);
-        }
-
-        public IEnumerable<TRun> GetAllRuns()
-        {
-            return activeRuns.Values;
-        }
         #endregion
     }
 }

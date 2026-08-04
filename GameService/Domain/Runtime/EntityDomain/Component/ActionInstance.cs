@@ -15,6 +15,7 @@ namespace Domain.Runtime.EntityDomain.Component
         public EquipmentSlot? PendingUnequippedSlot { get; private set; }
         public ItemUsageAction ItemUsageAction { get; private set; }
         public Dictionary<string, float> ActiveCooldowns { get; private set; } = new();
+        public bool CanUseItems { get; set; } = true;
         #endregion
 
         public ActionInstance() : base(Guid.Empty) { }
@@ -34,6 +35,9 @@ namespace Domain.Runtime.EntityDomain.Component
 
         public void ClearItemUseIntent()
         {
+            if (!CanUseItems) 
+                return;
+
             PendingItemUseID = null;
             PendingTargetPosition = Vector2.Zero;
             PendingUnequippedSlot = null;
