@@ -21,13 +21,14 @@ namespace Application.Services.WorldService.Run
         }
 
         #region Commands
-        public void StartRun(CombatRunInstance run)
+        public void StartRun(
+            CombatRunInstance run)
         {
-            // PartyService handles validating if run or players are already registered
             partyService.RegisterRun(run);
         }
 
-        public bool EndRun(string runId)
+        public bool EndRun(
+            string runId)
         {
             return partyService.RemoveRun(runId);
         }
@@ -56,7 +57,8 @@ namespace Application.Services.WorldService.Run
         #endregion
 
         #region Queries
-        public CombatRunInstance? GetRunByPlayer(string playerEntityInstanceId)
+        public CombatRunInstance? GetRunByPlayer(
+            string playerEntityInstanceId)
         {
             return partyService.GetRunByPlayer(playerEntityInstanceId);
         }

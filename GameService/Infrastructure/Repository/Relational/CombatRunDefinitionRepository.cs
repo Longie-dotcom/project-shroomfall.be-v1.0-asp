@@ -24,9 +24,6 @@ namespace Infrastructure.Repository.Relational
                 .ToListAsync();
         }
 
-        /// <summary>
-        /// Replaces all floors belonging to a combat run definition.
-        /// </summary>
         public async Task UpsertFloorsAsync(
             string combatRunDefinitionId,
             IEnumerable<Floor> floors)
@@ -44,6 +41,29 @@ namespace Infrastructure.Repository.Relational
             {
                 await context.Set<Floor>().AddRangeAsync(floors);
             }
+        }
+
+        public async Task<(IEnumerable<CombatRunDefinition> Items, int TotalCount)> GetPagedDefinitionsAsync(
+            string? searchTerm,
+            int pageNumber,
+            int pageSize)
+        {
+            var query = dbSet.AsNoTracking().AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var term = searchTerm.Trim().ToLower();
+                query = query.Where(x => x.ID.ToLower().Contains(term));
+            }
+
+            int totalCount = await query.CountAsync();
+
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalCount);
         }
         #endregion
     }

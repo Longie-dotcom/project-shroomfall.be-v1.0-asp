@@ -134,9 +134,10 @@ namespace Application.Mapper
             // World Domain
             // ─────────────────────────────
             // Run
+            CreateMap<Floor, FloorDTO>();
             CreateMap<CombatRunDefinition, CombatRunDefinitionDTO>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.ID));
-            
+
             // Room
             CreateMap<EntitySpawnRule, EntitySpawnRuleDTO>();
             CreateMap<Cell, CellDTO>();

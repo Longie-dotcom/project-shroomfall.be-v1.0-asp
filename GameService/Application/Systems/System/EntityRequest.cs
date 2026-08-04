@@ -15,7 +15,6 @@ namespace Application.Systems.System
         private readonly LifetimeService lifetimeService;
         private readonly ItemService itemService;
         private readonly CharacteristicService characteristicService;
-
         private readonly ResidencyService residencyService;
         #endregion
 
@@ -30,7 +29,6 @@ namespace Application.Systems.System
             LifetimeService lifetimeService,
             ItemService itemService,
             CharacteristicService characteristicService,
-
             ResidencyService residencyService)
         {
             this.effectService = effectService;
@@ -40,7 +38,6 @@ namespace Application.Systems.System
             this.lifetimeService = lifetimeService;
             this.itemService = itemService;
             this.characteristicService = characteristicService;
-
             this.residencyService = residencyService;
         }
 
