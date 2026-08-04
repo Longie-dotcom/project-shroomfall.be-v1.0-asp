@@ -48,7 +48,7 @@ namespace Infrastructure.Repository.Relational
             int pageNumber,
             int pageSize)
         {
-            var query = dbSet.AsNoTracking().AsQueryable();
+            var query = dbSet.Include(c => c.Floors).AsNoTracking().AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
