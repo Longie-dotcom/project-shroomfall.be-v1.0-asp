@@ -26,17 +26,17 @@ namespace Infrastructure.Configuration
                     InfrastructureCode.MessagingConfigurationCode.RabbitMqHostMissing,
                     "Critical infrastructure configuration missing. Environment variable 'RABBITMQ_HOST' was not found.");
 
-            var rabbitUsername = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME");
+            var rabbitUsername = Environment.GetEnvironmentVariable("RABBITMQ_DEFAULT_USER");
             if (string.IsNullOrWhiteSpace(rabbitUsername))
                 throw new InternalException(
                     InfrastructureCode.MessagingConfigurationCode.RabbitMqUsernameMissing,
-                    "Critical infrastructure configuration missing. Environment variable 'RABBITMQ_USERNAME' was not found.");
+                    "Critical infrastructure configuration missing. Environment variable 'RABBITMQ_DEFAULT_USER' was not found.");
 
-            var rabbitPassword = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD");
+            var rabbitPassword = Environment.GetEnvironmentVariable("RABBITMQ_DEFAULT_PASS");
             if (string.IsNullOrWhiteSpace(rabbitPassword))
                 throw new InternalException(
                     InfrastructureCode.MessagingConfigurationCode.RabbitMqPasswordMissing,
-                    "Critical infrastructure configuration missing. Environment variable 'RABBITMQ_PASSWORD' was not found.");
+                    "Critical infrastructure configuration missing. Environment variable 'RABBITMQ_DEFAULT_PASS' was not found.");
 
             services.AddMassTransit(configurator =>
             {
