@@ -1,7 +1,6 @@
 ﻿using Application.Interface.Repository.Base;
 using Domain.Abstraction;
 using Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
 
 namespace Infrastructure.Repository.Base
