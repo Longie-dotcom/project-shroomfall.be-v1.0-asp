@@ -1,4 +1,4 @@
-﻿using Application.Interfaces.Realtime;
+﻿using Application.Interface.Realtime;
 using Contract;
 using Contract.DTO.Feature.Admin.Response;
 using Contract.DTO.Feature.Design.Response;

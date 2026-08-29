@@ -1,12 +1,12 @@
-﻿using Application.Interfaces.Cache.MetaDomain;
-using Domain.Definition.MetaDomain;
+﻿using Application.Interface.Cache.MetaDomain;
+using Contract.DTO.Definition.MetaDomain;
 
 namespace Infrastructure.Cache.MetaDomain
 {
     public class ItemCache : IItemCache
     {
         #region Attributes
-        private Dictionary<string, ItemDefinition> byId = new();
+        private Dictionary<string, ItemDefinitionDTO> byId = new();
         #endregion
 
         #region Properties
@@ -16,17 +16,17 @@ namespace Infrastructure.Cache.MetaDomain
 
         #region Methods
         public void Load(
-            List<ItemDefinition> data)
+            List<ItemDefinitionDTO> data)
         {
-            byId = data.ToDictionary(x => x.ID, x => x);
+            byId = data.ToDictionary(x => x.Id, x => x);
         }
 
-        public IEnumerable<ItemDefinition> GetAll()
+        public IEnumerable<ItemDefinitionDTO> GetAll()
         {
             return byId.Values;
         }
 
-        public ItemDefinition? Get(
+        public ItemDefinitionDTO? Get(
             string id)
         {
             byId.TryGetValue(id, out var value);

@@ -49,7 +49,38 @@ namespace Domain.Runtime.WorldDomain.Run
             }
         }
 
-        public void AdvanceFloor(string nextRoomSpatialId)
+        public bool RemoveParticipant(
+            string entityInstanceId)
+        {
+            if (!participants.Remove(entityInstanceId))
+                return false;
+
+            // Maintain leader invariant
+            if (LeaderEntityInstanceID == entityInstanceId)
+            {
+                var newLeader = participants.Values.FirstOrDefault(p => p.Mode == CombatRunParticipantMode.Alive)
+                             ?? participants.Values.FirstOrDefault(p => p.Mode == CombatRunParticipantMode.Inactive);
+
+                LeaderEntityInstanceID = newLeader?.EntityInstanceID ?? string.Empty;
+            }
+
+            return true;
+        }
+
+        public void CheckFail()
+        {
+            // Fail ONLY if no players are left alive (except for reconnecting)
+            bool allDead = participants.Values.All(p => p.Mode == CombatRunParticipantMode.Spectator);
+            bool isEmpty = participants.Count == 0;
+
+            if (allDead || isEmpty)
+            {
+                Status = CombatRunStatus.Failed;
+            }
+        }
+
+        public void AdvanceFloor(
+            string nextRoomSpatialId)
         {
             if (Status != CombatRunStatus.InProgress) return;
 
@@ -61,14 +92,6 @@ namespace Domain.Runtime.WorldDomain.Run
         {
             Status = CombatRunStatus.Completed;
         }
-
-        public void CheckFail()
-        {
-            if (participants.Values.All(p => p.Mode == CombatRunParticipantMode.Spectator))
-            {
-                Status = CombatRunStatus.Failed;
-            }
-        }
         #endregion
     }
 
@@ -79,6 +102,7 @@ namespace Domain.Runtime.WorldDomain.Run
 
         #region Properties
         public string EntityInstanceID { get; private set; }
+        public DateTime? InactiveSinceUtc { get; private set; }
         public CombatRunParticipantMode Mode { get; private set; }
         #endregion
 
@@ -90,10 +114,22 @@ namespace Domain.Runtime.WorldDomain.Run
         }
 
         #region Methods
-        public void SetMode(
-            CombatRunParticipantMode mode)
+        public void SetInactive()
         {
-            Mode = mode;
+            Mode = CombatRunParticipantMode.Inactive;
+            InactiveSinceUtc = DateTime.UtcNow;
+        }
+
+        public void SetActive()
+        {
+            Mode = CombatRunParticipantMode.Alive;
+            InactiveSinceUtc = null;
+        }
+
+        public void SetSpectator()
+        {
+            Mode = CombatRunParticipantMode.Spectator;
+            InactiveSinceUtc = null;
         }
         #endregion
     }

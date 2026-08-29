@@ -1,8 +1,8 @@
-﻿using Application.Interfaces.Realtime;
-using Application.Interfaces.Realtime.Events;
-using Application.Interfaces.Realtime.Events.Game;
+﻿using Application.Interface.Realtime;
+using Application.Interface.Realtime.Events;
+using Application.Interface.Realtime.Events.Game;
 using AutoMapper;
-using Contract.DTO.Common;
+using Contract.Common;
 using Contract.DTO.Feature.Game.Response;
 using Contract.DTO.Runtime.EntityDomain;
 
@@ -42,7 +42,7 @@ namespace Infrastructure.Realtime.Events.Game
                             new EntitySpawnedDTO
                             {
                                 EntityInstance = mapper.Map<EntityInstanceDTO>(e.Entity),
-                                Direction = mapper.Map<Vector2DTO>(e.Direction),
+                                Direction = mapper.Map<Vector2>(e.Direction),
                             });
                         break;
                     }

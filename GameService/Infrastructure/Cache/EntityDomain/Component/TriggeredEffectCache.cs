@@ -1,5 +1,5 @@
-﻿using Application.Interfaces.Cache.EntityDomain.Component;
-using Domain.Definition.EntityDomain.Component;
+﻿using Application.Interface.Cache.EntityDomain.Component;
+using Contract.DTO.Definition.EntityDomain.Component;
 using Domain.DomainException;
 using ResponseCode;
 
@@ -8,8 +8,8 @@ namespace Infrastructure.Cache.EntityDomain.Component
     public class TriggeredEffectCache : ITriggeredEffectCache
     {
         #region Attributes
-        private Dictionary<Guid, TriggeredEffectDefinition> byId = new();
-        private Dictionary<string, TriggeredEffectDefinition> byEntityId = new();
+        private Dictionary<Guid, TriggeredEffectDefinitionDTO> byId = new();
+        private Dictionary<string, TriggeredEffectDefinitionDTO> byEntityId = new();
         #endregion
 
         #region Properties
@@ -19,9 +19,9 @@ namespace Infrastructure.Cache.EntityDomain.Component
 
         #region Methods
         public void Load(
-            List<TriggeredEffectDefinition> data)
+            List<TriggeredEffectDefinitionDTO> data)
         {
-            byId = data.ToDictionary(x => x.ID, x => x);
+            byId = data.ToDictionary(x => x.ID!.Value, x => x);
 
             byEntityId.Clear();
 
@@ -32,25 +32,25 @@ namespace Infrastructure.Cache.EntityDomain.Component
                 if (byEntityId.TryGetValue(key, out var existing))
                     throw new InternalException(
                         InfrastructureCode.TriggeredEffectCacheCode.DuplicateTriggeredEffectComponent,
-                        $"Duplicate component detected for EntityDefinitionID '{key}' in {nameof(TriggeredEffectDefinition)}. Existing: {existing.ID}, New: {item.ID}");
+                        $"Duplicate component detected for EntityDefinitionID '{key}' in {nameof(TriggeredEffectCache)}. Existing: {existing.ID}, New: {item.ID}");
 
                 byEntityId[key] = item;
             }
         }
 
-        public IEnumerable<TriggeredEffectDefinition> GetAll()
+        public IEnumerable<TriggeredEffectDefinitionDTO> GetAll()
         {
             return byId.Values;
         }
 
-        public TriggeredEffectDefinition? Get(
+        public TriggeredEffectDefinitionDTO? Get(
             Guid id)
         {
             byId.TryGetValue(id, out var value);
             return value;
         }
 
-        public TriggeredEffectDefinition? GetByEntity(
+        public TriggeredEffectDefinitionDTO? GetByEntity(
             string entityDefinitionId)
         {
             byEntityId.TryGetValue(entityDefinitionId, out var value);

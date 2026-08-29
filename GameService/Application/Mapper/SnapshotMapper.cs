@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
+using Contract.Common;
 using Contract.Enum.MetaDomain.Effect;
 using Domain.Abstraction;
-using Domain.Common;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;
 using Domain.Runtime.MetaDomain;

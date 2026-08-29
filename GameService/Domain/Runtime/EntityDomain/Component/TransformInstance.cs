@@ -1,7 +1,7 @@
 ﻿using Contract;
+using Contract.Common;
 using Contract.Enum.EntityDomain;
 using Domain.Abstraction;
-using Domain.Common;
 using Domain.Shared;
 
 namespace Domain.Runtime.EntityDomain.Component

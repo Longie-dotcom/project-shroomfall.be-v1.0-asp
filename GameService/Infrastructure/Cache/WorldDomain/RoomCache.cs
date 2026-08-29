@@ -1,6 +1,6 @@
-﻿using Application.Interfaces.Cache.WorldDomain;
+﻿using Application.Interface.Cache.WorldDomain;
 using Contract;
-using Domain.Definition.WorldDomain;
+using Contract.DTO.Definition.WorldDomain;
 using Domain.Shared;
 
 namespace Infrastructure.Cache.WorldDomain
@@ -8,18 +8,9 @@ namespace Infrastructure.Cache.WorldDomain
     public class RoomCache : IRoomCache
     {
         #region Attributes
-        private Dictionary<string, RoomDefinition> map = new();
-        private readonly Dictionary<
-            string,
-            Dictionary<
-                int,
-                Dictionary<
-                    (int cx, int cy),
-                    Cell[,]
-                >
-            >
-        > cellIndex = new();
-
+        private Dictionary<string, RoomDefinitionDTO> map = new();
+        private readonly Dictionary<string, Dictionary<int, Dictionary<(int cx, int cy), CellDTO[,]>>> cellIndex = new();
+        private readonly Dictionary<string, List<EntitySpawnRuleDTO>> spawnRuleIndex = new();
         private readonly Dictionary<string, List<int>> sortedLayers = new();
         #endregion
 
@@ -30,24 +21,43 @@ namespace Infrastructure.Cache.WorldDomain
 
         #region Methods
         public void Load(
-            IEnumerable<RoomDefinition> data)
+            IEnumerable<RoomDefinitionDTO> roomData,
+            IEnumerable<CellDTO> cellData,
+            IEnumerable<EntitySpawnRuleDTO> entitySpawnRuleData)
         {
-            map = data.ToDictionary(r => r.ID);
+            // ROOM DEFINITIONS
+            map = roomData.ToDictionary(
+                room => room.Id);
 
+            // CLEAR OLD INDEXES
             cellIndex.Clear();
+            spawnRuleIndex.Clear();
+            sortedLayers.Clear();
 
-            foreach (var room in data)
+            // CELL INDEX
+            foreach (var roomGroup in cellData.GroupBy(
+                cell => cell.RoomDefinitionID))
             {
-                IndexRoom(room);
+                IndexCells(
+                    roomGroup.Key,
+                    roomGroup);
+            }
+
+            // SPAWN RULE INDEX
+            foreach (var roomGroup in entitySpawnRuleData.GroupBy(
+                rule => rule.RoomDefinitionID))
+            {
+                spawnRuleIndex[roomGroup.Key] =
+                    roomGroup.ToList();
             }
         }
 
-        public IReadOnlyCollection<RoomDefinition> GetAll()
+        public IReadOnlyCollection<RoomDefinitionDTO> GetAll()
         {
             return map.Values.ToList();
         }
 
-        public RoomDefinition? Get(
+        public RoomDefinitionDTO? Get(
             string id)
         {
             return map.TryGetValue(id, out var room)
@@ -55,7 +65,7 @@ namespace Infrastructure.Cache.WorldDomain
                 : null;
         }
 
-        public Cell? GetTopCell(
+        public CellDTO? GetTopCell(
             string roomId,
             int worldX,
             int worldY)
@@ -85,16 +95,27 @@ namespace Infrastructure.Cache.WorldDomain
             return null;
         }
 
-        private void IndexRoom(
-            RoomDefinition room)
+        public IReadOnlyList<EntitySpawnRuleDTO> GetSpawnRules(
+            string roomId)
         {
-            var layerMap = new Dictionary<int, Dictionary<(int cx, int cy), Cell[,]>>();
+            return spawnRuleIndex.TryGetValue(
+                roomId,
+                out var rules)
+                ? rules
+                : Array.Empty<EntitySpawnRuleDTO>();
+        }
 
-            foreach (var layerGroup in room.Cells.GroupBy(c => c.Z))
+        private void IndexCells(
+            string roomId,
+            IEnumerable<CellDTO> cells)
+        {
+            var layerMap = new Dictionary<int, Dictionary<(int cx, int cy), CellDTO[,]>>();
+
+            foreach (var layerGroup in cells.GroupBy(c => c.Z))
             {
                 int z = layerGroup.Key;
 
-                var chunks = new Dictionary<(int cx, int cy), Cell[,]>();
+                var chunks = new Dictionary<(int cx, int cy), CellDTO[,]>();
 
                 foreach (var chunkGroup in layerGroup.GroupBy(c =>
                 {
@@ -105,7 +126,7 @@ namespace Infrastructure.Cache.WorldDomain
                 {
                     var (cx, cy) = chunkGroup.Key;
 
-                    var grid = new Cell[Constraint.CHUNK_SIZE, Constraint.CHUNK_SIZE];
+                    var grid = new CellDTO[Constraint.CHUNK_SIZE, Constraint.CHUNK_SIZE];
 
                     foreach (var cell in chunkGroup)
                     {
@@ -120,10 +141,10 @@ namespace Infrastructure.Cache.WorldDomain
                 layerMap[z] = chunks;
             }
 
-            cellIndex[room.ID] = layerMap;
+            cellIndex[roomId] = layerMap;
 
             // IMPORTANT: sort layers once
-            sortedLayers[room.ID] = layerMap.Keys
+            sortedLayers[roomId] = layerMap.Keys
                 .OrderByDescending(z => z)
                 .ToList();
         }

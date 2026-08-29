@@ -1,5 +1,5 @@
-﻿using Domain.Abstraction;
-using Domain.Common;
+﻿using Contract.Common;
+using Domain.Abstraction;
 
 namespace Domain.Snapshot.EntityDomain.Component
 {

@@ -1,12 +1,12 @@
-﻿using Application.Interfaces.Cache.MetaDomain;
-using Domain.Definition.MetaDomain;
+﻿using Application.Interface.Cache.MetaDomain;
+using Contract.DTO.Definition.MetaDomain;
 
 namespace Infrastructure.Cache.MetaDomain
 {
     public class EffectCache : IEffectCache
     {
         #region Attributes
-        private Dictionary<string, EffectDefinition> byId = new();
+        private Dictionary<string, EffectDefinitionDTO> byId = new();
         #endregion
 
         #region Properties
@@ -16,17 +16,17 @@ namespace Infrastructure.Cache.MetaDomain
 
         #region Methods
         public void Load(
-            List<EffectDefinition> data)
+            List<EffectDefinitionDTO> data)
         {
-            byId = data.ToDictionary(x => x.ID, x => x);
+            byId = data.ToDictionary(x => x.Id, x => x);
         }
 
-        public IEnumerable<EffectDefinition> GetAll()
+        public IEnumerable<EffectDefinitionDTO> GetAll()
         {
             return byId.Values;
         }
 
-        public EffectDefinition? Get(
+        public EffectDefinitionDTO? Get(
             string id)
         {
             byId.TryGetValue(id, out var value);

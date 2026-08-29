@@ -1,6 +1,6 @@
-﻿using Contract.Enum.EntityDomain;
+﻿using Contract.DTO.Definition.EntityDomain.Component;
+using Contract.Enum.EntityDomain;
 using Domain.Abstraction;
-using Domain.Definition.EntityDomain.Component;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain.Component;
 using ResponseCode;
@@ -17,7 +17,7 @@ namespace Domain.Shared
 
         #region Methods
         public static ICollisionShape FromDefinition(
-            CollisionDefinition collision)
+            CollisionDefinitionDTO collision)
         {
             switch (collision.ShapeType)
             {

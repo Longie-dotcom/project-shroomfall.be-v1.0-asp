@@ -1,4 +1,4 @@
-﻿using Application.Interfaces.Realtime.Events;
+﻿using Application.Interface.Realtime.Events;
 
 namespace Infrastructure.Realtime.Events
 {

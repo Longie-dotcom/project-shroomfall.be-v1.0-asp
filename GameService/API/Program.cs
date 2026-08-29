@@ -1,12 +1,9 @@
 using API.Middleware;
 using Application;
-using Application.Interfaces.Cache;
-using Application.Services.WorldService;
+using Application.Interface.GrpcClient;
 using Infrastructure;
-using Infrastructure.Persistence;
 using Infrastructure.Realtime;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -111,95 +108,16 @@ namespace API
             var app = builder.Build();
 
             // ─────────────────────────────
-            // MIGRATE
+            // STARTUP
             // ─────────────────────────────
             using (var scope = app.Services.CreateScope())
             {
-                var db = scope.ServiceProvider.GetRequiredService<RelationalDB>();
+                var managementGrpcClient = scope.ServiceProvider.GetRequiredService<IManagementGrpcClient>();
                 var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
-                // 1. Check for the wipe flag BEFORE attempting any migrations
-                if (Environment.GetEnvironmentVariable("WIPE_DB") == "true")
-                {
-                    logger.LogWarning("WIPE_DB flag detected! Dropping the database entirely...");
-
-                    // This completely wipes the database schema and data
-                    db.Database.EnsureDeleted();
-
-                    logger.LogInformation("Database dropped successfully. Proceeding to rebuild via migrations...");
-                }
-
-                var retries = 5;
-                while (retries > 0)
-                {
-                    try
-                    {
-                        logger.LogInformation("Applying database migrations...");
-
-                        // 2. This will now recreate the DB from scratch (if we just dropped it) 
-                        // and apply all your migration files cleanly.
-                        db.Database.Migrate();
-
-                        logger.LogInformation("Database migration completed.");
-                        break;
-                    }
-                    catch (Exception ex)
-                    {
-                        retries--;
-                        logger.LogWarning(ex, "Migration failed. Retrying...");
-
-                        if (retries == 0)
-                            throw;
-
-                        Thread.Sleep(5000);
-                    }
-                }
-            }
-
-            // ─────────────────────────────
-            // SEEDING DATA
-            // ─────────────────────────────
-            using (var scope = app.Services.CreateScope())
-            {
-                var db = scope.ServiceProvider.GetRequiredService<RelationalDB>();
-                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-
-                try
-                {
-                    await DataSeeder.SeedAsync(db);
-
-                    logger.LogInformation("Database seeding completed successfully.");
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Database seeding failed.");
-                }
-            }
-
-            // ─────────────────────────────
-            // LOAD CACHE
-            // ─────────────────────────────
-            using (var scope = app.Services.CreateScope())
-            {
-                var loader = scope.ServiceProvider.GetRequiredService<ICacheProvider>();
-                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-
-                logger.LogInformation("Caching definition/meta data...");
-                await loader.LoadAllAsync();
-                logger.LogInformation("Metadata caching completed.");
-            }
-
-            // ─────────────────────────────
-            // WORLD BOOTSTRAP
-            // ─────────────────────────────
-            using (var scope = app.Services.CreateScope())
-            {
-                var bootstrap = scope.ServiceProvider.GetRequiredService<BootstrapService>();
-                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-
-                logger.LogInformation("Reloading world data...");
-                await bootstrap.LoadAsync();
-                logger.LogInformation("World reloading completed.");
+                logger.LogInformation("Requesting caching definition/meta data...");
+                await managementGrpcClient.RequestGameStartupAsync();
+                logger.LogInformation("Requesting completed.");
             }
 
             // ─────────────────────────────

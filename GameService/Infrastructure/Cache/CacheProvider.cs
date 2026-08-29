@@ -1,14 +1,12 @@
-﻿using Application.Interfaces.Cache;
-using Application.Interfaces.Cache.EntityDomain;
-using Application.Interfaces.Cache.EntityDomain.Component;
-using Application.Interfaces.Cache.LocalizationDomain;
-using Application.Interfaces.Cache.MetaDomain;
-using Application.Interfaces.Cache.WorldDomain;
-using Application.Interfaces.Repository.Base;
-using Application.Interfaces.Repository.Relational;
-using Application.Interfaces.Utility;
+﻿using Application.Interface.Cache;
+using Application.Interface.Cache.EntityDomain;
+using Application.Interface.Cache.EntityDomain.Component;
+using Application.Interface.Cache.LocalizationDomain;
+using Application.Interface.Cache.MetaDomain;
+using Application.Interface.Cache.WorldDomain;
+using Application.Interface.Utility;
+using Contract.DTO.Messaging;
 using Domain.DomainException;
-using Microsoft.Extensions.DependencyInjection;
 using ResponseCode;
 
 namespace Infrastructure.Cache
@@ -17,7 +15,6 @@ namespace Infrastructure.Cache
     {
         #region Attributes
         private readonly ITelemetryQueue telemetryQueue;
-        private readonly IServiceScopeFactory serviceScopeFactory;
 
         private readonly IAICache aiCache;
         private readonly IAppearanceCache appearanceCache;
@@ -54,7 +51,6 @@ namespace Infrastructure.Cache
 
         public CacheProvider(
             ITelemetryQueue telemetryQueue,
-            IServiceScopeFactory serviceScopeFactory,
 
             IAICache aiCache,
             IAppearanceCache appearanceCache,
@@ -72,7 +68,6 @@ namespace Infrastructure.Cache
             IRoomCache roomCache)
         {
             this.telemetryQueue = telemetryQueue;
-            this.serviceScopeFactory = serviceScopeFactory;
 
             this.aiCache = aiCache;
             this.appearanceCache = appearanceCache;
@@ -91,46 +86,26 @@ namespace Infrastructure.Cache
         }
 
         #region Methods
-        public async Task LoadAllAsync()
+        public async Task LoadAllAsync(
+            DefinitionCacheDTO dto)
         {
             try
             {
-                using (var scope = serviceScopeFactory.CreateScope())
-                {
-                    var relationalUoW = scope.ServiceProvider.GetRequiredService<IRelationalUoW>();
-
-                    // Resolve all repositories on demand from the Unit of Work
-                    var aiRepository = relationalUoW.GetRepository<IAIDefinitionRepository>();
-                    var appearanceRepository = relationalUoW.GetRepository<IAppearanceDefinitionRepository>();
-                    var collisionRepository = relationalUoW.GetRepository<ICollisionDefinitionRepository>();
-                    var characteristicRepository = relationalUoW.GetRepository<ICharacteristicDefinitionRepository>();
-                    var inventoryRepository = relationalUoW.GetRepository<IInventoryDefinitionRepository>();
-                    var lifetimeRepository = relationalUoW.GetRepository<ILifetimeDefinitionRepository>();
-                    var projectileRepository = relationalUoW.GetRepository<IProjectileDefinitionRepository>();
-                    var triggeredEffectRepository = relationalUoW.GetRepository<ITriggeredEffectDefinitionRepository>();
-                    var entityRepository = relationalUoW.GetRepository<IEntityDefinitionRepository>();
-                    var localeRepository = relationalUoW.GetRepository<ILocaleRepository>();
-                    var effectRepository = relationalUoW.GetRepository<IEffectDefinitionRepository>();
-                    var itemRepository = relationalUoW.GetRepository<IItemDefinitionRepository>();
-                    var combatRunRepository = relationalUoW.GetRepository<ICombatRunDefinitionRepository>();
-                    var roomRepository = relationalUoW.GetRepository<IRoomDefinitionRepository>();
-
-                    // Hydrate caches
-                    aiCache.Load((await aiRepository.GetAllAsync()).ToList());
-                    appearanceCache.Load((await appearanceRepository.GetAllAsync()).ToList());
-                    collisionCache.Load((await collisionRepository.GetAllAsync()).ToList());
-                    characteristicCache.Load((await characteristicRepository.GetAllAsync()).ToList());
-                    inventoryCache.Load((await inventoryRepository.GetAllAsync()).ToList());
-                    lifetimeCache.Load((await lifetimeRepository.GetAllAsync()).ToList());
-                    projectileCache.Load((await projectileRepository.GetAllAsync()).ToList());
-                    triggeredEffectCache.Load((await triggeredEffectRepository.GetAllAsync()).ToList());
-                    entityCache.Load((await entityRepository.GetAllAsync()).ToList());
-                    localeCache.Load((await localeRepository.GetAllAsync()).ToList());
-                    effectCache.Load((await effectRepository.GetAllAsync()).ToList());
-                    itemCache.Load((await itemRepository.GetAllAsync()).ToList());
-                    combatRunCache.Load((await combatRunRepository.GetAllAsync()).ToList());
-                    roomCache.Load((await roomRepository.GetAllAsync()).ToList());
-                }
+                // Hydrate caches
+                aiCache.Load(dto.AIs);
+                appearanceCache.Load(dto.Appearances);
+                collisionCache.Load(dto.Collisions);
+                characteristicCache.Load(dto.Characteristics);
+                inventoryCache.Load(dto.Inventories);
+                lifetimeCache.Load(dto.Lifetimes);
+                projectileCache.Load(dto.Projectiles);
+                triggeredEffectCache.Load(dto.TriggeredEffects);
+                entityCache.Load(dto.Entities);
+                localeCache.Load(dto.Locales);
+                effectCache.Load(dto.Effects);
+                itemCache.Load(dto.Items);
+                combatRunCache.Load(dto.CombatRuns);
+                roomCache.Load(dto.Rooms, dto.Cells, dto.EntitySpawnRules);
 
                 telemetryQueue.EnqueueAlert(
                     InfrastructureCode.CacheProviderCode.LoadSuccess,

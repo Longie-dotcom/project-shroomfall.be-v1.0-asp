@@ -12,10 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Features\Identity\Commands\SteamAuthCommand.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Domain\Domain.csproj" />
   </ItemGroup>
 

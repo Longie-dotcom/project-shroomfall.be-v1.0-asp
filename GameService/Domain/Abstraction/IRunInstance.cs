@@ -6,5 +6,11 @@
         string ID { get; }
         string LeaderEntityInstanceID { get; }
         IEnumerable<TParticipant> Participants { get; }
+
+        void AddParticipant(
+            string entityInstanceId);
+        bool RemoveParticipant(
+            string entityInstanceId);
+        void CheckFail();
     }
 }

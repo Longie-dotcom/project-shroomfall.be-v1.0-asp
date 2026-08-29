@@ -1,6 +1,6 @@
-﻿using Application.Interfaces.Cache.EntityDomain.Component;
+﻿using Application.Interface.Cache.EntityDomain.Component;
+using Contract.DTO.Definition.EntityDomain.Component;
 using Contract.Enum.MetaDomain.Effect;
-using Domain.Definition.EntityDomain.Component;
 using Domain.DomainException;
 using ResponseCode;
 
@@ -9,9 +9,9 @@ namespace Infrastructure.Cache.EntityDomain.Component
     public class CharacteristicCache : ICharacteristicCache
     {
         #region Attributes
-        private Dictionary<Guid, CharacteristicDefinition> byId = new();
-        private Dictionary<string, CharacteristicDefinition> byEntityId = new();
-        private Dictionary<(Guid CharacteristicId, AttributeType Type, int Level), (AttributeValue Attribute, AttributeGrowthValue Growth)> attributeLookup = new();
+        private Dictionary<Guid, CharacteristicDefinitionDTO> byId = new();
+        private Dictionary<string, CharacteristicDefinitionDTO> byEntityId = new();
+        private Dictionary<(Guid CharacteristicId, AttributeType Type, int Level), (AttributeValueDTO Attribute, AttributeGrowthValueDTO Growth)> attributeLookup = new();
         #endregion
 
         #region Properties
@@ -21,9 +21,9 @@ namespace Infrastructure.Cache.EntityDomain.Component
 
         #region Methods
         public void Load(
-            List<CharacteristicDefinition> data)
+            List<CharacteristicDefinitionDTO> data)
         {
-            byId = data.ToDictionary(x => x.ID, x => x);
+            byId = data.ToDictionary(x => x.ID!.Value, x => x);
 
             byEntityId.Clear();
 
@@ -34,7 +34,7 @@ namespace Infrastructure.Cache.EntityDomain.Component
                 if (byEntityId.TryGetValue(key, out var existing))
                     throw new InternalException(
                         InfrastructureCode.CharacteristicCacheCode.DuplicateCharacteristicComponent,
-                        $"Duplicate component detected for EntityDefinitionID '{key}' in {typeof(CharacteristicDefinition).Name}. Existing: {existing.ID}, New: {item.ID}");
+                        $"Duplicate component detected for EntityDefinitionID '{key}' in {typeof(CharacteristicCache).Name}. Existing: {existing.ID}, New: {item.ID}");
 
                 byEntityId[key] = item;
 
@@ -42,32 +42,32 @@ namespace Infrastructure.Cache.EntityDomain.Component
                 {
                     foreach (var growth in attr.AttributeGrowthValues)
                     {
-                        attributeLookup[(item.ID, attr.Type, growth.Level)] = (attr, growth);
+                        attributeLookup[(item.ID!.Value, attr.Type, growth.Level)] = (attr, growth);
                     }
                 }
             }
         }
 
-        public IEnumerable<CharacteristicDefinition> GetAll()
+        public IEnumerable<CharacteristicDefinitionDTO> GetAll()
         {
             return byId.Values;
         }
 
-        public CharacteristicDefinition? Get(
+        public CharacteristicDefinitionDTO? Get(
             Guid id)
         {
             byId.TryGetValue(id, out var value);
             return value;
         }
 
-        public CharacteristicDefinition? GetByEntity(
+        public CharacteristicDefinitionDTO? GetByEntity(
             string entityDefinitionId)
         {
             byEntityId.TryGetValue(entityDefinitionId, out var value);
             return value;
         }
 
-        public (AttributeValue Attribute, AttributeGrowthValue Growth)? GetAttributeValue(
+        public (AttributeValueDTO Attribute, AttributeGrowthValueDTO Growth)? GetAttributeValue(
             Guid characteristicId,
             int level,
             AttributeType type)

@@ -1,5 +1,5 @@
-﻿using Application.Interfaces.Cache.EntityDomain.Component;
-using Domain.Definition.EntityDomain.Component;
+﻿using Application.Interface.Cache.EntityDomain.Component;
+using Contract.DTO.Definition.EntityDomain.Component;
 using Domain.DomainException;
 using ResponseCode;
 
@@ -8,8 +8,8 @@ namespace Infrastructure.Cache.EntityDomain.Component
     public class AICache : IAICache
     {
         #region Attributes
-        private Dictionary<Guid, AIDefinition> byId = new();
-        private Dictionary<string, AIDefinition> byEntityId = new();
+        private Dictionary<Guid, AIDefinitionDTO> byId = new();
+        private Dictionary<string, AIDefinitionDTO> byEntityId = new();
         #endregion
 
         #region Properties
@@ -19,9 +19,9 @@ namespace Infrastructure.Cache.EntityDomain.Component
 
         #region Methods
         public void Load(
-            List<AIDefinition> data)
+            List<AIDefinitionDTO> data)
         {
-            byId = data.ToDictionary(x => x.ID, x => x);
+            byId = data.ToDictionary(x => x.ID!.Value, x => x);
 
             byEntityId.Clear();
 
@@ -38,19 +38,19 @@ namespace Infrastructure.Cache.EntityDomain.Component
             }
         }
 
-        public IEnumerable<AIDefinition> GetAll()
+        public IEnumerable<AIDefinitionDTO> GetAll()
         {
             return byId.Values;
         }
 
-        public AIDefinition? Get(
+        public AIDefinitionDTO? Get(
             Guid id)
         {
             byId.TryGetValue(id, out var value);
             return value;
         }
 
-        public AIDefinition? GetByEntity(
+        public AIDefinitionDTO? GetByEntity(
             string entityDefinitionId)
         {
             byEntityId.TryGetValue(entityDefinitionId, out var value);

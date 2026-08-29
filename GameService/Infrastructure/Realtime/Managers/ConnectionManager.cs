@@ -1,7 +1,7 @@
-﻿using Application.Interfaces.Realtime.Events;
-using Application.Interfaces.Realtime.Events.Admin;
-using Application.Interfaces.Realtime.Managers;
-using Application.Interfaces.Utility;
+﻿using Application.Interface.Realtime.Events;
+using Application.Interface.Realtime.Managers;
+using Application.Interface.Utility;
+using Application.Interface.Realtime.Events.Admin;
 using Domain.DomainException;
 using Microsoft.AspNetCore.SignalR;
 using ResponseCode;

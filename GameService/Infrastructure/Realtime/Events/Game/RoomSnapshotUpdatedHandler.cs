@@ -1,6 +1,6 @@
-﻿using Application.Interfaces.Realtime;
-using Application.Interfaces.Realtime.Events;
-using Application.Interfaces.Realtime.Events.Game;
+﻿using Application.Interface.Realtime;
+using Application.Interface.Realtime.Events;
+using Application.Interface.Realtime.Events.Game;
 
 namespace Infrastructure.Realtime.Events.Game
 {

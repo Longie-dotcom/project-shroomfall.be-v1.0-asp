@@ -1,7 +1,9 @@
 ﻿using API.Helper;
-using Application.Features.Abstraction;
-using Application.Features.Game.Commands;
+using Application.Feature.Abstraction;
+using Application.Feature.Game.Command;
 using Contract.DTO.Feature.Connection.Response;
+using Contract.DTO.Feature.Design.Command;
+using Contract.DTO.Feature.Design.Response;
 using Contract.DTO.Feature.Game.Command;
 using Contract.DTO.Feature.Game.Response;
 using Microsoft.AspNetCore.Authorization;
@@ -94,6 +96,20 @@ namespace API.Controllers
             );
 
             return NoContent();
+        }
+
+        [Authorize]
+        [HttpGet("{version}")]
+        public async Task<ActionResult<DefinitionSnapshotDTO?>> UserRefresh(
+            string version)
+        {
+            var (userId, steamId, role) = ClaimReader.GetIdentity(User);
+
+            var result = await dispatcher.Send<UserRefreshCommand, DefinitionSnapshotDTO?>(
+                new UserRefreshCommand(userId, new UserRefreshDTO { DefinitionVersion = version })
+            );
+
+            return Ok(result);
         }
         #endregion
     }

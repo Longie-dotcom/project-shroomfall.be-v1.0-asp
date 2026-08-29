@@ -1,4 +1,4 @@
-﻿using Domain.Definition.MetaDomain;
+﻿using Contract.DTO.Definition.MetaDomain;
 using Domain.Runtime.EntityDomain;
 
 namespace Domain.Runtime.MetaDomain
@@ -7,7 +7,7 @@ namespace Domain.Runtime.MetaDomain
     {
         public required EntityInstance Target { get; init; }
         public EntityInstance? Source { get; init; } // null mean effect belong to target (self consume)
-        public required EffectDefinition Effect { get; init; }
+        public required EffectDefinitionDTO Effect { get; init; }
     }
 
     public class EffectInstance

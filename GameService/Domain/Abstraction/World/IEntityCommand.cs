@@ -1,4 +1,4 @@
-﻿using Domain.Common;
+﻿using Contract.Common;
 using Domain.Runtime.EntityDomain;
 
 namespace Domain.Abstraction.World

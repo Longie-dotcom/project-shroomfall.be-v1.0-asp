@@ -1,5 +1,5 @@
-﻿using Application.Interfaces.Cache.EntityDomain.Component;
-using Domain.Definition.EntityDomain.Component;
+﻿using Application.Interface.Cache.EntityDomain.Component;
+using Contract.DTO.Definition.EntityDomain.Component;
 using Domain.DomainException;
 using ResponseCode;
 
@@ -8,8 +8,8 @@ namespace Infrastructure.Cache.EntityDomain.Component
     public class AppearanceCache : IAppearanceCache
     {
         #region Attributes
-        private Dictionary<Guid, AppearanceDefinition> byId = new();
-        private Dictionary<string, AppearanceDefinition> byEntityId = new();
+        private Dictionary<Guid, AppearanceDefinitionDTO> byId = new();
+        private Dictionary<string, AppearanceDefinitionDTO> byEntityId = new();
         #endregion
 
         #region Properties
@@ -19,9 +19,9 @@ namespace Infrastructure.Cache.EntityDomain.Component
 
         #region Methods
         public void Load(
-            List<AppearanceDefinition> data)
+            List<AppearanceDefinitionDTO> data)
         {
-            byId = data.ToDictionary(x => x.ID, x => x);
+            byId = data.ToDictionary(x => x.ID!.Value, x => x);
 
             byEntityId.Clear();
 
@@ -32,25 +32,25 @@ namespace Infrastructure.Cache.EntityDomain.Component
                 if (byEntityId.TryGetValue(key, out var existing))
                     throw new InternalException(
                         InfrastructureCode.AppearanceCacheCode.DuplicateAppearanceComponent,
-                        $"Duplicate component detected for EntityDefinitionID '{key}' in {typeof(AppearanceDefinition).Name}. Existing: {existing.ID}, New: {item.ID}");
+                        $"Duplicate component detected for EntityDefinitionID '{key}' in {typeof(AppearanceCache).Name}. Existing: {existing.ID}, New: {item.ID}");
 
                 byEntityId[key] = item;
             }
         }
 
-        public IEnumerable<AppearanceDefinition> GetAll()
+        public IEnumerable<AppearanceDefinitionDTO> GetAll()
         {
             return byId.Values;
         }
 
-        public AppearanceDefinition? Get(
+        public AppearanceDefinitionDTO? Get(
             Guid id)
         {
             byId.TryGetValue(id, out var value);
             return value;
         }
 
-        public AppearanceDefinition? GetByEntity(
+        public AppearanceDefinitionDTO? GetByEntity(
             string entityDefinitionId)
         {
             byEntityId.TryGetValue(entityDefinitionId, out var value);

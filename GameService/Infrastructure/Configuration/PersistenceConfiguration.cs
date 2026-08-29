@@ -2,9 +2,7 @@
 using Contract.Enum.MetaDomain.Item;
 using Domain.Abstraction;
 using Domain.DomainException;
-using Domain.Snapshot.EntityDomain.Component;
 using Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -26,16 +24,6 @@ namespace Infrastructure.Configuration
         public static IServiceCollection AddPersistenceConfiguration(
             this IServiceCollection services)
         {
-            // SQL SERVER
-            var sqlConnection = Environment.GetEnvironmentVariable("SQL_CONNECTION_STRING");
-            if (string.IsNullOrWhiteSpace(sqlConnection))
-                throw new InternalException(
-                    InfrastructureCode.PersistenceConfigurationCode.SqlConnectionStringMissing,
-                    "Critical infrastructure configuration missing. Environment variable 'SQL_CONNECTION_STRING' was not found.");
-
-            services.AddDbContext<RelationalDB>(options =>
-                options.UseSqlServer(sqlConnection));
-
             // MONGODB
             BsonSerializer.RegisterSerializer(new EnumSerializer<EquipmentSlot>(BsonType.String));
             BsonSerializer.RegisterSerializer(new EnumSerializer<AttributeType>(BsonType.String));
@@ -71,15 +59,13 @@ namespace Infrastructure.Configuration
                     InfrastructureCode.PersistenceConfigurationCode.MongoDatabaseNameMissing,
                     "Critical infrastructure configuration missing. Environment variable 'MONGO_DATABASE_NAME' was not found.");
 
-            services.AddSingleton<IMongoClient>(_ =>
-                new MongoClient(mongoConnection));
-
-            services.AddScoped<NonRelationalDB>(sp =>
+            services.AddSingleton<IMongoClient>(_ => new MongoClient(mongoConnection));
+            services.AddScoped<GameDBContext>(sp =>
             {
                 var client = sp.GetRequiredService<IMongoClient>();
                 var database = client.GetDatabase(mongoDbName);
 
-                return new NonRelationalDB(database);
+                return new GameDBContext(database);
             });
 
             return services;

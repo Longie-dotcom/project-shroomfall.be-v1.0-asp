@@ -1,9 +1,9 @@
-﻿using Application.Interfaces.Cache;
-using Application.Interfaces.Cache.EntityDomain;
-using Application.Interfaces.Cache.EntityDomain.Component;
-using Application.Interfaces.Cache.LocalizationDomain;
-using Application.Interfaces.Cache.MetaDomain;
-using Application.Interfaces.Cache.WorldDomain;
+﻿using Application.Interface.Cache;
+using Application.Interface.Cache.EntityDomain;
+using Application.Interface.Cache.EntityDomain.Component;
+using Application.Interface.Cache.LocalizationDomain;
+using Application.Interface.Cache.MetaDomain;
+using Application.Interface.Cache.WorldDomain;
 using Infrastructure.Cache;
 using Infrastructure.Cache.EntityDomain;
 using Infrastructure.Cache.EntityDomain.Component;
@@ -26,11 +26,10 @@ namespace Infrastructure.Configuration
         public static IServiceCollection AddCacheConfiguration(
             this IServiceCollection services)
         {
-            // Meta
-            services.AddSingleton<IEffectCache, EffectCache>();
-            services.AddSingleton<IItemCache, ItemCache>();
+            // CACHE PROVIDER
+            services.AddScoped<ICacheProvider, CacheProvider>();
 
-            // Entity
+            // ENTITY CACHE
             services.AddSingleton<IAICache, AICache>();
             services.AddSingleton<IAppearanceCache, AppearanceCache>();
             services.AddSingleton<ICollisionCache, CollisionCache>();
@@ -41,15 +40,16 @@ namespace Infrastructure.Configuration
             services.AddSingleton<ITriggeredEffectCache, TriggeredEffectCache>();
             services.AddSingleton<IEntityCache, EntityCache>();
 
-            // World 
-            services.AddSingleton<ICombatRunCache, CombatRunCache>();
-            services.AddSingleton<IRoomCache, RoomCache>();
-
-            // Localization
+            // LOCALIZATION CACHE
             services.AddSingleton<ILocaleCache, LocaleCache>();
 
-            // Loader
-            services.AddScoped<ICacheProvider, CacheProvider>();
+            // META CACHE
+            services.AddSingleton<IEffectCache, EffectCache>();
+            services.AddSingleton<IItemCache, ItemCache>();
+
+            // WORLD CACHE
+            services.AddSingleton<ICombatRunCache, CombatRunCache>();
+            services.AddSingleton<IRoomCache, RoomCache>();
 
             return services;
         }

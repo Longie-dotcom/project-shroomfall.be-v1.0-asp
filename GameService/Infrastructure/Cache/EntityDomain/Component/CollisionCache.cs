@@ -1,5 +1,5 @@
-﻿using Application.Interfaces.Cache.EntityDomain.Component;
-using Domain.Definition.EntityDomain.Component;
+﻿using Application.Interface.Cache.EntityDomain.Component;
+using Contract.DTO.Definition.EntityDomain.Component;
 using Domain.DomainException;
 using ResponseCode;
 
@@ -8,8 +8,8 @@ namespace Infrastructure.Cache.EntityDomain.Component
     public class CollisionCache : ICollisionCache
     {
         #region Attributes
-        private Dictionary<Guid, CollisionDefinition> byId = new();
-        private Dictionary<string, CollisionDefinition> byEntityId = new();
+        private Dictionary<Guid, CollisionDefinitionDTO> byId = new();
+        private Dictionary<string, CollisionDefinitionDTO> byEntityId = new();
         #endregion
 
         #region Properties
@@ -19,9 +19,9 @@ namespace Infrastructure.Cache.EntityDomain.Component
 
         #region Methods
         public void Load(
-            List<CollisionDefinition> data)
+            List<CollisionDefinitionDTO> data)
         {
-            byId = data.ToDictionary(x => x.ID, x => x);
+            byId = data.ToDictionary(x => x.ID!.Value, x => x);
 
             byEntityId.Clear();
 
@@ -32,25 +32,25 @@ namespace Infrastructure.Cache.EntityDomain.Component
                 if (byEntityId.TryGetValue(key, out var existing))
                     throw new InternalException(
                         InfrastructureCode.CollisionCacheCode.DuplicateCollisionComponent,
-                        $"Duplicate component detected for EntityDefinitionID '{key}' in {typeof(CollisionDefinition).Name}. Existing: {existing.ID}, New: {item.ID}");
+                        $"Duplicate component detected for EntityDefinitionID '{key}' in {typeof(CollisionCache).Name}. Existing: {existing.ID}, New: {item.ID}");
 
                 byEntityId[key] = item;
             }
         }
 
-        public IEnumerable<CollisionDefinition> GetAll()
+        public IEnumerable<CollisionDefinitionDTO> GetAll()
         {
             return byId.Values;
         }
 
-        public CollisionDefinition? Get(
+        public CollisionDefinitionDTO? Get(
             Guid id)
         {
             byId.TryGetValue(id, out var value);
             return value;
         }
 
-        public CollisionDefinition? GetByEntity(
+        public CollisionDefinitionDTO? GetByEntity(
             string entityDefinitionId)
         {
             byEntityId.TryGetValue(entityDefinitionId, out var value);

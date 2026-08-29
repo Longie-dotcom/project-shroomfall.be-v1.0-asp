@@ -1,4 +1,4 @@
-﻿using Application.Interfaces.Utility;
+﻿using Application.Interface.Utility;
 
 namespace Infrastructure.Utility
 {

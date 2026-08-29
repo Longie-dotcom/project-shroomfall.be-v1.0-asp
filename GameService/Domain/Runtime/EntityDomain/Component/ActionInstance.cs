@@ -1,6 +1,6 @@
-﻿using Contract.Enum.MetaDomain.Item;
+﻿using Contract.Common;
+using Contract.Enum.MetaDomain.Item;
 using Domain.Abstraction;
-using Domain.Common;
 
 namespace Domain.Runtime.EntityDomain.Component
 {

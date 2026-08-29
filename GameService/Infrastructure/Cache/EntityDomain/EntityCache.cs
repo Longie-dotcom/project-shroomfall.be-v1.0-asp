@@ -1,12 +1,12 @@
-﻿using Application.Interfaces.Cache.EntityDomain;
-using Domain.Definition.EntityDomain;
+﻿using Application.Interface.Cache.EntityDomain;
+using Contract.DTO.Definition.EntityDomain.Component;
 
 namespace Infrastructure.Cache.EntityDomain
 {
     public class EntityCache : IEntityCache
     {
         #region Attributes
-        private Dictionary<string, EntityDefinition> entities = new();
+        private Dictionary<string, EntityDefinitionDTO> entities = new();
         #endregion
 
         #region Properties
@@ -16,21 +16,21 @@ namespace Infrastructure.Cache.EntityDomain
 
         #region Methods
         public void Load(
-            List<EntityDefinition> data)
+            List<EntityDefinitionDTO> data)
         {
             entities.Clear();
 
             entities = data.ToDictionary(
-                x => x.ID,
+                x => x.Id,
                 x => x);
         }
 
-        public IEnumerable<EntityDefinition> GetAll()
+        public IEnumerable<EntityDefinitionDTO> GetAll()
         {
             return entities.Values;
         }
 
-        public EntityDefinition? Get(
+        public EntityDefinitionDTO? Get(
             string id)
         {
             entities.TryGetValue(

@@ -1,6 +1,6 @@
-﻿using Application.Interfaces.Realtime;
-using Application.Interfaces.Realtime.Events;
-using Application.Interfaces.Realtime.Managers;
+﻿using Application.Interface.Realtime;
+using Application.Interface.Realtime.Events;
+using Application.Interface.Realtime.Managers;
 using Infrastructure.Realtime;
 using Infrastructure.Realtime.Events;
 using Infrastructure.Realtime.Events.Admin;
@@ -23,24 +23,20 @@ namespace Infrastructure.Configuration
         public static IServiceCollection AddRealtimeConfiguration(
             this IServiceCollection services)
         {
-            // Core Realtime
+            // CORE REALTIME
             services.AddSignalR();
             services.AddSingleton<IRealtimePublisher, RealtimePublisher>();
 
-            // Managers
-            services.AddSingleton<ISessionManager, SessionManager>();
-            services.AddSingleton<IConnectionManager, ConnectionManager>();
-
-            // Handlers - Admin
+            // ADMIN HANDLER
             services.AddSingleton<IEventHandler, RoomStateChangedHandler>();
             services.AddSingleton<IEventHandler, RoomSyncChangedHandler>();
             services.AddSingleton<IEventHandler, UserConnectionChangedHandler>();
             services.AddSingleton<IEventHandler, UserSessionChangedHandler>();
 
-            // Handlers - Design
+            // DESIGN HANDLER
             services.AddSingleton<IEventHandler, DefinitionUpdatedHandler>();
-            
-            // Handlers - Game
+
+            // GAME HANDLER
             services.AddSingleton<IEventHandler, EntityActedHandler>();
             services.AddSingleton<IEventHandler, EntityAppearanceChangedHandler>();
             services.AddSingleton<IEventHandler, EntityLifecycleHandler>();
@@ -50,10 +46,14 @@ namespace Infrastructure.Configuration
             services.AddSingleton<IEventHandler, PlayerCharacteristicSyncHandler>();
             services.AddSingleton<IEventHandler, RoomSnapshotUpdatedHandler>();
 
-            // Events
+            // EVENT BUS
             services.AddSingleton<IEventBus, EventBus>();
             services.AddSingleton<IEventDispatcher, EventDispatcher>();
-            
+
+            // MANAGER
+            services.AddSingleton<ISessionManager, SessionManager>();
+            services.AddSingleton<IConnectionManager, ConnectionManager>();
+
             return services;
         }
         #endregion

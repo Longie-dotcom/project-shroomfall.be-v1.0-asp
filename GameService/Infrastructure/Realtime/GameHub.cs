@@ -1,6 +1,6 @@
-﻿using Application.Features.Abstraction;
-using Application.Features.Connection.Commands;
-using Application.Features.Game.Commands;
+﻿using Application.Feature.Abstraction;
+using Application.Feature.Connection.Command;
+using Application.Feature.Game.Command;
 using Contract;
 using Contract.DTO.Feature.Game.Command;
 using Contract.Enum.IdentityDomain;
@@ -42,8 +42,8 @@ namespace Infrastructure.Realtime
         {
             var (userId, connectionId) = HubContextValidator.GetValidatedContext(this);
 
-            await dispatcher.Send<UnloadSessionCommand>(
-                new UnloadSessionCommand(userId, connectionId)
+            await dispatcher.Send<UserDisconnectCommand>(
+                new UserDisconnectCommand(userId, connectionId)
             );
 
             await base.OnDisconnectedAsync(exception);

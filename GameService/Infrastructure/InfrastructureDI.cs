@@ -14,17 +14,48 @@ namespace Infrastructure
         #endregion
 
         #region Methods
-        public static IServiceCollection AddInfrastructure(this IServiceCollection services)
+        public static IServiceCollection AddInfrastructure(
+            this IServiceCollection services)
         {
             // ─────────────────────────────
-            // PERSISTENCES
+            // BACKGROUND
+            // ─────────────────────────────
+            services.AddBackgroundConfiguration();
+
+            // ─────────────────────────────
+            // CACHE
+            // ─────────────────────────────
+            services.AddCacheConfiguration();
+
+            // ─────────────────────────────
+            // GRPC
+            // ─────────────────────────────
+            services.AddGrpcConfiguration();
+
+            // ─────────────────────────────
+            // MESSAGING
+            // ─────────────────────────────
+            services.AddMessagingConfiguration();
+
+            // ─────────────────────────────
+            // PERSISTENCE
             // ─────────────────────────────
             services.AddPersistenceConfiguration();
 
             // ─────────────────────────────
-            // REPOSITORIES
+            // REALTIME
+            // ─────────────────────────────
+            services.AddRealtimeConfiguration();
+
+            // ─────────────────────────────
+            // REPOSITORY
             // ─────────────────────────────
             services.AddRepositoryConfiguration();
+
+            // ─────────────────────────────
+            // UTILITY
+            // ─────────────────────────────
+            services.AddUtilityConfiguration();
 
             // ─────────────────────────────
             // RUNTIME WORLD
@@ -33,26 +64,6 @@ namespace Infrastructure
             services.AddSingleton<IWorldQuery>(sp => sp.GetRequiredService<World>());
             services.AddSingleton<IEntityCommand>(sp => sp.GetRequiredService<World>());
             services.AddSingleton<IRoomCommand>(sp => sp.GetRequiredService<World>());
-
-            // ─────────────────────────────
-            // CACHES
-            // ─────────────────────────────
-            services.AddCacheConfiguration();
-
-            // ─────────────────────────────
-            // BACKGROUNDS
-            // ─────────────────────────────
-            services.AddBackgroundConfiguration();
-
-            // ─────────────────────────────
-            // REALTIME
-            // ─────────────────────────────
-            services.AddRealtimeConfiguration();
-
-            // ─────────────────────────────
-            // UTILITY
-            // ─────────────────────────────
-            services.AddUtilityConfiguration();
 
             return services;
         }

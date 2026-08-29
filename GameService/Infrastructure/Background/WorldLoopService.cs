@@ -1,8 +1,8 @@
-﻿using Application.Interfaces.Realtime.Events;
-using Application.Interfaces.Utility;
-using Application.Services.WorldService;
-using Application.Systems.Queue;
-using Application.Systems.System;
+﻿using Application.Interface.Realtime.Events;
+using Application.Interface.Utility;
+using Application.Service.WorldService;
+using Application.System.Queue;
+using Application.System.System;
 using Contract;
 using Domain.DomainException;
 using Microsoft.Extensions.Hosting;

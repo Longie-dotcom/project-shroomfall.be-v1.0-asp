@@ -15,10 +15,10 @@ namespace Infrastructure.Configuration
         public static IServiceCollection AddBackgroundConfiguration(
             this IServiceCollection services)
         {
-            // Telemetry service
+            // TELEMETRY
             services.AddHostedService<TelemetryPublishService>();
 
-            // World loop service
+            // WORLD LOOP
             services.AddHostedService<WorldLoopService>();
 
             return services;

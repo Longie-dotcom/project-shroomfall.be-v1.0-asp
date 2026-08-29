@@ -1,5 +1,5 @@
-﻿using Application.Interfaces.Realtime;
-using Application.Interfaces.Utility;
+﻿using Application.Interface.Realtime;
+using Application.Interface.Utility;
 using Contract.DTO.Feature.Admin.Response;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

@@ -1,6 +1,6 @@
-﻿using Application.Interfaces.Realtime;
-using Application.Interfaces.Realtime.Events;
-using Application.Interfaces.Realtime.Events.Admin;
+﻿using Application.Interface.Realtime;
+using Application.Interface.Realtime.Events;
+using Application.Interface.Realtime.Events.Admin;
 using Contract.DTO.Feature.Admin.Response;
 
 namespace Infrastructure.Realtime.Events.Admin

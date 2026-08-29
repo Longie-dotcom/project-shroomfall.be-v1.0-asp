@@ -1,5 +1,5 @@
-﻿using Domain.Abstraction.World;
-using Domain.Common;
+﻿using Contract.Common;
+using Domain.Abstraction.World;
 using Domain.DomainException;
 using Domain.Runtime.EntityDomain;
 using Domain.Runtime.EntityDomain.Component;

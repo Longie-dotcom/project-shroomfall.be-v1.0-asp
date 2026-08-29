@@ -1,5 +1,5 @@
-﻿using Application.Interfaces.Utility;
-using Contract.DTO.Common;
+﻿using Application.Interface.Utility;
+using Contract.DTO.Abstraction;
 using Domain.DomainException;
 using ResponseCode;
 using System.Text.Json;
