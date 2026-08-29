@@ -16,9 +16,13 @@ namespace API
             var builder = WebApplication.CreateBuilder(args);
 
             // ─────────────────────────────
-            // SERVICES
+            // LOGGING
             // ─────────────────────────────
             builder.Services.AddLogging();
+
+            // ─────────────────────────────
+            // SERVICES
+            // ─────────────────────────────
             builder.Services.AddControllers();
             builder.Services.AddApplication();
             builder.Services.AddInfrastructure();
