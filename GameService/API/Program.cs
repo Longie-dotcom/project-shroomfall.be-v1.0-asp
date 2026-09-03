@@ -112,6 +112,19 @@ namespace API
             var app = builder.Build();
 
             // ─────────────────────────────
+            // STARTUP
+            // ─────────────────────────────
+            using (var scope = app.Services.CreateScope())
+            {
+                var managementGrpcClient = scope.ServiceProvider.GetRequiredService<IManagementGrpcClient>();
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+                logger.LogInformation("Requesting caching definition/meta data...");
+                await managementGrpcClient.RequestGameStartupAsync();
+                logger.LogInformation("Requesting completed.");
+            }
+
+            // ─────────────────────────────
             // MIDDLEWARE PIPELINE
             // ─────────────────────────────
             app.UseMiddleware<GlobalExceptionHandler>();
@@ -135,28 +148,7 @@ namespace API
             // ─────────────────────────────
             app.MapControllers();
 
-            // ─────────────────────────────
-            // START APPLICATION
-            // ─────────────────────────────
-            await app.StartAsync();
-
-            // ─────────────────────────────
-            // GAME STARTUP
-            // ─────────────────────────────
-            using (var scope = app.Services.CreateScope())
-            {
-                var managementGrpcClient = scope.ServiceProvider.GetRequiredService<IManagementGrpcClient>();
-                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-
-                logger.LogInformation("Requesting caching definition/meta data...");
-                await managementGrpcClient.RequestGameStartupAsync();
-                logger.LogInformation("Requesting completed.");
-            }
-
-            // ─────────────────────────────
-            // WAIT
-            // ─────────────────────────────
-            await app.WaitForShutdownAsync();
+            app.Run();
         }
     }
 }

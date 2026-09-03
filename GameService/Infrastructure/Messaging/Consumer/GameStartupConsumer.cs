@@ -32,6 +32,8 @@ namespace Infrastructure.Messaging.Consumer
         public async Task Consume(
             ConsumeContext<GameStartupDTO> context)
         {
+            Console.WriteLine("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+
             var message = context.Message;
 
             // LOAD CACHE
@@ -40,7 +42,6 @@ namespace Infrastructure.Messaging.Consumer
             // BOOT WORLD
             await bootstrapService.LoadAsync();
 
-            Console.WriteLine("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 
             logger.LogInformation("World bootup successfully! Game started!");
         }
