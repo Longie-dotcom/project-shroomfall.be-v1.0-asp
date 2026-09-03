@@ -32,8 +32,6 @@ namespace Infrastructure.Messaging.Consumer
         public async Task Consume(
             ConsumeContext<GameStartupDTO> context)
         {
-            Console.WriteLine("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-
             var message = context.Message;
 
             // LOAD CACHE
