@@ -136,13 +136,16 @@ namespace API
             app.MapControllers();
 
             // ─────────────────────────────
-            // STARTUP CALL
+            // STARTUP
             // ─────────────────────────────
             var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
             lifetime.ApplicationStarted.Register(() =>
             {
                 Task.Run(async () =>
                 {
+                    // Adding a tiny delay guarantees the network binding is finished in RabbitMQ
+                    await Task.Delay(3000);
+
                     using (var scope = app.Services.CreateScope())
                     {
                         var managementGrpcClient = scope.ServiceProvider.GetRequiredService<IManagementGrpcClient>();
