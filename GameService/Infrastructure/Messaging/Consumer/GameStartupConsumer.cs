@@ -40,7 +40,6 @@ namespace Infrastructure.Messaging.Consumer
             // BOOT WORLD
             await bootstrapService.LoadAsync();
             Console.WriteLine("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-            logger.LogInformation("World bootup successfully! Game started!");
         }
         #endregion
     }
