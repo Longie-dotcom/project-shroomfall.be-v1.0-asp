@@ -42,7 +42,7 @@ namespace Infrastructure.Messaging.Consumer
 
             Console.WriteLine("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 
-            Console.WriteLine("World bootup successfully! Game started!");
+            logger.LogInformation("World bootup successfully! Game started!");
         }
         #endregion
     }
