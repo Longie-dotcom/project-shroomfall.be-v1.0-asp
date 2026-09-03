@@ -112,19 +112,6 @@ namespace API
             var app = builder.Build();
 
             // ─────────────────────────────
-            // STARTUP
-            // ─────────────────────────────
-            using (var scope = app.Services.CreateScope())
-            {
-                var managementGrpcClient = scope.ServiceProvider.GetRequiredService<IManagementGrpcClient>();
-                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-
-                logger.LogInformation("Requesting caching definition/meta data...");
-                await managementGrpcClient.RequestGameStartupAsync();
-                logger.LogInformation("Requesting completed.");
-            }
-
-            // ─────────────────────────────
             // MIDDLEWARE PIPELINE
             // ─────────────────────────────
             app.UseMiddleware<GlobalExceptionHandler>();
@@ -147,6 +134,33 @@ namespace API
             // HTTP API
             // ─────────────────────────────
             app.MapControllers();
+
+            // ─────────────────────────────
+            // STARTUP CALL
+            // ─────────────────────────────
+            var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
+            lifetime.ApplicationStarted.Register(() =>
+            {
+                Task.Run(async () =>
+                {
+                    using (var scope = app.Services.CreateScope())
+                    {
+                        var managementGrpcClient = scope.ServiceProvider.GetRequiredService<IManagementGrpcClient>();
+                        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+                        logger.LogInformation("Requesting caching definition/meta data...");
+                        try
+                        {
+                            await managementGrpcClient.RequestGameStartupAsync();
+                            logger.LogInformation("Requesting completed.");
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogError(ex, "Failed to connect to Management Service.");
+                        }
+                    }
+                });
+            });
 
             app.Run();
         }
