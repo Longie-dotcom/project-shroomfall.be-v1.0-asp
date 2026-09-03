@@ -40,6 +40,7 @@ namespace Infrastructure.Configuration
 
             services.AddMassTransit(configurator =>
             {
+                // CONSUMER
                 configurator.AddConsumer<GameStartupConsumer>();
 
                 configurator.UsingRabbitMq((context, cfg) =>
@@ -49,11 +50,10 @@ namespace Infrastructure.Configuration
                         host.Username(rabbitUsername);
                         host.Password(rabbitPassword);
                     });
+
+                    cfg.ConfigureEndpoints(context);
                 });
             });
-
-            // CONSUMER
-            services.AddScoped<IConsumer<GameStartupDTO>, GameStartupConsumer>();
 
             return services;
         }
